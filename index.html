@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudNotes - PWA Keep Clone</title>
+    <meta name="description" content="Una aplicación de notas simple con sincronización en Google Drive.">
+
+    <!-- PWA Settings -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Google API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+
+    <link rel="stylesheet" href="style.css?v=1737057700">
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">📝</span>
+                    <h1>CloudNotes</h1>
+                </div>
+                <div class="actions">
+                    <button id="sync-btn" class="btn btn-primary">
+                        <span class="icon">🔄</span>
+                        <span class="text">Sincronizar</span>
+                    </button>
+                    <button id="auth-btn" class="btn btn-secondary">
+                        <span class="icon">👤</span>
+                        <span class="text">Conectar Google</span>
+                    </button>
+                </div>
+            </div>
+            <div id="status-bar" class="status-bar hidden">
+                <p id="status-text"></p>
+            </div>
+        </header>
+
+        <main>
+            <div class="note-input-container">
+                <div class="note-input-card" id="note-input-base">
+                    <input type="text" id="note-title" placeholder="Título" class="hidden">
+                    <textarea id="note-content" placeholder="Escribe una nota..."></textarea>
+                    <div class="note-input-actions hidden" id="note-actions">
+                        <button id="save-note" class="btn btn-small">Guardar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="notes-grid" class="notes-grid">
+                <!-- Notes will be injected here -->
+            </div>
+        </main>
+
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>
