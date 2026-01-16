@@ -1,94 +1,256 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" class="dark transition-colors duration-500">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudNotes | Premium PWA</title>
-    <meta name="description" content="Elegante aplicación de notas con sincronización en la nube.">
+    <title>CloudNotes Pro | PQ Encrypted</title>
 
     <!-- PWA Settings -->
     <link rel="manifest" href="/laboratory/assets/manifest-YEODRBLz.json">
     <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
 
     <!-- Google API -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
 
-  <script type="module" crossorigin src="/laboratory/assets/index-CTygu5Z3.js"></script>
-  <link rel="stylesheet" crossorigin href="/laboratory/assets/index-S5-sY6hs.css">
+  <script type="module" crossorigin src="/laboratory/assets/index-CqpxZbab.js"></script>
+  <link rel="stylesheet" crossorigin href="/laboratory/assets/index-Du-yFIuh.css">
 </head>
 
-<body class="selection:bg-brand/30 selection:text-white">
-    <div id="app" class="min-h-screen flex flex-col">
-        <header class="sticky top-0 z-50 bg-bg-dark/80 backdrop-blur-md border-b border-white/5">
-            <div class="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center">
-                <div class="flex items-center gap-3 group cursor-default">
-                    <div
-                        class="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-xl shadow-lg shadow-brand/20 group-hover:scale-110 transition-transform">
-                        📝
-                    </div>
-                    <h1
-                        class="text-xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent tracking-tight">
-                        CloudNotes
-                    </h1>
-                </div>
+<body class="bg-dark-bg text-slate-100 font-outfit antialiased selection:bg-brand/30">
 
-                <div class="flex items-center gap-3">
-                    <button id="sync-btn" class="btn-premium btn-primary">
-                        <span class="text-lg">🔄</span>
-                        <span class="hidden sm:inline">Sincronizar</span>
+    <!-- Auth Shield / Setup Screen -->
+    <div id="auth-overlay"
+        class="fixed inset-0 z-[1000] bg-dark-bg/95 backdrop-blur-2xl flex items-center justify-center p-6 transition-all duration-700">
+        <div class="max-w-md w-full glass-card p-10 text-center animate-in fade-in zoom-in duration-500">
+            <div
+                class="w-20 h-20 rounded-2xl bg-brand mx-auto mb-8 flex items-center justify-center text-3xl shadow-2xl shadow-brand/30">
+                🔐
+            </div>
+            <h1 id="auth-title" class="text-3xl font-bold mb-4 text-white">CloudNotes Pro</h1>
+            <p id="auth-desc" class="text-slate-400 mb-8 leading-relaxed">Protege tus pensamientos con encriptación
+                post-cuántica avanzada.</p>
+
+            <div class="space-y-4">
+                <input type="password" id="app-password" placeholder="Tu contraseña maestra"
+                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-center text-xl tracking-[0.5em] focus:ring-2 focus:ring-brand outline-none transition-all">
+                <button id="auth-submit-btn" class="w-full btn-premium btn-primary py-4 justify-center text-lg">
+                    Desbloquear Bóveda
+                </button>
+            </div>
+            <p class="mt-8 text-[10px] text-slate-500 uppercase tracking-widest font-mono">Bóveda Encriptada con
+                AES-256-GCM</p>
+        </div>
+    </div>
+
+    <div id="app" class="h-screen flex flex-col sm:flex-row overflow-hidden opacity-0 transition-opacity duration-1000">
+
+        <!-- Sidebar (Desktop) -->
+        <aside id="sidebar"
+            class="hidden sm:flex flex-col w-72 bg-dark-card/40 backdrop-blur-xl border-r border-white/5 transition-all duration-300">
+            <div class="p-6 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-sm shadow-brand/20">📝
+                </div>
+                <h1 class="font-bold tracking-tight text-white">Bóveda Cloud</h1>
+            </div>
+
+            <nav class="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+                <button class="nav-item active w-full" data-cat="all">
+                    <span>🏠</span> Todas las notas
+                </button>
+                <button class="nav-item w-full" data-cat="pinned">
+                    <span>📌</span> Destacadas
+                </button>
+
+                <div class="pt-6 pb-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Categorías
+                </div>
+                <div id="categories-list" class="space-y-1">
+                    <!-- Categories injected here -->
+                </div>
+                <button id="add-category-btn"
+                    class="w-full flex items-center gap-3 px-3 py-2 text-sm text-brand hover:bg-brand/10 rounded-lg transition-colors mt-2">
+                    <span>➕</span> Nueva Categoría
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-white/5 space-y-2">
+                <button id="settings-btn" class="w-full btn-premium btn-secondary py-2 justify-center">
+                    <span>⚙️</span> Configuración
+                </button>
+                <div class="flex gap-2">
+                    <button id="sync-btn-icon" class="flex-1 btn-premium btn-primary justify-center px-0 h-10"
+                        title="Sincronizar Cloud">
+                        <span class="animate-spin-slow">🔄</span>
                     </button>
-                    <button id="auth-btn" class="btn-premium btn-secondary">
-                        <span class="text-lg">👤</span>
-                        <span class="text hidden sm:inline">Conectar Google</span>
+                    <button id="auth-btn-icon" class="flex-1 btn-premium btn-secondary justify-center px-0 h-10"
+                        title="Cuenta Google">
+                        <span id="auth-status-icon">👤</span>
                     </button>
                 </div>
             </div>
+        </aside>
 
-            <div id="status-bar" class="hidden h-8 bg-brand/10 flex items-center justify-center">
-                <p id="status-text" class="text-xs font-medium text-brand uppercase tracking-widest"></p>
-            </div>
-        </header>
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col relative overflow-hidden h-full">
 
-        <main class="flex-1 max-w-4xl mx-auto w-full px-6 py-12">
-            <!-- Input Card -->
-            <div class="mb-16">
-                <div class="glass-card p-4 focus-within:ring-2 focus-within:ring-brand/50 transition-all duration-500 overflow-hidden"
-                    id="note-input-base">
-                    <input type="text" id="note-title" placeholder="Título magnífico..."
-                        class="input-premium text-lg font-bold mb-3 hidden">
-                    <textarea id="note-content" placeholder="Escribe algo brillante..."
-                        class="input-premium min-h-[60px] text-lg resize-none"></textarea>
+            <!-- Mobile Header -->
+            <header
+                class="sm:hidden h-16 border-b border-white/5 flex items-center justify-between px-6 bg-dark-bg/80 backdrop-blur-md sticky top-0 z-40">
+                <div class="font-bold flex items-center gap-2">
+                    <span class="text-brand">📝</span> Bóveda
+                </div>
+                <button id="mobile-menu-btn" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5">
+                    ☰
+                </button>
+            </header>
 
-                    <div class="flex justify-end pt-4 border-t border-white/5 hidden" id="note-actions">
-                        <button id="save-note" class="btn-premium btn-primary py-2 text-sm shadow-none">
-                            Guardar Nota
-                        </button>
+            <!-- Workspace Content -->
+            <div class="flex-1 overflow-y-auto custom-scroll p-4 sm:p-8" id="workspace">
+
+                <!-- Editor Unit -->
+                <div class="max-w-3xl mx-auto mb-12">
+                    <div id="editor-container"
+                        class="glass-card shadow-2xl overflow-hidden focus-within:ring-2 focus-within:ring-brand/50 transition-all duration-300">
+                        <!-- Toolbar -->
+                        <div id="editor-toolbar"
+                            class="hidden h-10 flex items-center gap-1 px-3 border-b border-white/5 bg-white/5">
+                            <button class="tool-btn" data-cmd="bold" title="Negrita"><b>B</b></button>
+                            <button class="tool-btn" data-cmd="italic" title="Cursiva"><i>I</i></button>
+                            <button class="tool-btn" data-cmd="underline" title="Subrayado"><u>U</u></button>
+                            <div class="w-px h-4 bg-white/10 mx-1"></div>
+                            <input type="color" id="text-color-picker"
+                                class="w-6 h-6 bg-transparent border-none cursor-pointer p-0" title="Color de Texto">
+                            <div class="w-px h-4 bg-white/10 mx-1"></div>
+                            <button id="emoji-btn" class="tool-btn">😊</button>
+                        </div>
+
+                        <div class="p-4 sm:p-6">
+                            <input type="text" id="note-title" placeholder="Título..."
+                                class="input-premium text-2xl font-bold mb-4 hidden">
+                            <div id="note-content" contenteditable="true"
+                                class="input-premium text-lg min-h-[50px] outline-none empty:before:content-[attr(placeholder)] empty:before:text-slate-500"
+                                placeholder="Escribe tus secretos aquí..."></div>
+                        </div>
+
+                        <div id="editor-footer"
+                            class="hidden p-4 bg-white/5 border-t border-white/5 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <select id="note-category-select"
+                                    class="bg-dark-bg border border-white/10 text-[10px] rounded-lg px-2 py-1 outline-none uppercase font-bold tracking-tighter">
+                                    <option value="none">Sin Categoría</option>
+                                </select>
+                                <input type="color" id="note-bg-picker" value="#1e293b"
+                                    class="w-8 h-8 rounded-full border-2 border-white/20 p-0 cursor-pointer overflow-hidden"
+                                    title="Color de Nota">
+                                <button id="note-pin-btn"
+                                    class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"
+                                    title="Fijar Nota">📌</button>
+                                <button id="note-lock-btn"
+                                    class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center font-bold"
+                                    title="Password Nota">🔒</button>
+                            </div>
+                            <button id="save-note" class="btn-premium btn-primary py-2 px-6 ml-auto">Guardar</button>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Notes Grid -->
+                <div id="notes-grid" class="max-w-6xl mx-auto columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+                    <!-- Notes injected here -->
                 </div>
             </div>
 
-            <!-- Header Section -->
-            <div class="flex items-baseline justify-between mb-8">
-                <h2 class="text-2xl font-semibold opacity-90">Tus Notas</h2>
-                <span class="text-xs text-text-muted font-mono uppercase tracking-widest">Local & Cloud</span>
-            </div>
+            <!-- Mobile Navigation Bar -->
+            <nav
+                class="sm:hidden h-16 border-t border-white/5 bg-dark-bg/95 flex items-center justify-around px-2 relative z-50">
+                <button class="mobile-nav-item active" data-cat="all">🏠</button>
+                <button class="mobile-nav-item" data-cat="categories">📁</button>
+                <button class="mobile-nav-item center" id="mobile-add-note">➕</button>
+                <button class="mobile-nav-item" data-cat="pinned">📌</button>
+                <button class="mobile-nav-item" id="mobile-settings">⚙️</button>
+            </nav>
 
-            <!-- Notes Grid -->
-            <div id="notes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Notes will be injected here -->
-            </div>
         </main>
+    </div>
 
-        <div id="toast"
-            class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-white text-slate-900 font-medium shadow-2xl transition-all duration-300 translate-y-20 opacity-0 z-[1000]">
+    <!-- Modals -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-card max-w-lg w-full p-8 overflow-y-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold">Configuración</h2>
+                <button class="close-modal text-2xl hover:text-red-400">✕</button>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Tema
+                        Visual</label>
+                    <div class="flex gap-4">
+                        <button class="flex-1 py-3 glass-card text-sm font-medium border-brand/50 bg-brand/10"
+                            id="set-dark-mode">Dark Mode</button>
+                        <button class="flex-1 py-3 glass-card text-sm font-medium" id="set-light-mode">Light
+                            Mode</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Google Drive
+                        Path</label>
+                    <input type="text" id="drive-path-input"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-brand font-mono text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Algoritmo de
+                        Encriptación</label>
+                    <select id="algo-select"
+                        class="w-full bg-dark-bg border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-brand">
+                        <option value="aes-256-gcm">PQ Ready: AES-256-GCM (Recommended)</option>
+                        <option value="kyber">Experimental: CRYSTALS-Kyber</option>
+                    </select>
+                </div>
+
+                <div class="pt-6 border-t border-white/5 flex gap-4">
+                    <button class="flex-1 btn-premium btn-secondary py-3 text-sm" id="export-data">Exportar
+                        Datos</button>
+                    <button class="flex-1 btn-premium btn-primary py-3 text-sm" id="save-settings">Guardar
+                        Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Password / Multi-screen modal -->
+    <div id="category-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-card max-w-md w-full p-8 text-center">
+            <h2 id="cat-modal-title" class="text-2xl font-bold mb-4">Acceso Restringido</h2>
+            <p class="text-slate-400 mb-6">Esta categoría requiere una contraseña específica.</p>
+            <input type="password" id="cat-password-input"
+                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 mb-6 text-center text-xl tracking-widest outline-none focus:ring-2 focus:ring-brand">
+            <div class="flex gap-3">
+                <button class="flex-1 btn-premium btn-secondary close-modal">Cancelar</button>
+                <button id="cat-auth-submit" class="flex-1 btn-premium btn-primary">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-white text-slate-900 font-medium shadow-2xl transition-all duration-300 translate-y-20 opacity-0 z-[2000] pointer-events-none">
+    </div>
+
+    <!-- Emojis Picker -->
+    <div id="emoji-picker"
+        class="fixed hidden z-[1100] glass-card p-4 transition-all duration-300 shadow-2xl border-brand/20">
+        <div class="grid grid-cols-6 gap-2 h-48 overflow-y-auto custom-scroll w-48 text-lg" id="emoji-grid">
+            <!-- Emojis injected here -->
         </div>
     </div>
 
