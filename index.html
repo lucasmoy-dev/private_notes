@@ -1,259 +1,252 @@
 <!DOCTYPE html>
-<html lang="es" class="dark transition-colors duration-500">
+<html lang="es" class="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudNotes Pro | PQ Encrypted</title>
-
-    <!-- PWA Settings -->
+    <title>CloudNotes | Shadcn Edition</title>
     <link rel="manifest" href="/laboratory/assets/manifest-YEODRBLz.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#09090b">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Google API -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
-
-  <script type="module" crossorigin src="/laboratory/assets/index-CqpxZbab.js"></script>
-  <link rel="stylesheet" crossorigin href="/laboratory/assets/index-Du-yFIuh.css">
+    <!-- CSS -->
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module" crossorigin src="/laboratory/assets/index-Rb38Yhbz.js"></script>
+  <link rel="stylesheet" crossorigin href="/laboratory/assets/index-CST7x0B2.css">
 </head>
 
-<body class="bg-dark-bg text-slate-100 font-outfit antialiased selection:bg-brand/30">
+<body class="bg-background text-foreground font-sans">
 
-    <!-- Auth Shield / Setup Screen -->
-    <div id="auth-overlay"
-        class="fixed inset-0 z-[1000] bg-dark-bg/95 backdrop-blur-2xl flex items-center justify-center p-6 transition-all duration-700">
-        <div class="max-w-md w-full glass-card p-10 text-center animate-in fade-in zoom-in duration-500">
-            <div
-                class="w-20 h-20 rounded-2xl bg-brand mx-auto mb-8 flex items-center justify-center text-3xl shadow-2xl shadow-brand/30">
-                🔐
+    <!-- Auth / Password Shield -->
+    <div id="auth-shield"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-md transition-opacity duration-500">
+        <div class="w-full max-w-sm p-8 space-y-6 bg-card border rounded-xl shadow-2xl">
+            <div class="text-center space-y-2">
+                <div
+                    class="mx-auto w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+                    <i data-lucide="lock" class="w-6 h-6 text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight" id="auth-title">Bóveda Protegida</h1>
+                <p class="text-sm text-muted-foreground" id="auth-desc">Ingresa tu contraseña maestra para continuar</p>
             </div>
-            <h1 id="auth-title" class="text-3xl font-bold mb-4 text-white">CloudNotes Pro</h1>
-            <p id="auth-desc" class="text-slate-400 mb-8 leading-relaxed">Protege tus pensamientos con encriptación
-                post-cuántica avanzada.</p>
-
             <div class="space-y-4">
-                <input type="password" id="app-password" placeholder="Tu contraseña maestra"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-center text-xl tracking-[0.5em] focus:ring-2 focus:ring-brand outline-none transition-all">
-                <button id="auth-submit-btn" class="w-full btn-premium btn-primary py-4 justify-center text-lg">
-                    Desbloquear Bóveda
+                <input type="password" id="master-password" placeholder="••••••••"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-center tracking-widest">
+                <button id="auth-submit"
+                    class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+                    Desbloquear
                 </button>
             </div>
-            <p class="mt-8 text-[10px] text-slate-500 uppercase tracking-widest font-mono">Bóveda Encriptada con
-                AES-256-GCM</p>
         </div>
     </div>
 
-    <div id="app" class="h-screen flex flex-col sm:flex-row overflow-hidden opacity-0 transition-opacity duration-1000">
+    <!-- Main Layout -->
+    <div id="app" class="flex h-screen overflow-hidden opacity-0 transition-opacity duration-1000">
 
-        <!-- Sidebar (Desktop) -->
-        <aside id="sidebar"
-            class="hidden sm:flex flex-col w-72 bg-dark-card/40 backdrop-blur-xl border-r border-white/5 transition-all duration-300">
-            <div class="p-6 flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-sm shadow-brand/20">📝
+        <!-- Sidebar -->
+        <aside class="w-64 border-r bg-card hidden md:flex flex-col">
+            <div class="p-4 flex items-center gap-2 border-b">
+                <div class="w-8 h-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground">
+                    <i data-lucide="notebook-pen" class="w-5 h-5 text-white"></i>
                 </div>
-                <h1 class="font-bold tracking-tight text-white">Bóveda Cloud</h1>
+                <span class="font-semibold tracking-tight">CloudNotes</span>
             </div>
 
-            <nav class="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
-                <button class="nav-item active w-full" data-cat="all">
-                    <span>🏠</span> Todas las notas
-                </button>
-                <button class="nav-item w-full" data-cat="pinned">
-                    <span>📌</span> Destacadas
-                </button>
-
-                <div class="pt-6 pb-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Categorías
-                </div>
-                <div id="categories-list" class="space-y-1">
-                    <!-- Categories injected here -->
-                </div>
-                <button id="add-category-btn"
-                    class="w-full flex items-center gap-3 px-3 py-2 text-sm text-brand hover:bg-brand/10 rounded-lg transition-colors mt-2">
-                    <span>➕</span> Nueva Categoría
-                </button>
-            </nav>
-
-            <div class="p-4 border-t border-white/5 space-y-2">
-                <button id="settings-btn" class="w-full btn-premium btn-secondary py-2 justify-center">
-                    <span>⚙️</span> Configuración
-                </button>
-                <div class="flex gap-2">
-                    <button id="sync-btn-icon" class="flex-1 btn-premium btn-primary justify-center px-0 h-10"
-                        title="Sincronizar Cloud">
-                        <span class="animate-spin-slow">🔄</span>
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="space-y-1">
+                    <button
+                        class="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md bg-accent text-accent-foreground nav-link"
+                        data-view="all">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i> Todas las notas
                     </button>
-                    <button id="auth-btn-icon" class="flex-1 btn-premium btn-secondary justify-center px-0 h-10"
-                        title="Cuenta Google">
-                        <span id="auth-status-icon">👤</span>
+                    <button
+                        class="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground nav-link"
+                        data-view="pinned">
+                        <i data-lucide="pin" class="w-4 h-4"></i> Destacadas
                     </button>
                 </div>
+
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between px-3 py-2">
+                        <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categorías</h3>
+                        <button id="add-category" class="text-muted-foreground hover:text-foreground"><i
+                                data-lucide="plus" class="w-4 h-4"></i></button>
+                    </div>
+                    <div id="sidebar-categories" class="space-y-1">
+                        <!-- Categories -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t space-y-2">
+                <div class="px-3 py-1 mb-2 text-[10px] font-medium text-muted-foreground/50 uppercase tracking-tighter">
+                    v3.0.1 - Shadcn Edition</div>
+                <button id="sync-btn"
+                    class="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-accent text-muted-foreground">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar
+                </button>
+                <button id="settings-trigger"
+                    class="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-accent text-muted-foreground">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Configuración
+                </button>
             </div>
         </aside>
 
-        <!-- Main Workspace -->
-        <main class="flex-1 flex flex-col relative overflow-hidden h-full">
-
-            <!-- Mobile Header -->
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col bg-background relative overflow-hidden">
+            <!-- Header -->
             <header
-                class="sm:hidden h-16 border-b border-white/5 flex items-center justify-between px-6 bg-dark-bg/80 backdrop-blur-md sticky top-0 z-40">
-                <div class="font-bold flex items-center gap-2">
-                    <span class="text-brand">📝</span> Bóveda
+                class="h-14 border-b flex items-center justify-between px-6 bg-background/50 backdrop-blur-md sticky top-0 z-10">
+                <div class="flex items-center gap-4">
+                    <button class="md:hidden p-2 -ml-2 text-muted-foreground"><i data-lucide="menu"
+                            class="w-5 h-5"></i></button>
+                    <h2 id="view-title" class="text-sm font-semibold text-foreground">Todas las notas</h2>
                 </div>
-                <button id="mobile-menu-btn" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5">
-                    ☰
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="new-note-btn"
+                        class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Crear Nota
+                    </button>
+                </div>
             </header>
 
-            <!-- Workspace Content -->
-            <div class="flex-1 overflow-y-auto custom-scroll p-4 sm:p-8" id="workspace">
-
-                <!-- Editor Unit -->
-                <div class="max-w-3xl mx-auto mb-12">
-                    <div id="editor-container"
-                        class="glass-card shadow-2xl overflow-hidden focus-within:ring-2 focus-within:ring-brand/50 transition-all duration-300">
-                        <!-- Toolbar -->
-                        <div id="editor-toolbar"
-                            class="hidden h-10 flex items-center gap-1 px-3 border-b border-white/5 bg-white/5">
-                            <button class="tool-btn" data-cmd="bold" title="Negrita"><b>B</b></button>
-                            <button class="tool-btn" data-cmd="italic" title="Cursiva"><i>I</i></button>
-                            <button class="tool-btn" data-cmd="underline" title="Subrayado"><u>U</u></button>
-                            <div class="w-px h-4 bg-white/10 mx-1"></div>
-                            <input type="color" id="text-color-picker"
-                                class="w-6 h-6 bg-transparent border-none cursor-pointer p-0" title="Color de Texto">
-                            <div class="w-px h-4 bg-white/10 mx-1"></div>
-                            <button id="emoji-btn" class="tool-btn">😊</button>
-                        </div>
-
-                        <div class="p-4 sm:p-6">
-                            <input type="text" id="note-title" placeholder="Título..."
-                                class="input-premium text-2xl font-bold mb-4 hidden">
-                            <div id="note-content" contenteditable="true"
-                                class="input-premium text-lg min-h-[50px] outline-none empty:before:content-[attr(placeholder)] empty:before:text-slate-500"
-                                placeholder="Escribe tus secretos aquí..."></div>
-                        </div>
-
-                        <div id="editor-footer"
-                            class="hidden p-4 bg-white/5 border-t border-white/5 flex flex-wrap items-center justify-between gap-3">
-                            <div class="flex items-center gap-2">
-                                <select id="note-category-select"
-                                    class="bg-dark-bg border border-white/10 text-[10px] rounded-lg px-2 py-1 outline-none uppercase font-bold tracking-tighter">
-                                    <option value="none">Sin Categoría</option>
-                                </select>
-                                <input type="color" id="note-bg-picker" value="#1e293b"
-                                    class="w-8 h-8 rounded-full border-2 border-white/20 p-0 cursor-pointer overflow-hidden"
-                                    title="Color de Nota">
-                                <button id="note-pin-btn"
-                                    class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center"
-                                    title="Fijar Nota">📌</button>
-                                <button id="note-lock-btn"
-                                    class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center font-bold"
-                                    title="Password Nota">🔒</button>
-                            </div>
-                            <button id="save-note" class="btn-premium btn-primary py-2 px-6 ml-auto">Guardar</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Notes Grid -->
-                <div id="notes-grid" class="max-w-6xl mx-auto columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-                    <!-- Notes injected here -->
+            <!-- Grid -->
+            <div id="notes-viewport" class="flex-1 overflow-y-auto p-6 md:p-8">
+                <div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <!-- Notes loaded here -->
                 </div>
             </div>
-
-            <!-- Mobile Navigation Bar -->
-            <nav
-                class="sm:hidden h-16 border-t border-white/5 bg-dark-bg/95 flex items-center justify-around px-2 relative z-50">
-                <button class="mobile-nav-item active" data-cat="all">🏠</button>
-                <button class="mobile-nav-item" data-cat="categories">📁</button>
-                <button class="mobile-nav-item center" id="mobile-add-note">➕</button>
-                <button class="mobile-nav-item" data-cat="pinned">📌</button>
-                <button class="mobile-nav-item" id="mobile-settings">⚙️</button>
-            </nav>
-
         </main>
     </div>
 
-    <!-- Modals -->
-    <div id="settings-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-card max-w-lg w-full p-8 overflow-y-auto">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold">Configuración</h2>
-                <button class="close-modal text-2xl hover:text-red-400">✕</button>
+    <!-- Editor Modal -->
+    <div id="editor-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm dialog-overlay"></div>
+        <div class="dialog-content max-w-2xl h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between border-b pb-4">
+                <input type="text" id="edit-title" placeholder="Título de la nota"
+                    class="bg-transparent text-xl font-bold outline-none border-none placeholder:text-muted-foreground w-full">
+                <button id="close-editor" class="text-muted-foreground hover:text-foreground"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
             </div>
 
-            <div class="space-y-6">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Tema
-                        Visual</label>
-                    <div class="flex gap-4">
-                        <button class="flex-1 py-3 glass-card text-sm font-medium border-brand/50 bg-brand/10"
-                            id="set-dark-mode">Dark Mode</button>
-                        <button class="flex-1 py-3 glass-card text-sm font-medium" id="set-light-mode">Light
-                            Mode</button>
-                    </div>
+            <div class="flex-1 py-4 overflow-y-auto">
+                <!-- Toolbar -->
+                <div class="flex items-center gap-1 mb-4 p-1 border rounded-md bg-muted/50">
+                    <button class="editor-tool" data-cmd="bold"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                    <button class="editor-tool" data-cmd="italic"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                    <button class="editor-tool" data-cmd="underline"><i data-lucide="underline"
+                            class="w-4 h-4"></i></button>
+                    <div class="w-px h-4 bg-border mx-1"></div>
+                    <button id="open-colors" class="editor-tool relative"><i data-lucide="palette"
+                            class="w-4 h-4"></i></button>
+                    <button id="open-emojis" class="editor-tool"><i data-lucide="smile" class="w-4 h-4"></i></button>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Google Drive
-                        Path</label>
-                    <input type="text" id="drive-path-input"
-                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-brand font-mono text-sm">
-                </div>
+                <div id="edit-content" contenteditable="true"
+                    class="min-h-[200px] outline-none text-sm leading-relaxed prose prose-slate dark:prose-invert max-w-none"
+                    placeholder="Empieza a escribir..."></div>
+            </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-widest">Algoritmo de
-                        Encriptación</label>
-                    <select id="algo-select"
-                        class="w-full bg-dark-bg border border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-brand">
-                        <option value="aes-256-gcm">PQ Ready: AES-256-GCM (Recommended)</option>
-                        <option value="kyber">Experimental: CRYSTALS-Kyber</option>
+            <div class="border-t pt-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <select id="edit-category"
+                        class="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none">
+                        <option value="">Sin categoría</option>
                     </select>
+                    <button id="toggle-pin"
+                        class="h-8 w-8 inline-flex items-center justify-center rounded-md border border-input hover:bg-accent">
+                        <i data-lucide="pin" class="w-4 h-4"></i>
+                    </button>
+                    <button id="toggle-lock"
+                        class="h-8 w-8 inline-flex items-center justify-center rounded-md border border-input hover:bg-accent">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
+                    </button>
                 </div>
-
-                <div class="pt-6 border-t border-white/5 flex gap-4">
-                    <button class="flex-1 btn-premium btn-secondary py-3 text-sm" id="export-data">Exportar
-                        Datos</button>
-                    <button class="flex-1 btn-premium btn-primary py-3 text-sm" id="save-settings">Guardar
-                        Cambios</button>
+                <div class="flex gap-2">
+                    <button id="save-note" class="btn-shad btn-shad-primary h-9">Guardar Cambios</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Category Password / Multi-screen modal -->
-    <div id="category-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-card max-w-md w-full p-8 text-center">
-            <h2 id="cat-modal-title" class="text-2xl font-bold mb-4">Acceso Restringido</h2>
-            <p class="text-slate-400 mb-6">Esta categoría requiere una contraseña específica.</p>
-            <input type="password" id="cat-password-input"
-                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 mb-6 text-center text-xl tracking-widest outline-none focus:ring-2 focus:ring-brand">
-            <div class="flex gap-3">
-                <button class="flex-1 btn-premium btn-secondary close-modal">Cancelar</button>
-                <button id="cat-auth-submit" class="flex-1 btn-premium btn-primary">Entrar</button>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+        <div class="dialog-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold">Configuración</h2>
+                <button class="close-settings text-muted-foreground hover:text-foreground"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Tema Visual</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="theme-light" class="btn-shad btn-shad-outline">Claro</button>
+                        <button id="theme-dark" class="btn-shad btn-shad-outline border-primary">Oscuro</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Ruta de Google Drive</label>
+                    <input type="text" id="config-drive-path"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Algoritmo de encriptación</label>
+                    <select id="config-algo"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                        <option value="aes-256-gcm">AES-256-GCM (Post-Quantum Ready)</option>
+                        <option value="kyber">EXPERIMENTAL: CRYSTALS-Kyber</option>
+                    </select>
+                </div>
+                <button id="save-config" class="btn-shad btn-shad-primary w-full">Guardar Preferencias</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Color Picker Popover -->
+    <div id="color-popover" class="fixed z-[60] hidden popover-content">
+        <div class="grid grid-cols-6 gap-2" id="color-grid">
+            <!-- Colors -->
+        </div>
+    </div>
+
+    <!-- Emoji Picker Popover -->
+    <div id="emoji-popover" class="fixed z-[60] hidden popover-content w-80">
+        <div class="grid grid-cols-8 gap-2 h-64 overflow-y-auto" id="emoji-grid">
+            <!-- Emojis -->
+        </div>
+    </div>
+
+    <!-- Category Lock Modal -->
+    <div id="cat-lock-modal" class="fixed inset-0 z-[70] hidden">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+        <div class="dialog-content max-w-sm">
+            <h2 class="text-lg font-semibold mb-4">Categoría Protegida</h2>
+            <input type="password" id="cat-access-pass" placeholder="Password de categoría"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mb-4">
+            <div class="flex gap-2">
+                <button id="cat-cancel" class="btn-shad btn-shad-outline flex-1">Cancelar</button>
+                <button id="cat-confirm" class="btn-shad btn-shad-primary flex-1">Acceder</button>
             </div>
         </div>
     </div>
 
     <div id="toast"
-        class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-white text-slate-900 font-medium shadow-2xl transition-all duration-300 translate-y-20 opacity-0 z-[2000] pointer-events-none">
-    </div>
-
-    <!-- Emojis Picker -->
-    <div id="emoji-picker"
-        class="fixed hidden z-[1100] glass-card p-4 transition-all duration-300 shadow-2xl border-brand/20">
-        <div class="grid grid-cols-6 gap-2 h-48 overflow-y-auto custom-scroll w-48 text-lg" id="emoji-grid">
-            <!-- Emojis injected here -->
+        class="fixed bottom-6 right-6 z-[100] transform translate-y-20 opacity-0 transition-all duration-300">
+        <div class="bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg text-sm font-medium">
+            ¡Acción completada!
         </div>
     </div>
-
+
+    <!-- Scripts -->
 </body>
 
 </html>
