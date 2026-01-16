@@ -13,5 +13,11 @@
         "postcss": "^8.5.6",
         "tailwindcss": "^3.4.19",
         "vite": "^5.0.0"
+    },
+    "dependencies": {
+        "@noble/post-quantum": "^0.5.4",
+        "crypto-js": "^4.2.0",
+        "lucide-static": "^0.562.0",
+        "sortablejs": "^1.15.6"
     }
 }

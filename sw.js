@@ -1,39 +1,31 @@
-const CACHE_NAME = 'cloud-notes-v2';
+const CACHE_NAME = 'cloud-notes-v3';
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/main.js',
-    '/manifest.json'
+    './',
+    './index.html',
+    './style.css',
+    './main.js',
+    './manifest.json',
+    'https://unpkg.com/lucide@latest',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
 ];
 
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // Force the waiting service worker to become the active service worker.
+    self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS);
-        })
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
     );
 });
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
+        caches.keys().then((keys) => Promise.all(
+            keys.map((key) => key !== CACHE_NAME && caches.delete(key))
+        ))
     );
 });
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
+        caches.match(event.request).then((resp) => resp || fetch(event.request))
     );
 });

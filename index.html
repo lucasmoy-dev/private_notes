@@ -4,93 +4,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudNotes | Premium PWA</title>
-    <meta name="description" content="Elegante aplicación de notas con sincronización en la nube.">
-
-    <!-- PWA Settings -->
+    <title>CloudNotes | Shadcn Edition</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <meta name="theme-color" content="#09090b">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Google API -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
-
+    <!-- CSS -->
     <link rel="stylesheet" href="./style.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="selection:bg-brand/30 selection:text-white">
-    <div id="app" class="min-h-screen flex flex-col">
-        <header class="sticky top-0 z-50 bg-bg-dark/80 backdrop-blur-md border-b border-white/5">
-            <div class="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center">
-                <div class="flex items-center gap-3 group cursor-default">
-                    <div
-                        class="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-xl shadow-lg shadow-brand/20 group-hover:scale-110 transition-transform">
-                        📝
-                    </div>
-                    <h1
-                        class="text-xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent tracking-tight">
-                        CloudNotes
-                    </h1>
+<body class="bg-background text-foreground font-sans">
+
+    <!-- Auth / Password Shield -->
+    <div id="auth-shield"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-md transition-opacity duration-500">
+        <div class="w-full max-w-sm p-8 space-y-6 bg-card border rounded-xl shadow-2xl">
+            <div class="text-center space-y-2">
+                <div
+                    class="mx-auto w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+                    <i data-lucide="lock" class="w-6 h-6 text-white"></i>
                 </div>
-
-                <div class="flex items-center gap-3">
-                    <button id="sync-btn" class="btn-premium btn-primary">
-                        <span class="text-lg">🔄</span>
-                        <span class="hidden sm:inline">Sincronizar</span>
-                    </button>
-                    <button id="auth-btn" class="btn-premium btn-secondary">
-                        <span class="text-lg">👤</span>
-                        <span class="text hidden sm:inline">Conectar Google</span>
-                    </button>
-                </div>
+                <h1 class="text-2xl font-bold tracking-tight" id="auth-title">Bóveda Protegida</h1>
+                <p class="text-sm text-muted-foreground" id="auth-desc">Ingresa tu contraseña maestra para continuar</p>
             </div>
-
-            <div id="status-bar" class="hidden h-8 bg-brand/10 flex items-center justify-center">
-                <p id="status-text" class="text-xs font-medium text-brand uppercase tracking-widest"></p>
+            <div class="space-y-4">
+                <input type="password" id="master-password" placeholder="••••••••"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-center tracking-widest">
+                <button id="auth-submit"
+                    class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+                    Desbloquear
+                </button>
             </div>
-        </header>
-
-        <main class="flex-1 max-w-4xl mx-auto w-full px-6 py-12">
-            <!-- Input Card -->
-            <div class="mb-16">
-                <div class="glass-card p-4 focus-within:ring-2 focus-within:ring-brand/50 transition-all duration-500 overflow-hidden"
-                    id="note-input-base">
-                    <input type="text" id="note-title" placeholder="Título magnífico..."
-                        class="input-premium text-lg font-bold mb-3 hidden">
-                    <textarea id="note-content" placeholder="Escribe algo brillante..."
-                        class="input-premium min-h-[60px] text-lg resize-none"></textarea>
-
-                    <div class="flex justify-end pt-4 border-t border-white/5 hidden" id="note-actions">
-                        <button id="save-note" class="btn-premium btn-primary py-2 text-sm shadow-none">
-                            Guardar Nota
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Header Section -->
-            <div class="flex items-baseline justify-between mb-8">
-                <h2 class="text-2xl font-semibold opacity-90">Tus Notas</h2>
-                <span class="text-xs text-text-muted font-mono uppercase tracking-widest">Local & Cloud</span>
-            </div>
-
-            <!-- Notes Grid -->
-            <div id="notes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Notes will be injected here -->
-            </div>
-        </main>
-
-        <div id="toast"
-            class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-white text-slate-900 font-medium shadow-2xl transition-all duration-300 translate-y-20 opacity-0 z-[1000]">
         </div>
     </div>
 
+    <!-- Main Layout -->
+    <div id="app" class="flex h-screen overflow-hidden opacity-0 transition-opacity duration-1000">
+
+        <!-- Sidebar -->
+        <aside class="w-64 border-r bg-card hidden md:flex flex-col">
+            <div class="p-4 flex items-center gap-2 border-b">
+                <div class="w-8 h-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground">
+                    <i data-lucide="notebook-pen" class="w-5 h-5 text-white"></i>
+                </div>
+                <span class="font-semibold tracking-tight">CloudNotes</span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="space-y-1">
+                    <button
+                        class="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md bg-accent text-accent-foreground nav-link"
+                        data-view="all">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i> Todas las notas
+                    </button>
+                    <button
+                        class="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground nav-link"
+                        data-view="pinned">
+                        <i data-lucide="pin" class="w-4 h-4"></i> Destacadas
+                    </button>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between px-3 py-2">
+                        <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categorías</h3>
+                        <button id="add-category" class="text-muted-foreground hover:text-foreground"><i
+                                data-lucide="plus" class="w-4 h-4"></i></button>
+                    </div>
+                    <div id="sidebar-categories" class="space-y-1">
+                        <!-- Categories -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t space-y-2">
+                <button id="sync-btn"
+                    class="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-accent text-muted-foreground">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar
+                </button>
+                <button id="settings-trigger"
+                    class="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-accent text-muted-foreground">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Configuración
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col bg-background relative overflow-hidden">
+            <!-- Header -->
+            <header
+                class="h-14 border-b flex items-center justify-between px-6 bg-background/50 backdrop-blur-md sticky top-0 z-10">
+                <div class="flex items-center gap-4">
+                    <button class="md:hidden p-2 -ml-2 text-muted-foreground"><i data-lucide="menu"
+                            class="w-5 h-5"></i></button>
+                    <h2 id="view-title" class="text-sm font-semibold text-foreground">Todas las notas</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="new-note-btn"
+                        class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Crear Nota
+                    </button>
+                </div>
+            </header>
+
+            <!-- Grid -->
+            <div id="notes-viewport" class="flex-1 overflow-y-auto p-6 md:p-8">
+                <div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <!-- Notes loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Editor Modal -->
+    <div id="editor-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm dialog-overlay"></div>
+        <div class="dialog-content max-w-2xl h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between border-b pb-4">
+                <input type="text" id="edit-title" placeholder="Título de la nota"
+                    class="bg-transparent text-xl font-bold outline-none border-none placeholder:text-muted-foreground w-full">
+                <button id="close-editor" class="text-muted-foreground hover:text-foreground"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="flex-1 py-4 overflow-y-auto">
+                <!-- Toolbar -->
+                <div class="flex items-center gap-1 mb-4 p-1 border rounded-md bg-muted/50">
+                    <button class="editor-tool" data-cmd="bold"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                    <button class="editor-tool" data-cmd="italic"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                    <button class="editor-tool" data-cmd="underline"><i data-lucide="underline"
+                            class="w-4 h-4"></i></button>
+                    <div class="w-px h-4 bg-border mx-1"></div>
+                    <button id="open-colors" class="editor-tool relative"><i data-lucide="palette"
+                            class="w-4 h-4"></i></button>
+                    <button id="open-emojis" class="editor-tool"><i data-lucide="smile" class="w-4 h-4"></i></button>
+                </div>
+
+                <div id="edit-content" contenteditable="true"
+                    class="min-h-[200px] outline-none text-sm leading-relaxed prose prose-slate dark:prose-invert max-w-none"
+                    placeholder="Empieza a escribir..."></div>
+            </div>
+
+            <div class="border-t pt-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <select id="edit-category"
+                        class="h-8 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-ring focus:outline-none">
+                        <option value="">Sin categoría</option>
+                    </select>
+                    <button id="toggle-pin"
+                        class="h-8 w-8 inline-flex items-center justify-center rounded-md border border-input hover:bg-accent">
+                        <i data-lucide="pin" class="w-4 h-4"></i>
+                    </button>
+                    <button id="toggle-lock"
+                        class="h-8 w-8 inline-flex items-center justify-center rounded-md border border-input hover:bg-accent">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <button id="save-note" class="btn-shad btn-shad-primary h-9">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+        <div class="dialog-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold">Configuración</h2>
+                <button class="close-settings text-muted-foreground hover:text-foreground"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Tema Visual</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="theme-light" class="btn-shad btn-shad-outline">Claro</button>
+                        <button id="theme-dark" class="btn-shad btn-shad-outline border-primary">Oscuro</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Ruta de Google Drive</label>
+                    <input type="text" id="config-drive-path"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Algoritmo de encriptación</label>
+                    <select id="config-algo"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                        <option value="aes-256-gcm">AES-256-GCM (Post-Quantum Ready)</option>
+                        <option value="kyber">EXPERIMENTAL: CRYSTALS-Kyber</option>
+                    </select>
+                </div>
+                <button id="save-config" class="btn-shad btn-shad-primary w-full">Guardar Preferencias</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Color Picker Popover -->
+    <div id="color-popover" class="fixed z-[60] hidden popover-content">
+        <div class="grid grid-cols-6 gap-2" id="color-grid">
+            <!-- Colors -->
+        </div>
+    </div>
+
+    <!-- Emoji Picker Popover -->
+    <div id="emoji-popover" class="fixed z-[60] hidden popover-content w-80">
+        <div class="grid grid-cols-8 gap-2 h-64 overflow-y-auto" id="emoji-grid">
+            <!-- Emojis -->
+        </div>
+    </div>
+
+    <!-- Category Lock Modal -->
+    <div id="cat-lock-modal" class="fixed inset-0 z-[70] hidden">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+        <div class="dialog-content max-w-sm">
+            <h2 class="text-lg font-semibold mb-4">Categoría Protegida</h2>
+            <input type="password" id="cat-access-pass" placeholder="Password de categoría"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mb-4">
+            <div class="flex gap-2">
+                <button id="cat-cancel" class="btn-shad btn-shad-outline flex-1">Cancelar</button>
+                <button id="cat-confirm" class="btn-shad btn-shad-primary flex-1">Acceder</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"
+        class="fixed bottom-6 right-6 z-[100] transform translate-y-20 opacity-0 transition-all duration-300">
+        <div class="bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg text-sm font-medium">
+            ¡Acción completada!
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script type="module" src="./main.js"></script>
 </body>
 
