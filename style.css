@@ -115,7 +115,7 @@
     }
 
     .dialog-content.fullscreen-mode {
-        @apply fixed inset-0 w-screen h-screen max-w-none max-h-none translate-x-0 translate-y-0 left-0 top-0 z-[60] rounded-none border-none p-0 !important;
+        @apply fixed inset-4 w-auto h-auto translate-x-0 translate-y-0 left-0 top-0 z-[60] rounded-2xl border shadow-2xl bg-background p-6 !important;
     }
 
     .popover-content {
@@ -149,7 +149,7 @@
     }
 
     .note-card-content {
-        @apply p-4 flex flex-col h-full;
+        @apply p-4 pb-3 flex flex-col h-full;
     }
 
     .note-card.pinned {

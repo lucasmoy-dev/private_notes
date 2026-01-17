@@ -37,24 +37,23 @@ export function renderNotes(onEdit) {
 
         card.innerHTML = `
             <div class="note-card-content">
-                <div class="flex items-start justify-between mb-3">
-                    <h3 class="font-bold text-sm line-clamp-2 leading-tight">${note.title}</h3>
-                    <div class="flex gap-1.5 opacity-60">
-                        ${note.pinned ? '<i data-lucide="pin" class="w-3.5 h-3.5 fill-current"></i>' : ''}
-                        ${note.passwordHash ? `<i data-lucide="${isUnlocked ? 'unlock' : 'lock'}" class="w-3.5 h-3.5 lock-indicator cursor-pointer" data-id="${note.id}"></i>` : ''}
+                <div class="flex items-start justify-between mb-2">
+                    <h3 class="font-bold text-sm line-clamp-2 leading-tight flex-1 pr-2">${note.title}</h3>
+                    <div class="flex items-center gap-2 shrink-0">
+                        ${note.pinned ? '<i data-lucide="pin" class="w-3 h-3 fill-current opacity-60"></i>' : ''}
+                        ${note.passwordHash ? `<i data-lucide="${isUnlocked ? 'unlock' : 'lock'}" class="w-3.5 h-3.5 lock-indicator cursor-pointer opacity-60 hover:opacity-100 transition-opacity" data-id="${note.id}"></i>` : ''}
+                        <button class="delete-note-btn p-1 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors md:opacity-0 md:group-hover:opacity-100 text-muted-foreground/50" data-id="${note.id}" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="text-[13px] opacity-70 line-clamp-5 mb-2 leading-relaxed flex-1">
+                <div class="text-[13px] opacity-70 line-clamp-6 leading-relaxed mb-3">
                     ${(note.passwordHash && !isUnlocked) ? '<div class="flex items-center gap-2 py-4 italic opacity-50"><i data-lucide="shield-alert" class="w-4 h-4"></i> Contenido protegido</div>' : note.content}
                 </div>
-                <div class="flex items-center justify-between mt-auto pt-3 border-t">
-                    <div class="flex items-center gap-2">
-                         ${cat ? `<span class="text-[10px] px-2 py-0.5 rounded bg-muted font-medium text-muted-foreground">${cat.name}</span>` : ''}
-                    </div>
-                    <button class="delete-note-btn p-1.5 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors md:opacity-0 md:group-hover:opacity-100 text-muted-foreground" data-id="${note.id}" title="Eliminar">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                    </button>
-                </div>
+                ${cat ? `
+                <div class="mt-auto pt-2">
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-muted/50 font-medium text-muted-foreground/70 uppercase tracking-wider">${cat.name}</span>
+                </div>` : ''}
             </div>
         `;
 
