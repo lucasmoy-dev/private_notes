@@ -332,18 +332,21 @@ function handleGoogleAuth() {
 }
 
 function updateDriveStatus(connected) {
-    const btn = document.getElementById('google-drive-sync-btn');
-    const status = document.getElementById('drive-status-label');
+    const status = document.getElementById('drive-status');
     const syncBtn = document.getElementById('sync-btn');
 
     if (status) {
         status.innerHTML = connected
-            ? '<span class="flex items-center gap-2 text-green-500"><i data-lucide="check-circle" class="w-4 h-4"></i> Conectado</span>'
-            : '<span class="flex items-center gap-2 text-muted-foreground"><i data-lucide="x-circle" class="w-4 h-4"></i> No conectado</span>';
+            ? '<span class="flex items-center gap-2 text-green-500 font-bold"><i data-lucide="check-circle" class="w-4 h-4"></i> Conectado</span>'
+            : '<span class="flex items-center gap-2 text-muted-foreground font-bold font-mono uppercase"><i data-lucide="x-circle" class="w-4 h-4"></i> No conectado</span>';
+        status.className = connected
+            ? 'text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary'
+            : 'text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground';
     }
 
     if (syncBtn) {
-        syncBtn.classList.toggle('opacity-100', connected);
+        syncBtn.style.opacity = connected ? '1' : '0.3';
+        syncBtn.style.pointerEvents = connected ? 'auto' : 'none';
     }
     safeCreateIcons();
 }
@@ -375,7 +378,7 @@ async function handleSync() {
 
 function triggerAutoSync() {
     const hasToken = localStorage.getItem('gdrive_token_v3');
-    if (state.gapiLoaded && hasToken) {
+    if (state.gapiLoaded && hasToken && sessionStorage.getItem('cn_pass_plain_v3')) {
         handleSync();
     }
 }

@@ -137,7 +137,7 @@ export function openEditor(note = null) {
 
     state.editingNoteId = note ? note.id : null;
     titleEl.value = note?.title || '';
-    contentEl.innerHTML = note?.content || '';
+    contentEl.innerHTML = (note?.content === undefined || note?.content === 'undefined') ? '' : (note?.content || '');
 
     let defaultCat = '';
     if (!note && state.currentView !== 'all') defaultCat = state.currentView;
@@ -171,6 +171,7 @@ export function openEditor(note = null) {
 
 function closeEditor() {
     document.getElementById('editor-modal').classList.add('hidden');
+    document.getElementById('toggle-lock').dataset.tempHash = '';
     state.editingNoteId = null;
 }
 
@@ -191,19 +192,22 @@ async function saveActiveNote() {
             String(now.getMinutes()).padStart(2, '0') + ':' +
             String(now.getSeconds()).padStart(2, '0');
     }
-    if (!content || content === 'undefined' || content.trim() === '') {
+
+    if (content === undefined || content === 'undefined' || content.trim() === '') {
         return showToast('La nota está vacía');
     }
 
     const noteIndex = state.notes.findIndex(n => n.id === state.editingNoteId);
+    const tempHash = document.getElementById('toggle-lock').dataset.tempHash;
+
     const noteData = {
         id: state.editingNoteId || Date.now().toString(),
-        title,
-        content,
+        title: title,
+        content: content,
         categoryId: catId || null,
         pinned: isPinned,
         themeId: themeId || 'default',
-        passwordHash: hasLock ? (noteIndex >= 0 ? state.notes[noteIndex].passwordHash : null) : null,
+        passwordHash: hasLock ? (tempHash || (noteIndex >= 0 ? state.notes[noteIndex].passwordHash : null)) : null,
         updatedAt: Date.now()
     };
 
