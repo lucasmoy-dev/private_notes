@@ -1,6 +1,6 @@
 {
-  "name": "CloudNotes PWA",
-  "short_name": "CloudNotes",
+  "name": "Private Notes PWA",
+  "short_name": "Private Notes",
   "description": "Simple notes with Google Drive sync",
   "start_url": "./",
   "display": "standalone",
