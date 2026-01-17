@@ -1,4 +1,4 @@
-export const APP_VERSION = 'v3.3.4';
+export const APP_VERSION = 'v3.3.6';
 
 export const NOTE_THEMES = [
     { id: 'default', light: '#ffffff', dark: '#09090b' },

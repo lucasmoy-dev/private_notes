@@ -317,7 +317,10 @@ function initGapi() {
                 if (hasToken) {
                     const token = JSON.parse(hasToken);
                     gapi.client.setToken(token);
+                    // Update multiple times to ensure the UI is ready
                     updateDriveStatus(true);
+                    setTimeout(() => updateDriveStatus(true), 500);
+                    setTimeout(() => updateDriveStatus(true), 2000);
                 } else {
                     updateDriveStatus(false);
                 }
@@ -351,13 +354,16 @@ function updateDriveStatus(connected) {
     safeCreateIcons();
 }
 
+let isSyncing = false;
 async function handleSync() {
+    if (isSyncing) return;
     const pass = sessionStorage.getItem('cn_pass_plain_v3');
     if (!pass) return;
 
     const icon = document.getElementById('sync-icon');
     const btn = document.getElementById('sync-btn');
 
+    isSyncing = true;
     if (icon) icon.classList.add('animate-spin');
     if (btn) btn.classList.add('text-primary');
 
@@ -371,8 +377,13 @@ async function handleSync() {
         console.error('Sync error:', err);
         showToast('❌ Error en la sincronización');
     } finally {
-        if (icon) icon.classList.remove('animate-spin');
-        if (btn) btn.classList.remove('text-primary');
+        isSyncing = false;
+        setTimeout(() => {
+            const iconEnd = document.getElementById('sync-icon');
+            const btnEnd = document.getElementById('sync-btn');
+            if (iconEnd) iconEnd.classList.remove('animate-spin');
+            if (btnEnd) btnEnd.classList.remove('text-primary');
+        }, 500);
     }
 }
 

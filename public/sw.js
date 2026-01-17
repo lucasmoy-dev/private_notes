@@ -25,6 +25,16 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request).then((resp) => resp || fetch(event.request))
+        fetch(event.request)
+            .then((res) => {
+                const resClone = res.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                    if (event.request.method === 'GET' && !event.request.url.includes('google')) {
+                        cache.put(event.request, resClone);
+                    }
+                });
+                return res;
+            })
+            .catch(() => caches.match(event.request).then((res) => res))
     );
 });
