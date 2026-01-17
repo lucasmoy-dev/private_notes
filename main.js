@@ -619,7 +619,17 @@ function openSettings() {
 
         // Reset to first tab
         const firstTab = modal.querySelector('.settings-tab[data-tab="appearance"]');
-        if (firstTab) firstTab.click();
+        if (firstTab && window.innerWidth >= 768) firstTab.click();
+
+        // Reset mobile view state
+        if (window.innerWidth < 768) {
+            const sidebar = document.getElementById('settings-sidebar');
+            const content = document.getElementById('settings-content-area');
+            if (sidebar && content) {
+                sidebar.classList.remove('hidden');
+                content.classList.add('hidden');
+            }
+        }
     }
 }
 

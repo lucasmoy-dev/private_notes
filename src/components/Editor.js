@@ -84,15 +84,6 @@ export function getEditorTemplate() {
                         <button id="mobile-format-trigger" class="editor-tool border border-input bg-background/50 transition-all shrink-0" title="Formato">
                             <i data-lucide="type" class="w-4 h-4"></i>
                         </button>
-                        <div id="mobile-tools-menu" class="hidden absolute left-0 bottom-full mb-3 bg-popover border shadow-2xl rounded-2xl p-1.5 z-[150] flex flex-col gap-1 min-w-[200px] animate-in slide-in-from-bottom-2 duration-200 overflow-hidden">
-                            <button data-command="bold" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="bold" class="w-4 h-4"></i> Negrita</button>
-                            <button data-command="italic" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="italic" class="w-4 h-4"></i> Cursiva</button>
-                            <button data-command="underline" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="underline" class="w-4 h-4"></i> Subrayado</button>
-                            <div class="h-px bg-border my-1.5 mx-2"></div>
-                            <button data-command="insertUnorderedList" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="list" class="w-4 h-4"></i> Lista</button>
-                            <button data-command="insertOrderedList" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="list-ordered" class="w-4 h-4"></i> Numeración</button>
-                            <div class="h-px bg-border my-1.5 mx-2"></div>
-                            <button id="mobile-link-btn" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="link" class="w-4 h-4"></i> Enlace</button>
                         </div>
 
                         <div class="w-px h-6 bg-border mx-0.5"></div>
@@ -101,7 +92,10 @@ export function getEditorTemplate() {
                             <i data-lucide="check-square" class="w-4 h-4"></i>
                         </button>
                         <button id="mobile-text-color-btn" class="editor-tool border border-input bg-background/50 transition-all shrink-0">
-                            <i data-lucide="palette" class="w-4 h-4 text-red-500"></i>
+                            <i data-lucide="type" class="w-4 h-4 text-primary"></i>
+                        </button>
+                        <button id="open-colors-mobile" class="editor-tool border border-input bg-background/50 transition-all shrink-0" title="Fondo">
+                            <i data-lucide="palette" class="w-4 h-4"></i>
                         </button>
                         
                          <div class="w-px h-6 bg-border mx-0.5"></div>
@@ -146,6 +140,19 @@ export function getEditorTemplate() {
                 </div>
                 
                 <button id="save-note-mobile" class="md:hidden btn-shad btn-shad-primary h-9 px-3 font-bold ml-2">OK</button>
+            </div>
+            
+            <!-- Mobile Tools Menu Moved Outside Scroll Container -->
+            <div id="mobile-tools-menu" class="hidden absolute left-4 bottom-16 mb-2 bg-popover border shadow-2xl rounded-2xl p-1.5 z-[150] flex flex-col gap-1 min-w-[200px] animate-in slide-in-from-bottom-2 duration-200 overflow-hidden">
+                <button data-command="bold" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="bold" class="w-4 h-4"></i> Negrita</button>
+                <button data-command="italic" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="italic" class="w-4 h-4"></i> Cursiva</button>
+                <button data-command="underline" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="underline" class="w-4 h-4"></i> Subrayado</button>
+                <div class="h-px bg-border my-1.5 mx-2"></div>
+                <button data-command="insertUnorderedList" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="list" class="w-4 h-4"></i> Lista</button>
+                <button data-command="insertOrderedList" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="list-ordered" class="w-4 h-4"></i> Numeración</button>
+                <div class="h-px bg-border my-1.5 mx-2"></div>
+                <button id="mobile-link-btn" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-accent rounded-xl transition-colors font-medium"><i data-lucide="link" class="w-4 h-4"></i> Enlace</button>
+            </div>
             </div>
         </div>
     </div>
@@ -660,6 +667,9 @@ function updateLockUI(active) {
 
 function initPopovers() {
     document.getElementById('open-colors').onclick = (e) => togglePopover(e, 'color-popover');
+    const openColorsMobile = document.getElementById('open-colors-mobile');
+    if (openColorsMobile) openColorsMobile.onclick = (e) => togglePopover(e, 'color-popover');
+
     document.getElementById('open-text-colors').onmousedown = (e) => { e.preventDefault(); saveSelection(); };
     document.getElementById('open-text-colors').onclick = (e) => togglePopover(e, 'text-color-popover');
     document.getElementById('open-emojis').onmousedown = (e) => { e.preventDefault(); saveSelection(); };

@@ -7,6 +7,12 @@ export function getSettingsTemplate() {
         <div class="dialog-content max-w-2xl p-0 overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-[500px]">
             <!-- Sidebar Settings -->
             <div id="settings-sidebar" class="w-full md:w-48 bg-muted/50 border-b md:border-b-0 md:border-r p-4 flex flex-col gap-1 overflow-y-auto">
+                <div class="flex items-center justify-between mb-2 md:hidden">
+                    <h3 class="font-bold text-lg">Configuración</h3>
+                    <button class="close-settings p-2 hover:bg-accent rounded-md">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
                 <button class="settings-tab" data-tab="appearance">
                     <i data-lucide="palette" class="w-4 h-4"></i> General
                 </button>

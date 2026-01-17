@@ -104,8 +104,8 @@ export function getLayoutTemplate() {
                 <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors nav-link-mobile" data-view="all">
                     <i data-lucide="home" class="w-6 h-6"></i>
                 </button>
-                <button class="flex flex-col items-center justify-center gap-1 w-full h-content text-muted-foreground active:text-primary transition-colors relative" id="mobile-add-btn">
-                    <div class="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform -translate-y-2">
+                <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors relative" id="mobile-add-btn">
+                    <div class="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-md mb-6 hover:scale-105 transition-transform">
                         <i data-lucide="plus" class="w-6 h-6"></i>
                     </div>
                 </button>
