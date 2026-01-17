@@ -105,7 +105,7 @@ export function getLayoutTemplate() {
                     <i data-lucide="home" class="w-6 h-6"></i>
                 </button>
                 <button class="flex items-center justify-center relative w-full h-full" id="mobile-add-btn">
-                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl shadow-xl shadow-indigo-500/40 flex items-center justify-center transform -translate-y-5 hover:scale-105 active:scale-90 transition-all">
+                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full shadow-xl shadow-indigo-500/40 flex items-center justify-center transform -translate-y-5 hover:scale-105 active:scale-90 transition-all">
                         <i data-lucide="plus" class="w-8 h-8"></i>
                     </div>
                 </button>
