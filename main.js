@@ -126,8 +126,15 @@ function setupGlobalEvents() {
     bindClick('sync-btn', handleSync);
     bindClick('mobile-sync-btn', handleSync);
     bindClick('settings-trigger', openSettings);
-    bindClick('logout-btn', handleLogout);
-    bindClick('mobile-logout-btn', handleLogout);
+    bindClick('mobile-settings-btn', () => {
+        closeMobileSidebar();
+        openSettings();
+    });
+
+    document.body.addEventListener('click', (e) => {
+        const logoutBtn = e.target.closest('#logout-btn, #mobile-logout-btn');
+        if (logoutBtn) handleLogout();
+    });
 
     // Settings Logic - Unified Save
     const saveSettings = async () => {
@@ -145,10 +152,17 @@ function setupGlobalEvents() {
     bindClick('theme-light', () => setTheme('light'));
     bindClick('theme-dark', () => setTheme('dark'));
 
-    // Navigation (Requires re-binding if categories change, but static links are here)
-    document.querySelectorAll('.nav-link[data-view], .nav-link-mobile[data-view], .nav-link-mobile-drawer[data-view]').forEach(btn => {
+    // Navigation
+    const navLinks = document.querySelectorAll('.nav-link[data-view], .nav-link-mobile[data-view], .nav-link-mobile-drawer[data-view]');
+    navLinks.forEach(btn => {
         btn.onclick = () => {
             const viewId = btn.dataset.view;
+
+            // UI Update for active state
+            navLinks.forEach(l => l.classList.toggle('active', l.dataset.view === viewId));
+            // Also deselect categories in Sidebar.js logic
+            document.querySelectorAll('#sidebar-categories .nav-link, #mobile-sidebar-categories .nav-link-mobile-drawer').forEach(l => l.classList.remove('active'));
+
             onViewChange(viewId, viewId === 'all' ? 'Todas las notas' : '');
             closeMobileSidebar();
         };
@@ -190,9 +204,10 @@ function setupGlobalEvents() {
     // Auth Submission
     bindClick('auth-submit', () => handleMasterAuth(refreshUI));
 
-    // Factory Reset
+    // Factory Reset with phrase
     bindClick('factory-reset', () => {
-        if (confirm('⚠️ ¿BORRAR TODO? Esto eliminará todas las notas guardadas en este navegador localmente.')) {
+        const confirmInput = document.getElementById('factory-reset-confirm');
+        if (confirmInput?.value === 'borrar mis datos') {
             localStorage.clear();
             sessionStorage.clear();
             location.reload();
@@ -304,11 +319,38 @@ function initGapi() {
                 state.tokenClient = google.accounts.oauth2.initTokenClient({
                     client_id: CLIENT_ID,
                     scope: "https://www.googleapis.com/auth/drive.file",
-                    callback: (resp) => {
+                    callback: async (resp) => {
                         if (resp.error) return showToast('❌ Error de vinculación');
-                        localStorage.setItem('gdrive_token_v3', JSON.stringify(resp));
-                        updateDriveStatus(true);
-                        showToast('✅ Vinculado con Google Drive');
+
+                        // Verify existing data on connect
+                        const pass = sessionStorage.getItem('cn_pass_plain_v3');
+                        if (!pass) return showToast('❌ Error: Sesión no válida');
+
+                        try {
+                            const drive = new DriveSync('notev3_', state.settings.drivePath);
+                            const folderId = await drive.getOrCreateFolder(state.settings.drivePath);
+                            const cloudData = await drive.loadChunks(folderId);
+
+                            if (cloudData) {
+                                try {
+                                    await Security.decrypt(cloudData, pass);
+                                    // If we are here, password is correct
+                                    showToast('✅ Drive verificado: Contraseña correcta');
+                                } catch (e) {
+                                    showToast('❌ Contraseña de Bóveda no coincide con Drive');
+                                    return; // Don't persist token
+                                }
+                            }
+
+                            localStorage.setItem('gdrive_token_v3', JSON.stringify(resp));
+                            gapi.client.setToken(resp);
+                            updateDriveStatus(true);
+                            showToast('✅ Vinculado con Google Drive');
+                            handleSync(); // Sync immediately on first connect
+                        } catch (err) {
+                            console.error('Drive connection error:', err);
+                            showToast('❌ Error al verificar Drive');
+                        }
                     },
                 });
 
@@ -370,12 +412,52 @@ async function handleSync() {
     try {
         const drive = new DriveSync('notev3_', state.settings.drivePath);
         const folderId = await drive.getOrCreateFolder(state.settings.drivePath);
+
+        // 1. Download & Merge (Pull)
+        const cloudEncrypted = await drive.loadChunks(folderId);
+        if (cloudEncrypted) {
+            try {
+                const cloudData = await Security.decrypt(cloudEncrypted, pass);
+                if (cloudData && Array.isArray(cloudData.notes)) {
+                    // Simple Merge: Last write wins
+                    const cloudNotesMap = new Map(cloudData.notes.map(n => [n.id, n]));
+                    const localNotesMap = new Map(state.notes.map(n => [n.id, n]));
+
+                    // Combine all IDs
+                    const allIds = new Set([...cloudNotesMap.keys(), ...localNotesMap.keys()]);
+                    const mergedNotes = Array.from(allIds).map(id => {
+                        const local = localNotesMap.get(id);
+                        const cloud = cloudNotesMap.get(id);
+                        if (!local) return cloud;
+                        if (!cloud) return local;
+                        return (cloud.updatedAt > local.updatedAt) ? cloud : local;
+                    });
+
+                    state.notes = mergedNotes.sort((a, b) => b.updatedAt - a.updatedAt);
+
+                    // Merge categories similarly
+                    const cloudCatsMap = new Map(cloudData.categories.map(c => [c.id, c]));
+                    const localCatsMap = new Map(state.categories.map(c => [c.id, c]));
+                    const allCatIds = new Set([...cloudCatsMap.keys(), ...localCatsMap.keys()]);
+                    state.categories = Array.from(allCatIds).map(id => localCatsMap.get(id) || cloudCatsMap.get(id));
+
+                    await saveLocal();
+                    refreshUI();
+                }
+            } catch (e) {
+                console.error('Decryption failed during sync pull', e);
+                showToast('⚠️ No se pudo descargar: Contraseña no coincide');
+            }
+        }
+
+        // 2. Upload (Push)
         const encrypted = await Security.encrypt({ notes: state.notes, categories: state.categories }, pass);
         await drive.saveChunks(encrypted, folderId);
-        showToast('✅ Sincronización completada');
+
+        showToast('✅ Sincronización completa');
     } catch (err) {
         console.error('Sync error:', err);
-        showToast('❌ Error en la sincronización');
+        showToast('❌ Error de red');
     } finally {
         isSyncing = false;
         setTimeout(() => {

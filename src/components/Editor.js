@@ -170,9 +170,13 @@ export function openEditor(note = null) {
 }
 
 function closeEditor() {
+    if (state.editingNoteId) {
+        state.unlockedNotes.delete(state.editingNoteId);
+    }
     document.getElementById('editor-modal').classList.add('hidden');
     document.getElementById('toggle-lock').dataset.tempHash = '';
     state.editingNoteId = null;
+    if (window.refreshUI) window.refreshUI();
 }
 
 async function saveActiveNote() {

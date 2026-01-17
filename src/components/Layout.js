@@ -43,16 +43,13 @@ export function getLayoutTemplate() {
                     <i data-lucide="tag" class="w-3.5 h-3.5"></i> Gestionar Etiquetas
                 </button>
                 <button id="settings-trigger" class="nav-link w-full text-xs opacity-60 hover:opacity-100">
-                    <i data-lucide="settings" class="w-3.5 h-3.5"></i> Preferencias
+                    <i data-lucide="settings" class="w-3.5 h-3.5"></i> Configuración
                 </button>
                 <button id="sidebar-pwa-install-btn" class="hidden nav-link w-full text-xs opacity-60 hover:opacity-100">
                     <i data-lucide="download" class="w-3.5 h-3.5"></i> Instalar Aplicación
                 </button>
-                <button id="logout-btn" class="nav-link w-full text-xs opacity-60 hover:opacity-100 text-destructive">
-                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Cerrar Bóveda
-                </button>
                 <div class="mt-auto pt-4 border-t border-border/20 px-4">
-                    <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-30">v3.3.7</div>
+                    <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-30">v3.3.8</div>
                 </div>
             </div>
         </aside>
@@ -180,8 +177,8 @@ export function getLayoutTemplate() {
                     <button id="mobile-sync-btn" class="flex items-center gap-3 w-full p-3 rounded-md hover:bg-accent text-sm">
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar
                     </button>
-                    <button id="mobile-logout-btn" class="flex items-center gap-3 w-full p-3 rounded-md hover:bg-accent text-sm text-destructive">
-                        <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Bóveda
+                    <button id="mobile-settings-btn" class="flex items-center gap-3 w-full p-3 rounded-md hover:bg-accent text-sm">
+                        <i data-lucide="settings" class="w-4 h-4"></i> Configuración
                     </button>
                 </div>
             </div>

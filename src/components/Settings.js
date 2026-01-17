@@ -8,7 +8,7 @@ export function getSettingsTemplate() {
             <!-- Sidebar Settings -->
             <div class="w-full md:w-48 bg-muted/50 border-b md:border-b-0 md:border-r p-4 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-x-visible">
                 <button class="settings-tab active" data-tab="appearance">
-                    <i data-lucide="palette" class="w-4 h-4"></i> Apariencia
+                    <i data-lucide="palette" class="w-4 h-4"></i> General
                 </button>
                 <button class="settings-tab" data-tab="sync">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronización
@@ -57,7 +57,7 @@ export function getSettingsTemplate() {
                         <section class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Google Drive</h3>
-                                <span id="drive-status" class="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-bold uppercase">Desconectado</span>
+                                <div id="drive-status" class="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-bold uppercase">Desconectado</div>
                             </div>
                             <div class="space-y-2">
                                 <label class="text-xs font-medium">Nombre de carpeta en Drive</label>
@@ -74,6 +74,16 @@ export function getSettingsTemplate() {
                     <!-- Panel: Seguridad -->
                     <div id="panel-security" class="settings-panel hidden space-y-6">
                         <section class="space-y-4">
+                            <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Seguridad de la Sesión</h3>
+                            <div class="p-4 rounded-lg border bg-muted/20 space-y-3">
+                                <p class="text-xs text-muted-foreground">Cerrar la sesión actual eliminará la clave de acceso de la memoria y te llevará a la pantalla de desbloqueo.</p>
+                                <button id="logout-btn" class="btn-shad bg-destructive/10 text-destructive hover:bg-destructive hover:text-white w-full h-10 flex items-center justify-center gap-2 transition-all">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
+                                </button>
+                            </div>
+                        </section>
+                        
+                        <section class="space-y-4 pt-4 border-t">
                             <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Encriptación</h3>
                             <div class="space-y-2">
                                 <label class="text-xs font-medium">Algoritmo preferido</label>
@@ -89,10 +99,14 @@ export function getSettingsTemplate() {
                     <!-- Panel: Danger Zone -->
                     <div id="panel-danger" class="settings-panel hidden space-y-6">
                         <section class="p-4 rounded-lg border border-destructive/20 bg-destructive/5 space-y-4">
-                            <h3 class="text-sm font-semibold text-destructive uppercase tracking-wider">Acciones Irreversibles</h3>
-                            <p class="text-xs text-muted-foreground">Al restaurar de fábrica se borrarán todas las notas, categorías y configuraciones de este navegador.</p>
-                            <button id="factory-reset" class="btn-shad bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full h-10">
-                                <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Borrar Todo Localmente
+                            <h3 class="text-sm font-semibold text-destructive uppercase tracking-wider">Restablecer Aplicación</h3>
+                            <p class="text-xs text-muted-foreground underline">Esta acción borrará permanentemente todas las notas y categorías almacenadas localmente en este navegador.</p>
+                            <div class="space-y-2">
+                                <label class="text-[10px] uppercase font-bold text-destructive/70">Para confirmar, escribe "borrar mis datos" a continuación:</label>
+                                <input type="text" id="factory-reset-confirm" class="h-10 px-4 mt-1 w-full border rounded-md" placeholder="Escribe la frase de confirmación..." autocomplete="off">
+                            </div>
+                            <button id="factory-reset" class="btn-shad bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full h-10 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Eliminar todos los datos locales
                             </button>
                         </section>
                     </div>
@@ -110,20 +124,26 @@ export function initSettings() {
     tabs.forEach(tab => {
         tab.onclick = () => {
             const target = tab.dataset.tab;
-
-            // UI Update
             tabs.forEach(t => t.classList.toggle('active', t === tab));
             panels.forEach(p => p.classList.toggle('hidden', p.id !== `panel-${target}`));
 
-            // Title mapping
             const titles = {
-                appearance: 'Apariencia y Temas',
+                appearance: 'General',
                 sync: 'Sincronización Cloud',
-                security: 'Seguridad y Cifrado',
+                security: 'Seguridad y Sesión',
                 danger: 'Zona Peligrosa'
             };
             title.innerText = titles[target] || 'Configuración';
             safeCreateIcons();
         };
     });
+
+    // Factory Reset Confirmation Logic
+    const confirmInput = document.getElementById('factory-reset-confirm');
+    const resetBtn = document.getElementById('factory-reset');
+    if (confirmInput && resetBtn) {
+        confirmInput.oninput = () => {
+            resetBtn.disabled = confirmInput.value !== 'borrar mis datos';
+        };
+    }
 }
