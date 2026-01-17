@@ -7,7 +7,7 @@ export const state = {
         theme: 'dark',
         drivePath: '/backup/notes/',
         algo: 'aes-256-gcm',
-        syncChunkSize: 500
+        notesPerChunk: 50
     },
     currentView: 'all',
     editingNoteId: null,
@@ -59,5 +59,12 @@ export function loadSettings() {
     const saved = localStorage.getItem('cn_settings_v3');
     if (saved) {
         state.settings = { ...state.settings, ...JSON.parse(saved) };
+        // Migration of old setting name if exists
+        if (state.settings.syncChunkSize !== undefined) {
+            if (!state.settings.notesPerChunk) {
+                state.settings.notesPerChunk = 50; // Use default for new system
+            }
+            delete state.settings.syncChunkSize;
+        }
     }
 }

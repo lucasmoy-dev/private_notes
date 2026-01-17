@@ -170,7 +170,7 @@ function setupGlobalEvents() {
     const saveSettings = async () => {
         state.settings.drivePath = document.getElementById('config-drive-path').value;
         state.settings.algo = document.getElementById('config-algo').value;
-        state.settings.syncChunkSize = parseInt(document.getElementById('config-sync-chunk-size').value) || 500;
+        state.settings.notesPerChunk = parseInt(document.getElementById('config-notes-per-chunk').value) || 50;
         await saveLocal();
         showToast('✅ Configuración guardada');
         triggerAutoSync();
@@ -499,14 +499,13 @@ async function handleSync() {
     syncButtons.forEach(b => b.classList.add('text-primary'));
 
     try {
-        const drive = new DriveSync('notev3_', state.settings.drivePath, state.settings.syncChunkSize);
+        const drive = new DriveSync('notev3_', state.settings.drivePath, state.settings.notesPerChunk);
         const folderId = await drive.getOrCreateFolder(state.settings.drivePath);
 
         // 1. Download & Merge (Pull)
-        const cloudEncrypted = await drive.loadChunks(folderId);
-        if (cloudEncrypted) {
+        const cloudData = await drive.loadChunks(folderId, pass);
+        if (cloudData) {
             try {
-                const cloudData = await Security.decrypt(cloudEncrypted, pass);
                 if (cloudData && Array.isArray(cloudData.notes)) {
                     // Simple Merge: Last write wins
                     const cloudNotesMap = new Map(cloudData.notes.map(n => [n.id, n]));
@@ -540,8 +539,7 @@ async function handleSync() {
         }
 
         // 2. Upload (Push)
-        const encrypted = await Security.encrypt({ notes: state.notes, categories: state.categories }, pass);
-        await drive.saveChunks(encrypted, folderId);
+        await drive.saveChunks(state.notes, state.categories, pass, folderId);
 
         showToast('✅ Sincronización completa');
     } catch (err) {

@@ -1,15 +1,17 @@
 
 /**
  * Google Drive Module
- * Handles chunking, folder paths, and synchronization
+ * Handles note grouping, folder paths, and synchronization
  */
+import { SecurityService as Security } from './security.js';
 
 export class DriveSync {
-    constructor(dbFileName = 'chunk_v3_', folderPath = '/backup/notes/', chunkSizeLimitKB = 500) {
+    constructor(dbPrefix = 'notev3_', folderPath = '/backup/notes/', notesPerChunk = 50) {
         this.basePath = folderPath;
-        this.dbPrefix = dbFileName; // Prefix for the data set
-        this.chunkPrefix = 'data_part_'; // Internal prefix for chunks
-        this.chunkSizeLimit = chunkSizeLimitKB * 1024;
+        this.dbPrefix = dbPrefix;
+        this.notesPerChunk = notesPerChunk;
+        this.metaFile = dbPrefix + 'meta_v4.bin';
+        this.groupPrefix = dbPrefix + 'group_v4_';
     }
 
     async getOrCreateFolder(path) {
@@ -39,111 +41,155 @@ export class DriveSync {
         return parentId;
     }
 
-    async saveChunks(data, folderId) {
-        const serialized = JSON.stringify(data);
-        const chunks = [];
+    async calculateHash(obj) {
+        const str = JSON.stringify(obj);
+        const msgUint8 = new TextEncoder().encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
-        console.log(`[Drive] Serialized size: ${(serialized.length / 1024).toFixed(2)} KB. Limit: ${this.chunkSizeLimit / 1024} KB`);
+    async saveChunks(notes, categories, pass, folderId) {
+        console.log(`[Drive] Saving ${notes.length} notes in groups of ${this.notesPerChunk}`);
 
-        for (let i = 0; i < serialized.length; i += this.chunkSizeLimit) {
-            chunks.push(serialized.substring(i, i + this.chunkSizeLimit));
+        // 1. Get all files in folder once to check for existence/updates
+        const q = `'${folderId}' in parents and trashed = false`;
+        const resp = await gapi.client.drive.files.list({ q, fields: 'files(id, name)' });
+        const existingFiles = resp.result.files || [];
+        const fileMap = new Map(existingFiles.map(f => [f.name, f.id]));
+
+        // 2. Load Meta
+        let oldMeta = null;
+        const metaId = fileMap.get(this.metaFile);
+        if (metaId) {
+            try {
+                const accessToken = gapi.auth.getToken().access_token;
+                const url = `https://www.googleapis.com/drive/v3/files/${metaId}?alt=media`;
+                const fileResp = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+                const encrypted = await fileResp.json();
+                oldMeta = await Security.decrypt(encrypted, pass);
+            } catch (e) { console.log("Failed to load previous meta."); }
         }
 
-        // 2. Clear ONLY exact chunk matches from this prefix to avoid collisions
-        // also look for legacy .json files from previous version and remove them
-        const q = `name contains '${this.dbPrefix}' and '${folderId}' in parents and trashed = false`;
-        const existingFiles = await gapi.client.drive.files.list({ q, fields: 'files(id, name)' });
+        const groupHashes = {};
+        const noteGroups = [];
+        for (let i = 0; i < notes.length; i += this.notesPerChunk) {
+            noteGroups.push(notes.slice(i, i + this.notesPerChunk));
+        }
 
-        if (existingFiles.result.files) {
-            for (const file of existingFiles.result.files) {
-                const isNewChunk = file.name.startsWith(this.dbPrefix + this.chunkPrefix);
-                const isOldChunk = file.name.startsWith(this.dbPrefix) && file.name.endsWith('.json');
+        // 3. Upload/Update Groups
+        for (let i = 0; i < noteGroups.length; i++) {
+            const hash = await this.calculateHash(noteGroups[i]);
+            groupHashes[i] = hash;
 
-                if (isNewChunk || isOldChunk) {
-                    await gapi.client.drive.files.delete({ fileId: file.id });
+            const needsUpload = !oldMeta || !oldMeta.groupHashes || oldMeta.groupHashes[i] !== hash;
+            const fileName = `${this.groupPrefix}${i.toString().padStart(5, '0')}.bin`;
+
+            if (needsUpload || !fileMap.has(fileName)) {
+                const encrypted = await Security.encrypt(noteGroups[i], pass);
+                await this.uploadFileWithId(fileName, JSON.stringify(encrypted), folderId, fileMap.get(fileName));
+                console.log(`[Drive] ${fileMap.has(fileName) ? 'Updated' : 'Created'} ${fileName}`);
+            }
+        }
+
+        // 4. Clean up orphans
+        if (oldMeta && oldMeta.groupHashes) {
+            const oldIndices = Object.keys(oldMeta.groupHashes).map(Number);
+            for (const idx of oldIndices) {
+                if (idx >= noteGroups.length) {
+                    const fileName = `${this.groupPrefix}${idx.toString().padStart(5, '0')}.bin`;
+                    const fileId = fileMap.get(fileName);
+                    if (fileId) {
+                        await gapi.client.drive.files.delete({ fileId });
+                        console.log(`[Drive] Deleted orphaned group: ${fileName}`);
+                    }
                 }
             }
         }
 
-        // 3. Upload new chunks with .bin to avoid GAPI auto-parsing
-        for (let i = 0; i < chunks.length; i++) {
-            const fileName = `${this.dbPrefix}${this.chunkPrefix}${i.toString().padStart(5, '0')}.bin`;
-            await this.uploadFile(fileName, chunks[i], folderId);
-        }
+        // 5. Update Meta
+        const metaData = { categories, groupHashes };
+        const encryptedMeta = await Security.encrypt(metaData, pass);
+        await this.uploadFileWithId(this.metaFile, JSON.stringify(encryptedMeta), folderId, metaId);
 
-        return chunks.length;
+        console.log("[Drive] Push complete.");
+        return noteGroups.length;
     }
 
-    async uploadFile(name, content, folderId) {
-        // Search if file exists
-        const q = `name = '${name}' and '${folderId}' in parents and trashed = false`;
-        const resp = await gapi.client.drive.files.list({ q, fields: 'files(id)' });
-        const files = resp.result.files;
-        const fileId = files.length > 0 ? files[0].id : null;
+    async loadChunks(folderId, pass) {
+        // 1. Get all files
+        const q = `'${folderId}' in parents and trashed = false`;
+        const resp = await gapi.client.drive.files.list({ q, fields: 'files(id, name)' });
+        const existingFiles = resp.result.files || [];
+        const fileMap = new Map(existingFiles.map(f => [f.name, f.id]));
 
+        // 2. Try New System
+        const metaId = fileMap.get(this.metaFile);
+        if (metaId) {
+            try {
+                const accessToken = gapi.auth.getToken().access_token;
+                const metaUrl = `https://www.googleapis.com/drive/v3/files/${metaId}?alt=media`;
+                const metaResp = await fetch(metaUrl, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+                const metaEnc = await metaResp.json();
+                const meta = await Security.decrypt(metaEnc, pass);
+
+                console.log(`[Drive] Loading v4 data. Groups: ${Object.keys(meta.groupHashes).length}`);
+                const notes = [];
+                const indices = Object.keys(meta.groupHashes).sort((a, b) => a - b);
+
+                for (const idx of indices) {
+                    const fileName = `${this.groupPrefix}${idx.toString().padStart(5, '0')}.bin`;
+                    const fileId = fileMap.get(fileName);
+                    if (fileId) {
+                        const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+                        const fResp = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+                        const enc = await fResp.json();
+                        const gNotes = await Security.decrypt(enc, pass);
+                        notes.push(...gNotes);
+                    }
+                }
+                return { notes, categories: meta.categories };
+            } catch (e) { console.error("[Drive] v4 Load failed", e); }
+        }
+
+        // 3. Fallback Legacy
+        const legacyPrefix = 'data_part_';
+        const legacyFiles = existingFiles
+            .filter(f => f.name.startsWith(this.dbPrefix + legacyPrefix))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (legacyFiles.length > 0) {
+            console.log(`[Drive] Migrating ${legacyFiles.length} legacy chunks...`);
+            const accessToken = gapi.auth.getToken().access_token;
+            let fullData = "";
+            for (const file of legacyFiles) {
+                const url = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`;
+                const fileResp = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+                fullData += await fileResp.text();
+            }
+            try {
+                const cloudEncrypted = JSON.parse(fullData);
+                return await Security.decrypt(cloudEncrypted, pass);
+            } catch (e) { console.error('[Drive] Legacy migration failed', e); }
+        }
+
+        return null;
+    }
+
+    async uploadFileWithId(name, content, folderId, fileId = null) {
         const metadata = { name, parents: fileId ? [] : [folderId] };
         const blob = new Blob([content], { type: 'application/json' });
-
         const accessToken = gapi.auth.getToken().access_token;
-        const method = fileId ? 'PATCH' : 'POST';
-        const url = fileId
-            ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`
-            : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
 
         if (fileId) {
-            await fetch(url, {
-                method,
-                headers: { 'Authorization': `Bearer ${accessToken}` },
-                body: blob
-            });
+            const url = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`;
+            await fetch(url, { method: 'PATCH', headers: { 'Authorization': `Bearer ${accessToken}` }, body: blob });
         } else {
+            const url = `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
             const form = new FormData();
             form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             form.append('file', blob);
-            await fetch(url, {
-                method,
-                headers: { 'Authorization': `Bearer ${accessToken}` },
-                body: form
-            });
-        }
-    }
-
-    async loadChunks(folderId) {
-        // Find only files that match our specific chunk pattern
-        const q = `name contains '${this.chunkPrefix}' and name contains '${this.dbPrefix}' and '${folderId}' in parents and trashed = false`;
-        const resp = await gapi.client.drive.files.list({
-            q,
-            fields: 'files(id, name)',
-            orderBy: 'name'
-        });
-
-        const allFiles = resp.result.files || [];
-        // Filter strictly to ensure we only get chunks of the current prefix
-        const files = allFiles.filter(f => f.name.startsWith(this.dbPrefix + this.chunkPrefix));
-
-        if (files.length === 0) return null;
-
-        console.log(`[Drive] Loading ${files.length} chunks...`);
-
-        const accessToken = gapi.auth.getToken().access_token;
-        let fullData = "";
-
-        for (const file of files) {
-            // Use fetch for alt=media to get RAW text reliably without GAPI auto-parsing
-            const url = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`;
-            const fileResp = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            const text = await fileResp.text();
-            fullData += text;
-        }
-
-        try {
-            return fullData ? JSON.parse(fullData) : null;
-        } catch (e) {
-            console.error('[Drive] Critical: Failed to reconstruct JSON from chunks. Length:', fullData.length);
-            console.log('Partial data snippet:', fullData.substring(0, 100));
-            throw e;
+            await fetch(url, { method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}` }, body: form });
         }
     }
 }

@@ -94,12 +94,12 @@ export function getSettingsTemplate() {
                                 <p class="text-[10px] text-muted-foreground">Las notas se guardarán encriptadas dentro de esta carpeta.</p>
                             </div>
                             <div class="space-y-2">
-                                <label class="text-xs font-medium">Límite de tamaño por archivo (KBs)</label>
+                                <label class="text-xs font-medium">Notas por archivo (Grupo)</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="number" id="config-sync-chunk-size" class="h-10 px-4 w-full" placeholder="500" min="10" max="2000">
-                                    <span class="text-xs text-muted-foreground shrink-0 font-bold">KB</span>
+                                    <input type="number" id="config-notes-per-chunk" class="h-10 px-4 w-full" placeholder="50" min="10" max="500">
+                                    <span class="text-xs text-muted-foreground shrink-0 font-bold">NOTAS</span>
                                 </div>
-                                <p class="text-[10px] text-muted-foreground">Define cuánto pesará cada archivo subido (el sistema agrupará tus notas en varios trozos).</p>
+                                <p class="text-[10px] text-muted-foreground">Define cuántas notas se agruparán en cada archivo (ej. 50). Solo se subirán los archivos que contengan notas modificadas.</p>
                             </div>
                             <button id="save-sync-config" class="btn-shad btn-shad-primary w-full h-10">Guardar Cambios</button>
                         </section>
