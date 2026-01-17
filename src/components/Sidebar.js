@@ -17,6 +17,18 @@ export function renderCategories(onViewChange, categories = null) {
     if (select) select.innerHTML = '<option value="">Sin categoría</option>';
     if (dropdown) dropdown.innerHTML = '<div class="px-3 py-1.5 text-xs hover:bg-accent cursor-pointer border-b" data-id="">Sin categoría</div>';
 
+    // Toggle Section Headers
+    const hasCats = state.categories.length > 0;
+    const desktopHeader = document.getElementById('sidebar-categories-header');
+    const mobileHeader = document.getElementById('mobile-sidebar-categories-header');
+    if (desktopHeader) desktopHeader.classList.toggle('hidden', !hasCats);
+    if (mobileHeader) mobileHeader.classList.toggle('hidden', !hasCats);
+
+    // Update "All Notes" Active State
+    document.querySelectorAll('.nav-link[data-view="all"], .nav-link-mobile[data-view="all"], .nav-link-mobile-drawer[data-view="all"]').forEach(l => {
+        l.classList.toggle('active', state.currentView === 'all');
+    });
+
     const addOption = (id, name, color) => {
         if (!dropdown) return;
         const item = document.createElement('div');

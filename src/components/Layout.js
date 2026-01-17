@@ -21,7 +21,7 @@ export function getLayoutTemplate() {
                 </div>
 
                 <div class="space-y-4">
-                    <div class="flex items-center justify-between px-4">
+                    <div class="flex items-center justify-between px-4" id="sidebar-categories-header">
                         <h3 class="sidebar-section-title text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Etiquetas</h3>
                     </div>
                     <div id="sidebar-categories" class="space-y-1"></div>
@@ -38,14 +38,14 @@ export function getLayoutTemplate() {
                 <button id="settings-trigger" class="nav-link w-full text-xs opacity-60 hover:opacity-100">
                     <i data-lucide="settings" class="w-3.5 h-3.5"></i> Preferencias
                 </button>
-                <button id="sidebar-pwa-install-btn" class="hidden nav-link w-full text-xs opacity-60 hover:opacity-100 bg-primary/10 text-primary border-primary/20">
+                <button id="sidebar-pwa-install-btn" class="hidden nav-link w-full text-xs opacity-60 hover:opacity-100">
                     <i data-lucide="download" class="w-3.5 h-3.5"></i> Instalar Aplicación
                 </button>
                 <button id="logout-btn" class="nav-link w-full text-xs opacity-60 hover:opacity-100 text-destructive">
                     <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Cerrar Bóveda
                 </button>
                 <div class="mt-auto pt-4 border-t border-border/20 px-4">
-                    <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-30">v3.3.0</div>
+                    <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-30">v3.3.1</div>
                 </div>
             </div>
         </aside>
@@ -149,7 +149,7 @@ export function getLayoutTemplate() {
                         </button>
                     </div>
                     <div class="space-y-4">
-                        <div class="flex items-center justify-between px-2">
+                        <div class="flex items-center justify-between px-2" id="mobile-sidebar-categories-header">
                             <h3 class="sidebar-section-title">Etiquetas</h3>
                         </div>
                         <div id="mobile-sidebar-categories" class="space-y-1 px-2"></div>

@@ -58,8 +58,22 @@ export function renderNotes(onEdit) {
             </div>
         `;
 
-        card.onclick = (e) => {
+        card.onclick = async (e) => {
             if (e.target.closest('.delete-note-btn')) return;
+
+            // If note is locked and not yet unlocked in this session
+            if (note.passwordHash && !state.unlockedNotes.has(note.id)) {
+                const pass = await openPrompt('Nota Protegida', 'Ingresa la contraseña para ver esta nota:');
+                if (!pass) return;
+                const hash = await Security.hashPassword(pass);
+                if (hash !== note.passwordHash) {
+                    showToast('❌ Contraseña incorrecta');
+                    return;
+                }
+                state.unlockedNotes.add(note.id);
+                renderNotes(onEdit); // Re-render to show content
+            }
+
             onEdit(note);
         };
         return card;
