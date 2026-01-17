@@ -107,7 +107,7 @@
     }
 
     .nav-link-mobile.active {
-        @apply text-primary font-bold !important;
+        @apply text-foreground font-bold !important;
     }
 
     .nav-link.active {
@@ -119,7 +119,7 @@
     }
 
     .nav-link-mobile.active i {
-        @apply scale-110 text-primary transition-transform !important;
+        @apply scale-110 text-foreground transition-transform !important;
     }
 
     .card-shad {

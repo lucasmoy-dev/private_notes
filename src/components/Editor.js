@@ -4,6 +4,7 @@ import { isColorDark, safeCreateIcons, showToast, openPrompt } from '../ui-utils
 import { SecurityService as Security } from '../security.js';
 
 let lastSelectedRange = null;
+let initialNoteState = null; // To track changes
 
 export function getEditorTemplate() {
     return `
@@ -18,7 +19,7 @@ export function getEditorTemplate() {
                     class="bg-transparent text-xl font-bold outline-none border-none placeholder:text-muted-foreground w-full">
                 
                 <div class="flex items-center gap-1">
-                    <button id="note-expand-btn" class="editor-tool" title="Expandir">
+                    <button id="note-expand-btn" class="editor-tool hidden md:inline-flex" title="Expandir">
                         <i data-lucide="maximize-2" class="w-5 h-5"></i>
                     </button>
                     <div class="relative">
@@ -62,8 +63,7 @@ export function getEditorTemplate() {
                     <button id="mobile-link-btn" class="hidden editor-tool border bg-background shrink-0"><i data-lucide="link" class="w-4 h-4"></i></button>
                     <button id="open-text-colors" class="editor-tool border bg-background shrink-0 relative"><i data-lucide="type" class="w-4 h-4"></i><div class="w-3 h-[2px] bg-red-500 rounded-full absolute bottom-1 right-2"></div></button>
                     <button id="mobile-text-color-btn" class="hidden editor-tool border bg-background shrink-0"><i data-lucide="type" class="w-4 h-4"></i></button>
-                    <button id="open-emojis" class="editor-tool border bg-background shrink-0"><i data-lucide="smile" class="w-4 h-4"></i></button>
-                    <button id="mobile-open-emojis" class="hidden editor-tool border bg-background shrink-0"><i data-lucide="smile" class="w-4 h-4"></i></button>
+                    <button id="open-emojis" class="editor-tool hidden md:inline-flex border bg-background shrink-0"><i data-lucide="smile" class="w-4 h-4"></i></button>
                 </div>
             </div>
 
@@ -428,6 +428,16 @@ export function openEditor(note = null) {
 
     modal.classList.remove('hidden');
     contentEl.focus();
+
+    // Store initial state for comparison
+    initialNoteState = {
+        title: note?.title || '',
+        content: (note?.content === undefined || note?.content === 'undefined') ? '' : (note?.content || ''),
+        categoryId: note ? (note.categoryId || '') : defaultCat,
+        pinned: note ? note.pinned : false,
+        themeId: theme.id,
+        passwordHash: note ? note.passwordHash : null
+    };
 }
 
 function closeEditor() {
@@ -466,18 +476,32 @@ export async function saveActiveNote(shouldClose = true) {
     const catId = catSelect ? catSelect.value : '';
     const themeId = dialogContent ? dialogContent.dataset.themeId : 'default';
 
+    // 1. Check for Empty Note (No Title & No Content)
+    const isEmpty = !title && (!content || content.trim() === '' || content === '<br>');
+
+    if (isEmpty) {
+        // If it was an existing note, delete it. If new, just don't save.
+        if (state.editingNoteId) {
+            const existingIndex = state.notes.findIndex(n => n.id === state.editingNoteId);
+            if (existingIndex >= 0) {
+                state.notes.splice(existingIndex, 1);
+                await saveLocal();
+                if (window.refreshUI) window.refreshUI();
+                if (window.triggerAutoSync) window.triggerAutoSync(); // Sync deletion
+            }
+        }
+        if (shouldClose) closeEditor();
+        return;
+    }
+
+    // 2. Default Title if missing but content exists
     if (!title) {
         const now = new Date();
         title = now.getFullYear() + '-' +
             String(now.getMonth() + 1).padStart(2, '0') + '-' +
             String(now.getDate()).padStart(2, '0') + ', ' +
             String(now.getHours()).padStart(2, '0') + ':' +
-            String(now.getMinutes()).padStart(2, '0') + ':' +
-            String(now.getSeconds()).padStart(2, '0');
-    }
-
-    if (content === undefined || content === 'undefined' || content.trim() === '') {
-        return showToast('La nota está vacía');
+            String(now.getMinutes()).padStart(2, '0');
     }
 
     const noteIndex = state.notes.findIndex(n => n.id === state.editingNoteId);
@@ -487,6 +511,23 @@ export async function saveActiveNote(shouldClose = true) {
     const isPinned = pinEl ? pinEl.dataset.active === 'true' : false;
     const hasLock = lockEl ? lockEl.dataset.active === 'true' : false;
     const tempHash = lockEl ? lockEl.dataset.tempHash || '' : '';
+    const passwordHash = hasLock ? (tempHash || (noteIndex >= 0 ? state.notes[noteIndex].passwordHash : null)) : null;
+
+    // 3. Check against Initial State (No Changes)
+    if (initialNoteState && state.editingNoteId) {
+        const isUnchanged =
+            title === initialNoteState.title &&
+            content === initialNoteState.content &&
+            catId === initialNoteState.categoryId &&
+            isPinned === initialNoteState.pinned &&
+            themeId === initialNoteState.themeId &&
+            passwordHash === initialNoteState.passwordHash;
+
+        if (isUnchanged && shouldClose) {
+            closeEditor();
+            return; // Exit without saving/syncing
+        }
+    }
 
     const noteData = {
         id: state.editingNoteId || Date.now().toString(),
@@ -495,7 +536,7 @@ export async function saveActiveNote(shouldClose = true) {
         categoryId: catId || null,
         pinned: isPinned,
         themeId: themeId || 'default',
-        passwordHash: hasLock ? (tempHash || (noteIndex >= 0 ? state.notes[noteIndex].passwordHash : null)) : null,
+        passwordHash: passwordHash,
         updatedAt: Date.now()
     };
 
@@ -511,10 +552,16 @@ export async function saveActiveNote(shouldClose = true) {
 
     if (!state.editingNoteId) state.editingNoteId = noteData.id;
 
+    // 4. Update UI FIRST, then Sync
     await saveLocal();
     if (shouldClose) closeEditor();
+
     if (window.refreshUI) window.refreshUI();
-    if (window.triggerAutoSync) window.triggerAutoSync();
+
+    // Trigger sync in next tick to allow UI update to render
+    setTimeout(() => {
+        if (window.triggerAutoSync) window.triggerAutoSync();
+    }, 50);
 }
 
 function saveSelection() {

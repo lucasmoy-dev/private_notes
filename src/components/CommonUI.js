@@ -1,7 +1,7 @@
 export function getCommonUITemplate() {
     return `
     <!-- Prompt Modal -->
-    <div id="prompt-modal" class="fixed inset-0 z-[250] hidden flex items-center justify-center p-4">
+    <div id="prompt-modal" class="fixed inset-0 z-[250] hidden flex items-start justify-center pt-24 md:pt-0 md:items-center p-4">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-[340px] bg-card border shadow-2xl rounded-2xl p-6 space-y-6 animate-in zoom-in-95 duration-200">
             <div class="space-y-2">

@@ -90,10 +90,9 @@ export function getLayoutTemplate() {
                     <div class="flex items-end justify-between">
                         <div>
                             <h1 id="view-title" class="text-3xl font-bold tracking-tight">Todas las notas</h1>
-                            <p id="view-desc" class="text-muted-foreground mt-1">Organiza tus pensamientos y protege tu privacidad.</p>
                         </div>
                     </div>
-                    <div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+                    <div id="notes-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
                 </div>
             </div>
 
