@@ -5,6 +5,9 @@ import { showToast, safeCreateIcons } from './src/ui-utils.js';
 import { Security } from './src/auth.js';
 import { DriveSync } from './src/drive.js';
 
+const CLIENT_ID = '974464877836-721dprai6taijtuufmrkh438q68e97sp.apps.googleusercontent.com';
+let deferredPrompt = null;
+
 // Components
 import { getAuthShieldTemplate, checkAuthStatus, handleMasterAuth } from './src/components/AuthShield.js';
 import { getLayoutTemplate } from './src/components/Layout.js';
@@ -39,6 +42,8 @@ async function initApp() {
     // 6. Final UI Polish
     initSearch();
     initMobileNav();
+    initPWA();
+    initGapi();
     injectVersion();
     safeCreateIcons();
 
@@ -137,6 +142,7 @@ function setupGlobalEvents() {
 
     bindClick('save-sync-config', saveSettings);
     bindClick('save-security-config', saveSettings);
+    bindClick('connect-drive-btn', handleGoogleAuth);
 
     bindClick('theme-light', () => setTheme('light'));
     bindClick('theme-dark', () => setTheme('dark'));
@@ -247,6 +253,71 @@ function initMobileNav() {
         searchBar?.classList.remove('hidden');
         searchInput?.focus();
     });
+}
+
+function initPWA() {
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('pwa-install-btn')?.classList.remove('hidden');
+        document.getElementById('sidebar-pwa-install-btn')?.classList.remove('hidden');
+    });
+
+    const installLogic = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            document.getElementById('pwa-install-btn')?.classList.add('hidden');
+            document.getElementById('sidebar-pwa-install-btn')?.classList.add('hidden');
+        }
+        deferredPrompt = null;
+    };
+
+    bindClick('pwa-install-btn', installLogic);
+    bindClick('sidebar-pwa-install-btn', installLogic);
+}
+
+function initGapi() {
+    const checkGapi = setInterval(() => {
+        if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
+            clearInterval(checkGapi);
+            gapi.load('client', async () => {
+                await gapi.client.init({
+                    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"]
+                });
+                state.gapiLoaded = true;
+
+                state.tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: "https://www.googleapis.com/auth/drive.file",
+                    callback: (resp) => {
+                        if (resp.error) return showToast('❌ Error de vinculación');
+                        updateDriveStatus(true);
+                        showToast('✅ Vinculado con Google Drive');
+                    },
+                });
+
+                // Check if we already have a token
+                const hasToken = gapi.auth.getToken() !== null;
+                updateDriveStatus(hasToken);
+            });
+        }
+    }, 500);
+}
+
+function handleGoogleAuth() {
+    if (!state.tokenClient) return showToast('Google API no lista');
+    state.tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function updateDriveStatus(connected) {
+    const el = document.getElementById('drive-status');
+    if (!el) return;
+    el.innerText = connected ? 'Conectado' : 'Desconectado';
+    el.className = connected
+        ? 'text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase'
+        : 'text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-bold uppercase';
 }
 
 async function handleSync() {

@@ -64,6 +64,9 @@ export function getSettingsTemplate() {
                                 <input type="text" id="config-drive-path" class="h-10 px-4 w-full" placeholder="p.ej. CloudNotesV3" autocomplete="off">
                                 <p class="text-[10px] text-muted-foreground">Las notas se guardarán encriptadas dentro de esta carpeta.</p>
                             </div>
+                            <button id="connect-drive-btn" class="btn-shad btn-shad-outline w-full h-10 flex items-center justify-center gap-2">
+                                <i data-lucide="link" class="w-4 h-4"></i> Conectar con Google Drive
+                            </button>
                             <button id="save-sync-config" class="btn-shad btn-shad-primary w-full h-10">Guardar Cambios</button>
                         </section>
                     </div>
