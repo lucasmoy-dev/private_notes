@@ -4,7 +4,7 @@ export function getSettingsTemplate() {
     return `
     <div id="settings-modal" class="fixed inset-0 z-[80] hidden">
         <div class="dialog-overlay"></div>
-        <div class="dialog-content max-w-2xl p-0 overflow-hidden flex flex-col md:flex-row h-[500px]">
+        <div class="dialog-content max-w-2xl p-0 overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-[500px]">
             <!-- Sidebar Settings -->
             <div id="settings-sidebar" class="w-full md:w-48 bg-muted/50 border-b md:border-b-0 md:border-r p-4 flex flex-col gap-1 overflow-y-auto">
                 <button class="settings-tab" data-tab="appearance">

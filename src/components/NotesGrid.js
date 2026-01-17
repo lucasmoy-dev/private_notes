@@ -44,7 +44,7 @@ export function renderNotes(onEdit) {
                         ${note.passwordHash ? `<i data-lucide="${isUnlocked ? 'unlock' : 'lock'}" class="w-3.5 h-3.5 lock-indicator cursor-pointer" data-id="${note.id}"></i>` : ''}
                     </div>
                 </div>
-                <div class="text-[13px] opacity-70 line-clamp-5 mb-6 leading-relaxed flex-1">
+                <div class="text-[13px] opacity-70 line-clamp-5 mb-2 leading-relaxed flex-1">
                     ${(note.passwordHash && !isUnlocked) ? '<div class="flex items-center gap-2 py-4 italic opacity-50"><i data-lucide="shield-alert" class="w-4 h-4"></i> Contenido protegido</div>' : note.content}
                 </div>
                 <div class="flex items-center justify-between mt-auto pt-3 border-t">

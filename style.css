@@ -111,7 +111,11 @@
     }
 
     .dialog-content {
-        @apply fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-2xl duration-200 animate-in fade-in-0 zoom-in-95 sm:rounded-xl;
+        @apply fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-2xl duration-200 animate-in fade-in-0 zoom-in-95 sm:rounded-xl;
+    }
+
+    .dialog-content.fullscreen-mode {
+        @apply fixed inset-0 w-screen h-screen max-w-none max-h-none translate-x-0 translate-y-0 left-0 top-0 z-[60] rounded-none border-none p-0 !important;
     }
 
     .popover-content {
@@ -189,7 +193,11 @@ input.pl-12 {
 
 /* Password eye toggle */
 .toggle-pass {
-    @apply transition-colors h-11 w-11 flex items-center justify-center rounded-md absolute right-0 top-0;
+    @apply transition-colors h-11 w-11 flex items-center justify-center rounded-md absolute right-0 top-1/2 -translate-y-1/2;
+}
+
+.toggle-pass i {
+    @apply opacity-50;
 }
 
 /* Scrollbar styling */
@@ -302,7 +310,7 @@ textarea {
     }
 
     .dialog-content {
-        @apply w-full h-full max-w-none max-h-none rounded-none p-4 bottom-0 left-0 translate-x-0 translate-y-0 !important;
+        @apply w-full h-full max-w-none max-h-none rounded-none p-4 bottom-0 left-0 translate-x-0 translate-y-0 fixed inset-0 !important;
     }
 
     /* Hide Desktop Header on Mobile */

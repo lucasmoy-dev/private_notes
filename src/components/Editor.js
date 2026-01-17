@@ -95,7 +95,7 @@ export function getEditorTemplate() {
                 </div>
 
                 <div id="edit-content" contenteditable="true"
-                    class="min-h-[300px] outline-none text-base leading-relaxed prose prose-slate dark:prose-invert max-w-none px-1"
+                    class="min-h-[150px] md:min-h-[300px] outline-none text-base leading-relaxed prose prose-slate dark:prose-invert max-w-none px-1"
                     placeholder="Empieza a escribir..."></div>
             </div>
 
@@ -194,17 +194,18 @@ export function initEditor(onSave) {
 
     // Fullscreen toggle
     document.getElementById('toggle-fullscreen').onclick = () => {
-        const modal = document.getElementById('editor-modal').querySelector('.dialog-content');
-        const isFull = modal.classList.contains('max-w-none');
-        const icon = document.getElementById('toggle-fullscreen').querySelector('i');
+        const modal = document.getElementById('editor-modal');
+        const content = modal.querySelector('.dialog-content');
+        const isFull = content.classList.contains('fullscreen-mode');
+        const btn = document.getElementById('toggle-fullscreen');
+        const icon = btn.querySelector('i');
 
         if (isFull) {
-            modal.classList.remove('max-w-none', 'h-screen', 'w-screen', 'fixed', 'inset-0', 'z-[60]', 'rounded-none');
-            modal.classList.add('max-w-2xl', 'h-[80vh]');
-            safeCreateIcons(); // Reset icon
+            content.classList.remove('fullscreen-mode');
+            icon.setAttribute('data-lucide', 'maximize-2');
         } else {
-            modal.classList.remove('max-w-2xl', 'h-[80vh]');
-            modal.classList.add('max-w-none', 'h-screen', 'w-screen', 'fixed', 'inset-0', 'z-[60]', 'rounded-none');
+            content.classList.add('fullscreen-mode');
+            icon.setAttribute('data-lucide', 'minimize-2');
         }
         safeCreateIcons();
     };
