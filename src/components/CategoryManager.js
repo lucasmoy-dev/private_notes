@@ -92,6 +92,7 @@ export function renderCategoryManager(onRefreshSidebar, categories = null) {
         nameInput.onchange = async () => {
             await saveLocal();
             onRefreshSidebar();
+            if (window.triggerAutoSync) window.triggerAutoSync();
         };
 
         document.getElementById(`lock-${cat.id}`).onclick = () => toggleLock(cat.id, onRefreshSidebar);
@@ -119,6 +120,7 @@ async function changeColor(id, onRefresh, triggerEl) {
             renderCategoryManager(onRefresh);
             onRefresh();
             picker.classList.add('hidden');
+            if (window.triggerAutoSync) window.triggerAutoSync();
         };
         grid.appendChild(div);
     });
@@ -164,6 +166,7 @@ async function deleteCat(id, onRefresh) {
         await saveLocal();
         renderCategoryManager(onRefresh);
         onRefresh();
+        if (window.triggerAutoSync) window.triggerAutoSync();
     }
 }
 
@@ -189,4 +192,5 @@ async function toggleLock(id, onRefresh) {
     await saveLocal();
     renderCategoryManager(onRefresh);
     onRefresh();
+    if (window.triggerAutoSync) window.triggerAutoSync();
 }

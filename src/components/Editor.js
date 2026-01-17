@@ -10,10 +10,10 @@ export function getEditorTemplate() {
     <div id="editor-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm dialog-overlay"></div>
         <div class="dialog-content max-w-2xl h-[80vh] flex flex-col">
-            <div class="flex items-center justify-between border-b pb-4">
+            <div class="flex items-center justify-between border-b pb-2">
                 <input type="text" id="edit-title" placeholder="Título de la nota"
                     class="bg-transparent text-xl font-bold outline-none border-none placeholder:text-muted-foreground w-full">
-                <button id="close-editor" class="text-muted-foreground hover:text-foreground"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button id="close-editor" class="text-muted-foreground hover:text-foreground p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
             <div class="flex-1 py-4 overflow-y-auto">
@@ -57,10 +57,10 @@ export function getEditorTemplate() {
                             <option value="">Sin categoría</option>
                         </select>
                     </div>
-                    <button id="toggle-pin" class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-input bg-background/50 hover:bg-accent transition-all shrink-0">
+                    <button id="toggle-pin" class="editor-tool border border-input bg-background/50 transition-all shrink-0">
                         <i data-lucide="pin" class="w-4 h-4"></i>
                     </button>
-                    <button id="toggle-lock" class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-input bg-background/50 hover:bg-accent transition-all shrink-0">
+                    <button id="toggle-lock" class="editor-tool border border-input bg-background/50 transition-all shrink-0">
                         <i data-lucide="lock" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -94,7 +94,7 @@ export function initEditor(onSave) {
     const saveBtn = document.getElementById('save-note');
     const deleteBtn = document.getElementById('delete-note');
 
-    closeBtn.onclick = closeEditor;
+    closeBtn.onclick = () => saveActiveNote();
     saveBtn.onclick = async () => {
         await saveActiveNote();
         onSave();
@@ -149,10 +149,16 @@ export function initEditor(onSave) {
     // Checklist handler
     contentEl.addEventListener('click', (e) => {
         const li = e.target.closest('.checklist li');
-        if (li && (e.offsetX < 30)) { // If clicked near the custom checkbox
-            li.dataset.checked = li.dataset.checked === 'true' ? 'false' : 'true';
-            saveSelection();
-            updateToolsUI();
+        if (li) {
+            // Check if we clicked the checkbox area (left side)
+            const rect = li.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            if (clickX < 35) { // Increased hit area for touch
+                e.preventDefault();
+                li.dataset.checked = li.dataset.checked === 'true' ? 'false' : 'true';
+                saveActiveNote(); // Auto-save on toggle
+                updateToolsUI();
+            }
         }
     });
 
@@ -172,7 +178,9 @@ export function initEditor(onSave) {
     };
 
     // Close on overlay click
-    modal.querySelector('.dialog-overlay').onclick = closeEditor;
+    modal.querySelector('.dialog-overlay').onclick = () => {
+        saveActiveNote();
+    };
 }
 
 
@@ -235,12 +243,14 @@ export function openEditor(note = null) {
 }
 
 function closeEditor() {
-    if (state.editingNoteId) {
-        state.unlockedNotes.delete(state.editingNoteId);
-    }
+    state.editingNoteId = null;
     document.getElementById('editor-modal').classList.add('hidden');
     document.getElementById('toggle-lock').dataset.tempHash = '';
-    state.editingNoteId = null;
+
+    // Clear sensitive fields in modal to avoid leaks after closing
+    document.getElementById('edit-title').value = '';
+    document.getElementById('edit-content').innerHTML = '';
+
     if (window.refreshUI) window.refreshUI();
 }
 
@@ -384,6 +394,8 @@ function initPopovers() {
     document.getElementById('toggle-pin').onclick = function () {
         const newState = this.dataset.active !== 'true';
         updatePinUI(newState);
+        // Optimization: Save immediately for pin
+        // saveActiveNote();
     };
     document.getElementById('toggle-lock').onclick = async function () {
         const isCurrentlyLocked = this.dataset.active === 'true';

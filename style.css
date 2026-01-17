@@ -225,7 +225,7 @@ textarea {
 
 /* Custom Dropdown */
 #cat-dropdown-menu {
-    @apply bg-popover text-popover-foreground border shadow-2xl rounded-xl p-1.5 mt-2 min-w-[200px];
+    @apply bg-popover text-popover-foreground border shadow-2xl rounded-xl p-1.5 mt-2 min-w-[200px] z-[100];
     transform-origin: top left;
     animation: dropdown-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -268,12 +268,29 @@ textarea {
     }
 
     .dialog-content {
-        @apply w-[98%] p-3;
-        max-height: 95vh;
+        @apply w-full h-full max-w-none max-h-none rounded-none p-4 bottom-0 left-0 translate-x-0 translate-y-0 !important;
+    }
+
+    /* Hide Desktop Header on Mobile */
+    header.md\:flex {
+        display: none !important;
     }
 
     #mobile-search-bar {
-        @apply h-full w-full z-[60] left-0 top-0;
+        @apply h-full w-full z-[120] left-0 top-0;
+    }
+
+    /* Editor Spacing Refinements */
+    #edit-title {
+        @apply text-lg !important;
+    }
+
+    .editor-toolbar-container {
+        @apply mb-2 !important;
+    }
+
+    #edit-content {
+        @apply min-h-[50vh] !important;
     }
 
     /* Editor Mobile Tweaks */

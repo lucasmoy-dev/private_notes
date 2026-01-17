@@ -467,15 +467,17 @@ async function handleSync() {
         showToast('✅ Sincronización completa');
     } catch (err) {
         console.error('Sync error:', err);
-        showToast('❌ Error de red');
+        // Handle 401 (Unauthorized)
+        if (err.status === 401 || (err.result && err.result.error && err.result.error.code === 401)) {
+            showToast('⚠️ Sesión de Drive expirada. Re-conectando...');
+            handleGoogleAuth();
+        } else {
+            showToast('❌ Error de sincronización');
+        }
     } finally {
         isSyncing = false;
-        setTimeout(() => {
-            const iconEnd = document.getElementById('sync-icon');
-            const btnEnd = document.getElementById('sync-btn');
-            if (iconEnd) iconEnd.classList.remove('animate-spin');
-            if (btnEnd) btnEnd.classList.remove('text-primary');
-        }, 500);
+        if (icon) icon.classList.remove('animate-spin');
+        if (btn) btn.classList.remove('text-primary');
     }
 }
 
@@ -508,7 +510,7 @@ async function addCategory() {
     if (input) input.value = '';
     renderCategoryManager(refreshUI, state.categories);
     refreshUI();
-    triggerAutoSync();
+    if (window.triggerAutoSync) window.triggerAutoSync();
 }
 
 function handleLogout() {
