@@ -1,6 +1,6 @@
 import { Security } from '../auth.js';
 import { state, loadLocalEncrypted } from '../state.js';
-import { showToast } from '../ui-utils.js';
+import { showToast, safeCreateIcons } from '../ui-utils.js';
 
 export function getAuthShieldTemplate() {
     return `
@@ -70,6 +70,7 @@ function showSetupPage() {
         submitBtn.classList.remove('btn-shad-primary');
         submitBtn.classList.add('btn-shad-success');
     }
+    safeCreateIcons();
 }
 
 function showLoginPage() {
@@ -86,6 +87,7 @@ function showLoginPage() {
         submitBtn.classList.add('btn-shad-primary');
         submitBtn.classList.remove('btn-shad-success');
     }
+    safeCreateIcons();
 }
 
 export async function handleMasterAuth(onSuccess) {

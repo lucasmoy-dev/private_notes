@@ -332,21 +332,6 @@ export function initEditor(onSave) {
         }
     });
 
-    document.getElementById('add-checklist').onclick = () => {
-        restoreSelection();
-        document.execCommand('insertUnorderedList');
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            let node = selection.focusNode;
-            while (node && node.nodeName !== 'UL') node = node.parentNode;
-            if (node) {
-                node.classList.add('checklist');
-                node.querySelectorAll('li').forEach(li => li.dataset.checked = 'false');
-            }
-        }
-        updateToolsUI();
-    };
-
     // Close on overlay click
     modal.querySelector('.dialog-overlay').onclick = () => {
         saveActiveNote();
