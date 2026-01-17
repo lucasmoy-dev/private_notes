@@ -116,15 +116,20 @@ function onViewChange(viewId, title) {
 function updateViewHeader(title = null) {
     const titleEl = document.getElementById('view-title');
     const descEl = document.getElementById('view-desc');
-    if (!titleEl || !descEl) return;
+    if (!titleEl) return;
 
     const currentCat = state.categories.find(c => c.id === state.currentView);
     const resolvedTitle = title || (currentCat ? currentCat.name : 'Todas las notas');
 
     titleEl.innerText = resolvedTitle;
-    descEl.innerText = state.currentView === 'all'
-        ? "Organiza tus pensamientos y protege tu privacidad."
-        : `Mostrando notas en "${resolvedTitle}".`;
+
+    // Hide description for specific categories as requested
+    if (descEl) {
+        descEl.innerText = state.currentView === 'all'
+            ? "Organiza tus pensamientos y protege tu privacidad."
+            : "";
+        descEl.style.display = state.currentView === 'all' ? 'block' : 'none';
+    }
 }
 
 function applyTheme() {

@@ -37,7 +37,7 @@ export function getCategoryManagerTemplate() {
                 <button class="close-categories w-full h-12 bg-secondary text-secondary-foreground font-bold rounded-2xl hover:bg-secondary/80 transition-all">Hecho</button>
             </div>
         </div>
-        <div id="cat-icon-picker" class="fixed z-[80] hidden popover-content p-2 w-64 bg-popover border shadow-2xl rounded-2xl backdrop-blur-xl">
+        <div id="cat-icon-picker" class="fixed z-[80] hidden popover-content p-2 w-64 max-h-64 overflow-y-auto bg-popover border shadow-2xl rounded-2xl backdrop-blur-xl">
             <div class="grid grid-cols-6 gap-2 p-1" id="cat-icons-grid"></div>
         </div>
     </div>`;
