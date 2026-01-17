@@ -10,7 +10,7 @@ export function getEditorTemplate() {
     <div id="editor-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm dialog-overlay"></div>
         <div class="dialog-content max-w-2xl h-[80vh] flex flex-col">
-            <div class="flex items-center gap-2 border-b pb-4 px-6 pt-6">
+            <div class="flex items-center gap-2 border-b pb-4 px-4 pt-6">
                 <button id="close-editor" class="text-muted-foreground hover:text-foreground p-2 -ml-2" title="Volver">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
@@ -37,7 +37,7 @@ export function getEditorTemplate() {
                 </div>
             </div>
 
-            <div class="flex-1 py-4 overflow-y-auto px-6">
+            <div class="flex-1 py-4 overflow-y-auto px-4">
                 <div class="flex items-center gap-3 w-full md:w-auto mb-4">
                     <div class="editor-toolbar-container flex-1 justify-start md:flex-initial hidden md:flex items-center gap-1 p-1 border rounded-md bg-muted/30 w-fit shrink-0">
                         <button class="editor-tool" data-cmd="bold" title="Negrita (Ctrl+B)">
@@ -78,7 +78,7 @@ export function getEditorTemplate() {
                     placeholder="Empieza a escribir..."></div>
             </div>
 
-            <div class="border-t py-4 px-6 flex items-center justify-between gap-2 editor-bottom-bar shrink-0">
+            <div class="border-t py-4 px-4 flex items-center justify-between gap-2 editor-bottom-bar shrink-0">
                 <div class="flex items-center gap-1.5 flex-1 min-w-0">
                     <button id="open-colors" class="editor-tool border border-input bg-background/50 transition-all shrink-0" title="Fondo">
                         <i data-lucide="palette" class="w-4 h-4"></i>

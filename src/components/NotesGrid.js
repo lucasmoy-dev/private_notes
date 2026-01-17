@@ -37,7 +37,7 @@ export function renderNotes(onEdit) {
 
         card.innerHTML = `
             <div class="note-card-content">
-                <div class="flex items-start justify-between mb-4">
+                <div class="flex items-start justify-between mb-2">
                     <h3 class="font-bold text-base line-clamp-2 leading-snug flex-1 pr-3">${note.title}</h3>
                     <div class="flex items-center gap-2 shrink-0 pt-0.5">
                         ${note.pinned ? '<i data-lucide="pin" class="w-4 h-4 fill-current text-primary"></i>' : ''}
@@ -47,7 +47,7 @@ export function renderNotes(onEdit) {
                         </button>
                     </div>
                 </div>
-                <div class="text-[13px] opacity-70 line-clamp-6 leading-relaxed mb-6 flex-1">
+                <div class="text-[13px] opacity-70 line-clamp-6 leading-relaxed mb-4 flex-1">
                     ${(note.passwordHash && !isUnlocked) ? '<div class="flex items-center gap-3 py-8 italic opacity-50"><i data-lucide="shield-alert" class="w-6 h-6"></i> Contenido protegido</div>' : note.content}
                 </div>
                 ${cat ? `
