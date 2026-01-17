@@ -17,20 +17,20 @@ export function getEditorTemplate() {
             </div>
 
             <div class="flex-1 py-4 overflow-y-auto">
-                <div class="flex items-center gap-1 mb-4 p-1 border rounded-md bg-muted/30 w-fit">
-                <div class="flex items-center gap-1 mb-4 p-1 border rounded-md bg-muted/30 w-fit overflow-x-auto no-scrollbar max-w-full">
-                    <button class="editor-tool" data-cmd="bold" title="Negrita"><i data-lucide="bold" class="w-4 h-4"></i></button>
-                    <button class="editor-tool" data-cmd="italic" title="Cursiva"><i data-lucide="italic" class="w-4 h-4"></i></button>
-                    <button class="editor-tool" data-cmd="underline" title="Subrayado"><i data-lucide="underline" class="w-4 h-4"></i></button>
-                    <div class="w-px h-4 bg-border mx-1 shrink-0"></div>
-                    <button class="editor-tool" data-cmd="insertUnorderedList" title="Lista"><i data-lucide="list" class="w-4 h-4"></i></button>
-                    <button class="editor-tool" data-cmd="insertOrderedList" title="Lista numerada"><i data-lucide="list-ordered" class="w-4 h-4"></i></button>
-                    <button id="add-checklist" class="editor-tool" title="Checklist"><i data-lucide="list-checks" class="w-4 h-4"></i></button>
-                    <div class="w-px h-4 bg-border mx-1 shrink-0"></div>
-                    <button id="add-link" class="editor-tool" title="Insertar enlace"><i data-lucide="link" class="w-4 h-4"></i></button>
-                    <button id="open-text-colors" class="editor-tool" title="Color de texto"><i data-lucide="type" class="w-4 h-4"></i></button>
-                    <button id="open-emojis" class="editor-tool" title="Emojis"><i data-lucide="smile" class="w-4 h-4"></i></button>
-                </div>
+                <div class="editor-toolbar-container mb-4 overflow-x-auto no-scrollbar">
+                    <div class="flex items-center gap-1 p-1 border rounded-md bg-muted/30 w-fit shrink-0">
+                        <button class="editor-tool" data-cmd="bold" title="Negrita"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                        <button class="editor-tool" data-cmd="italic" title="Cursiva"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                        <button class="editor-tool" data-cmd="underline" title="Subrayado"><i data-lucide="underline" class="w-4 h-4"></i></button>
+                        <div class="w-px h-4 bg-border mx-1"></div>
+                        <button class="editor-tool" data-cmd="insertUnorderedList" title="Lista"><i data-lucide="list" class="w-4 h-4"></i></button>
+                        <button class="editor-tool" data-cmd="insertOrderedList" title="Lista numerada"><i data-lucide="list-ordered" class="w-4 h-4"></i></button>
+                        <button id="add-checklist" class="editor-tool" title="Checklist"><i data-lucide="list-checks" class="w-4 h-4"></i></button>
+                        <div class="w-px h-4 bg-border mx-1"></div>
+                        <button id="add-link" class="editor-tool" title="Insertar enlace"><i data-lucide="link" class="w-4 h-4"></i></button>
+                        <button id="open-text-colors" class="editor-tool" title="Color de texto"><i data-lucide="type" class="w-4 h-4"></i></button>
+                        <button id="open-emojis" class="editor-tool" title="Emojis"><i data-lucide="smile" class="w-4 h-4"></i></button>
+                    </div>
                 </div>
 
                 <div id="edit-content" contenteditable="true"
@@ -38,37 +38,34 @@ export function getEditorTemplate() {
                     placeholder="Empieza a escribir..."></div>
             </div>
 
-            <div class="border-t pt-4 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="flex items-center bg-muted/30 p-1 rounded-md border mr-2">
+            <div class="border-t pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 editor-bottom-bar overflow-y-auto max-h-[30vh]">
+                <div class="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                    <div class="flex items-center bg-muted/30 p-1 rounded-md border shrink-0">
                         <button id="open-colors" class="editor-tool" title="Color de fondo"><i data-lucide="palette" class="w-4 h-4"></i></button>
                     </div>
 
                     <div class="relative group" id="cat-select-wrapper">
                         <button id="cat-dropdown-trigger"
-                            class="h-9 px-3 rounded-md border border-input bg-background/50 text-xs flex items-center gap-2 hover:bg-accent transition-all">
-                            <span id="selected-cat-label">Sin categoría</span>
-                            <i data-lucide="chevron-down" class="w-3 h-3 text-muted-foreground"></i>
+                            class="h-9 px-3 rounded-md border border-input bg-background/50 text-[10px] md:text-xs flex items-center gap-2 hover:bg-accent transition-all truncate max-w-[120px]">
+                            <span id="selected-cat-label" class="truncate">Sin categoría</span>
+                            <i data-lucide="chevron-down" class="w-3 h-3 text-muted-foreground shrink-0"></i>
                         </button>
                         <div id="cat-dropdown-menu"
                             class="absolute bottom-full mb-2 left-0 w-48 bg-popover border rounded-md shadow-xl hidden z-50 py-1 overflow-hidden">
                         </div>
-                        <select id="edit-category" class="hidden">
-                            <option value="">Sin categoría</option>
-                        </select>
                     </div>
-                    <button id="toggle-pin" class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-input bg-background/50 hover:bg-accent transition-all">
+                    <button id="toggle-pin" class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-input bg-background/50 hover:bg-accent transition-all shrink-0">
                         <i data-lucide="pin" class="w-4 h-4"></i>
                     </button>
-                    <button id="toggle-lock" class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-input bg-background/50 hover:bg-accent transition-all">
+                    <button id="toggle-lock" class="h-9 w-9 inline-flex items-center justify-center rounded-md border border-input bg-background/50 hover:bg-accent transition-all shrink-0">
                         <i data-lucide="lock" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <div class="flex gap-2">
-                    <button id="delete-note" class="btn-shad bg-destructive/10 text-destructive hover:bg-destructive hover:text-white h-9 px-3" title="Eliminar nota">
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button id="delete-note" class="flex-1 sm:flex-none btn-shad bg-destructive/10 text-destructive hover:bg-destructive hover:text-white h-9 px-3" title="Eliminar nota">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
-                    <button id="save-note" class="btn-shad btn-shad-primary h-9">Guardar Nota</button>
+                    <button id="save-note" class="flex-[2] sm:flex-none btn-shad btn-shad-primary h-9">Guardar</button>
                 </div>
             </div>
         </div>

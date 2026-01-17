@@ -125,6 +125,7 @@ function setupGlobalEvents() {
     bindClick('mobile-add-btn', openEditor);
     bindClick('sync-btn', handleSync);
     bindClick('mobile-sync-btn', handleSync);
+    bindClick('mobile-sync-btn-bottom', handleSync);
     bindClick('settings-trigger', openSettings);
     bindClick('mobile-settings-btn', () => {
         closeMobileSidebar();
@@ -134,6 +135,11 @@ function setupGlobalEvents() {
     document.body.addEventListener('click', (e) => {
         const logoutBtn = e.target.closest('#logout-btn, #mobile-logout-btn');
         if (logoutBtn) handleLogout();
+
+        // Close mobile sidebar on backdrop click
+        if (e.target.id === 'mobile-sidebar-overlay') {
+            closeMobileSidebar();
+        }
     });
 
     // Settings Logic - Unified Save
@@ -239,22 +245,26 @@ function initSearch() {
 
 function initMobileNav() {
     const overlay = document.getElementById('mobile-sidebar-overlay');
-    bindClick('mobile-sidebar-trigger', () => {
+    const trigger = () => {
         overlay?.classList.remove('hidden');
         renderCategories(onViewChange, state.categories);
-    });
+    };
+    bindClick('mobile-sidebar-trigger', trigger);
+    bindClick('mobile-sidebar-trigger-bottom', trigger);
+    bindClick('mobile-menu-trigger', trigger);
+
     bindClick('close-mobile-sidebar', closeMobileSidebar);
-    bindClick('mobile-menu-trigger', () => {
-        overlay?.classList.remove('hidden');
-        renderCategories(onViewChange, state.categories);
-    });
 
     const searchBar = document.getElementById('mobile-search-bar');
     const searchInput = document.getElementById('mobile-search-input-top');
-    bindClick('mobile-search-btn', () => {
+
+    const openSearch = () => {
         searchBar?.classList.remove('hidden');
         searchInput?.focus();
-    });
+    };
+
+    bindClick('mobile-search-btn', openSearch);
+    bindClick('mobile-search-trigger', openSearch);
     bindClick('close-mobile-search', () => {
         if (searchBar) searchBar.classList.add('hidden');
         if (searchInput) {
@@ -286,8 +296,8 @@ function initPWA() {
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        document.getElementById('pwa-install-btn')?.classList.remove('hidden');
-        document.getElementById('sidebar-pwa-install-btn')?.classList.remove('hidden');
+        const btns = ['pwa-install-btn', 'sidebar-pwa-install-btn', 'mobile-pwa-install-btn'];
+        btns.forEach(id => document.getElementById(id)?.classList.remove('hidden'));
     });
 
     const installLogic = async () => {
@@ -295,14 +305,15 @@ function initPWA() {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-            document.getElementById('pwa-install-btn')?.classList.add('hidden');
-            document.getElementById('sidebar-pwa-install-btn')?.classList.add('hidden');
+            const btns = ['pwa-install-btn', 'sidebar-pwa-install-btn', 'mobile-pwa-install-btn'];
+            btns.forEach(id => document.getElementById(id)?.classList.add('hidden'));
         }
         deferredPrompt = null;
     };
 
     bindClick('pwa-install-btn', installLogic);
     bindClick('sidebar-pwa-install-btn', installLogic);
+    bindClick('mobile-pwa-install-btn', installLogic);
 }
 
 function initGapi() {

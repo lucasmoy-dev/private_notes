@@ -112,7 +112,7 @@
     }
 
     .editor-tool {
-        @apply h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-all duration-200;
+        @apply h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-all duration-200 shrink-0;
     }
 
     .editor-tool.active {
@@ -259,12 +259,47 @@ textarea {
 
 @media (max-width: 640px) {
     #notes-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    #notes-viewport {
+        padding: 1rem 0.5rem;
     }
 
     .dialog-content {
-        @apply w-[95%] p-4;
+        @apply w-[98%] p-3;
+        max-height: 95vh;
+    }
+
+    #mobile-search-bar {
+        @apply h-full w-full z-[60] left-0 top-0;
+    }
+
+    /* Editor Mobile Tweaks */
+    .editor-tool {
+        @apply h-8 w-8 !important;
+    }
+
+    .editor-toolbar-container {
+        @apply flex overflow-x-auto no-scrollbar py-1 gap-1;
+    }
+
+    .editor-bottom-bar {
+        @apply flex-wrap gap-y-3 !important;
+    }
+
+    /* Settings Mobile Tweaks */
+    #settings-modal .dialog-content {
+        @apply h-[90vh] md:h-[500px];
+    }
+
+    #settings-modal .md\:w-48 {
+        @apply flex-wrap p-2 !important;
+    }
+
+    .settings-tab {
+        @apply py-2 px-3 text-xs !important;
     }
 }
 

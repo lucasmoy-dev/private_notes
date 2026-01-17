@@ -49,7 +49,7 @@ export function getLayoutTemplate() {
                     <i data-lucide="download" class="w-3.5 h-3.5"></i> Instalar Aplicación
                 </button>
                 <div class="mt-auto pt-4 border-t border-border/20 px-4">
-                    <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-30">v3.4.0</div>
+                    <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-30">v3.5.0</div>
                 </div>
             </div>
         </aside>
@@ -120,23 +120,28 @@ export function getLayoutTemplate() {
             </div>
 
             <!-- Mobile Bottom Nav -->
-            <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background/90 backdrop-blur-2xl border-t flex items-center justify-around z-40 pb-safe">
+            <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-2xl border-t flex items-center justify-around z-40 pb-safe">
+                <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors" id="mobile-sidebar-trigger-bottom">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-medium">Menú</span>
+                </button>
                 <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors nav-link-mobile" data-view="all">
                     <i data-lucide="home" class="w-5 h-5"></i>
                     <span class="text-[10px] font-medium">Inicio</span>
                 </button>
+                <button class="flex flex-col items-center justify-center gap-1 w-full h-content text-muted-foreground active:text-primary transition-colors relative" id="mobile-add-btn">
+                    <div class="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform -translate-y-4 border-4 border-background">
+                        <i data-lucide="plus" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-[10px] font-medium absolute -bottom-1">Crear</span>
+                </button>
+                <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors" id="mobile-sync-btn-bottom">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-medium">Sincronizar</span>
+                </button>
                 <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors" id="mobile-search-trigger">
                     <i data-lucide="search" class="w-5 h-5"></i>
                     <span class="text-[10px] font-medium">Buscar</span>
-                </button>
-                <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors" id="mobile-add-btn">
-                    <div class="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
-                        <i data-lucide="plus" class="w-6 h-6"></i>
-                    </div>
-                </button>
-                <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors" id="mobile-menu-trigger">
-                    <i data-lucide="menu" class="w-5 h-5"></i>
-                    <span class="text-[10px] font-medium">Menú</span>
                 </button>
             </nav>
         </main>
@@ -171,11 +176,11 @@ export function getLayoutTemplate() {
                     </div>
                 </div>
                 <div class="p-6 border-t space-y-2">
+                    <button id="mobile-pwa-install-btn" class="hidden flex items-center gap-3 w-full p-3 rounded-md bg-primary/10 text-primary text-sm font-bold border border-primary/20">
+                        <i data-lucide="download" class="w-4 h-4"></i> Instalar Aplicación
+                    </button>
                     <button id="mobile-manage-cats" class="flex items-center gap-3 w-full p-3 rounded-md hover:bg-accent text-sm">
                         <i data-lucide="tag" class="w-4 h-4"></i> Gestionar Etiquetas
-                    </button>
-                    <button id="mobile-sync-btn" class="flex items-center gap-3 w-full p-3 rounded-md hover:bg-accent text-sm">
-                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar
                     </button>
                     <button id="mobile-settings-btn" class="flex items-center gap-3 w-full p-3 rounded-md hover:bg-accent text-sm">
                         <i data-lucide="settings" class="w-4 h-4"></i> Configuración
