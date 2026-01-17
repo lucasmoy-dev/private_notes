@@ -4,12 +4,14 @@ export function getLayoutTemplate() {
         <!-- Sidebar Desktop -->
         <aside class="w-64 hidden md:flex flex-col border-r bg-sidebar">
             <div class="p-6 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-primary/10 p-1 flex items-center justify-center border border-primary/20">
-                    <img src="./icons/logo.png" alt="Private Notes" class="w-full h-full object-contain">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 p-2 flex items-center justify-center border border-primary/20">
+                    <svg viewBox="0 0 24 24" fill="none" class="w-full h-full text-primary" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
                 </div>
                 <div>
                     <h1 class="text-sm font-semibold leading-none">Private Notes</h1>
-                    <span class="text-[10px] text-muted-foreground uppercase tracking-wider">Bóveda Personal</span>
                 </div>
             </div>
 
@@ -32,9 +34,6 @@ export function getLayoutTemplate() {
                 <button id="sidebar-manage-cats" class="nav-link w-full text-xs opacity-60 hover:opacity-100">
                     <i data-lucide="tag" class="w-3.5 h-3.5"></i> Gestionar Etiquetas
                 </button>
-                <button id="sync-btn" class="nav-link w-full text-xs opacity-60 hover:opacity-100">
-                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sincronización Cloud
-                </button>
                 <button id="settings-trigger" class="nav-link w-full text-xs opacity-60 hover:opacity-100">
                     <i data-lucide="settings" class="w-3.5 h-3.5"></i> Preferencias
                 </button>
@@ -45,7 +44,7 @@ export function getLayoutTemplate() {
                     <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Cerrar Bóveda
                 </button>
                 <div class="mt-auto pt-4 border-t border-border/20 px-4">
-                    <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-30">v3.3.1</div>
+                    <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-30">v3.3.2</div>
                 </div>
             </div>
         </aside>
@@ -60,7 +59,10 @@ export function getLayoutTemplate() {
                         <input type="text" id="search-input" placeholder="Buscar notas..." class="pl-12 h-9 w-full" autocomplete="off">
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-3">
+                    <button id="sync-btn" class="p-2 hover:bg-accent rounded-md text-muted-foreground transition-colors" title="Sincronizar ahora">
+                        <i data-lucide="refresh-cw" class="w-5 h-5" id="sync-icon"></i>
+                    </button>
                     <button id="pwa-install-btn" class="hidden btn-shad btn-shad-outline h-9 px-3">
                         <i data-lucide="download" class="w-4 h-4 mr-2"></i> Instalar
                     </button>
@@ -77,7 +79,12 @@ export function getLayoutTemplate() {
                         <i data-lucide="menu" class="w-5 h-5"></i>
                     </button>
                     <div class="flex items-center gap-2">
-                        <img src="./icons/logo.png" alt="Logo" class="w-6 h-6 rounded">
+                        <div class="w-7 h-7 rounded-lg bg-primary/10 p-1 flex items-center justify-center border border-primary/20">
+                            <svg viewBox="0 0 24 24" fill="none" class="w-full h-full text-primary" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
                         <span class="font-bold tracking-tight text-lg">Private Notes</span>
                     </div>
                 </div>
@@ -135,7 +142,12 @@ export function getLayoutTemplate() {
             <div id="mobile-sidebar-drawer" class="w-[80vw] h-full bg-card border-r flex flex-col animate-in slide-in-from-left duration-300">
                 <div class="p-6 flex items-center justify-between border-b">
                     <div class="flex items-center gap-2">
-                        <img src="./icons/logo.png" alt="Logo" class="w-6 h-6 rounded">
+                        <div class="w-6 h-6 rounded-md bg-primary/10 p-1 flex items-center justify-center border border-primary/20">
+                            <svg viewBox="0 0 24 24" fill="none" class="w-full h-full text-primary" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
                         <span class="font-bold tracking-tight">Private Notes</span>
                     </div>
                     <button id="close-mobile-sidebar" class="p-2 hover:bg-accent rounded-md">

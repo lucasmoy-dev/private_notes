@@ -120,6 +120,7 @@ export function renderNotes(onEdit) {
                 state.notes = state.notes.filter(n => n.id !== btn.dataset.id);
                 await saveLocal();
                 renderNotes(onEdit);
+                if (window.triggerAutoSync) window.triggerAutoSync();
             }
         };
     });

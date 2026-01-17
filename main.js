@@ -120,16 +120,9 @@ function bindClick(id, fn) {
 
 function setupGlobalEvents() {
     // Standard Buttons - Use delegation for more robustness or direct binding after injection
-    bindClick('add-note-btn', () => {
-        console.log("Abriendo editor (Desktop)");
-        openEditor();
-    });
-
-    bindClick('mobile-add-btn', () => {
-        console.log("Abriendo editor (Mobile)");
-        openEditor();
-    });
-
+    // Standard Buttons
+    bindClick('add-note-btn', openEditor);
+    bindClick('mobile-add-btn', openEditor);
     bindClick('sync-btn', handleSync);
     bindClick('mobile-sync-btn', handleSync);
     bindClick('settings-trigger', openSettings);
@@ -142,6 +135,7 @@ function setupGlobalEvents() {
         state.settings.algo = document.getElementById('config-algo').value;
         await saveLocal();
         showToast('✅ Configuración guardada');
+        triggerAutoSync();
     };
 
     bindClick('save-sync-config', saveSettings);
@@ -204,6 +198,8 @@ function setupGlobalEvents() {
             location.reload();
         }
     });
+
+    window.triggerAutoSync = triggerAutoSync;
 
     // Global Exposure
     window.handleLogout = handleLogout;
@@ -339,8 +335,11 @@ function updateDriveStatus(connected) {
 
 async function handleSync() {
     const pass = sessionStorage.getItem('cn_pass_plain_v3');
-    if (!pass) return showToast('Error de sesión');
-    showToast('Sincronizando con la nube...');
+    if (!pass) return; // Silent if no active session
+
+    const icon = document.getElementById('sync-icon');
+    if (icon) icon.classList.add('animate-spin', 'text-primary');
+
     try {
         const drive = new DriveSync('notev3_', state.settings.drivePath);
         const folderId = await drive.getOrCreateFolder(state.settings.drivePath);
@@ -348,7 +347,20 @@ async function handleSync() {
         await drive.saveChunks(encrypted, folderId);
         showToast('✅ Sincronización completada');
     } catch (err) {
+        console.error('Sync error:', err);
         showToast('❌ Error en la sincronización');
+    } finally {
+        if (icon) {
+            setTimeout(() => {
+                icon.classList.remove('animate-spin', 'text-primary');
+            }, 500);
+        }
+    }
+}
+
+function triggerAutoSync() {
+    if (state.gapiLoaded && gapi.auth.getToken()) {
+        handleSync();
     }
 }
 
@@ -374,6 +386,7 @@ async function addCategory() {
     if (input) input.value = '';
     renderCategoryManager(refreshUI, state.categories);
     refreshUI();
+    triggerAutoSync();
 }
 
 function handleLogout() {

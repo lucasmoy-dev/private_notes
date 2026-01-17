@@ -208,6 +208,7 @@ async function saveActiveNote() {
 
     await saveLocal();
     closeEditor();
+    if (window.triggerAutoSync) window.triggerAutoSync();
 }
 
 function saveSelection() {
@@ -246,10 +247,9 @@ function updateLockUI(active) {
         ? 'h-9 w-9 inline-flex items-center justify-center rounded-md border border-primary bg-primary/10 text-primary'
         : 'h-9 w-9 inline-flex items-center justify-center rounded-md border border-input hover:bg-accent text-muted-foreground';
 
-    // Lucide transforms <i> into <svg>, so we use the attribute as selector
     const icon = btn.querySelector('[data-lucide]');
     if (icon) {
-        icon.setAttribute('data-lucide', active ? 'lock' : 'unlock');
+        icon.setAttribute('data-lucide', active ? 'lock' : 'lock-open');
         safeCreateIcons();
     }
 }
@@ -303,10 +303,34 @@ function initPopovers() {
     });
 
     document.getElementById('toggle-pin').onclick = function () {
-        updatePinUI(this.dataset.active !== 'true');
+        const newState = this.dataset.active !== 'true';
+        updatePinUI(newState);
     };
-    document.getElementById('toggle-lock').onclick = function () {
-        updateLockUI(this.dataset.active !== 'true');
+    document.getElementById('toggle-lock').onclick = async function () {
+        const isCurrentlyLocked = this.dataset.active === 'true';
+        if (!isCurrentlyLocked) {
+            const pass = await openPrompt('Proteger Nota', 'Establece una contraseña para esta nota (déjala vacía para cancelar):');
+            if (pass) {
+                const note = state.notes.find(n => n.id === state.editingNoteId);
+                const hash = await Security.hashPassword(pass);
+                if (note) {
+                    note.passwordHash = hash;
+                }
+                // If it's a new note, we'll store the hash in the dataset or a temporary place
+                // But for now let's assume we want to apply it to state if possible
+                this.dataset.tempHash = hash;
+                updateLockUI(true);
+                showToast('🔑 Contraseña establecida');
+            }
+        } else {
+            if (confirm('¿Quitar la protección de contraseña de esta nota?')) {
+                const note = state.notes.find(n => n.id === state.editingNoteId);
+                if (note) note.passwordHash = null;
+                delete this.dataset.tempHash;
+                updateLockUI(false);
+                showToast('🔓 Protección quitada');
+            }
+        }
     };
 
     document.addEventListener('click', (e) => {
