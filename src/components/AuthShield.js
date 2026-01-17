@@ -2,6 +2,7 @@ import { SecurityService as Security } from '../security.js';
 import { state, loadLocalEncrypted } from '../state.js';
 // ... imports
 import { showToast, safeCreateIcons } from '../ui-utils.js';
+import { t } from '../i18n.js';
 
 export function getAuthShieldTemplate() {
     const isAuthed = !!(sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3'));
@@ -12,18 +13,18 @@ export function getAuthShieldTemplate() {
                 <div class="mx-auto w-10 h-10 bg-primary rounded-md flex items-center justify-center text-primary-foreground">
                     <i data-lucide="lock" class="w-5 h-5"></i>
                 </div>
-                <h1 class="text-2xl font-semibold tracking-tight" id="auth-title">Bóveda Protegida</h1>
-                <p class="text-sm text-muted-foreground" id="auth-desc">Ingresa tu contraseña maestra para continuar</p>
+                <h1 class="text-2xl font-semibold tracking-tight" id="auth-title">${t('auth.title')}</h1>
+                <p class="text-sm text-muted-foreground" id="auth-desc">${t('auth.desc')}</p>
             </div>
             <div class="space-y-4">
                 <div class="relative group">
-                    <input type="password" id="master-password" placeholder="Tu contraseña" class="h-11 w-full pl-4 pr-12 text-base">
+                    <input type="password" id="master-password" placeholder="${t('auth.pass_placeholder')}" class="h-11 w-full pl-4 pr-12 text-base">
                     <button type="button" class="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground toggle-pass" data-target="master-password">
                         <i data-lucide="eye" class="w-4 h-4 icon-show"></i>
                     </button>
                 </div>
                 <div class="relative group hidden" id="confirm-password-wrapper">
-                    <input type="password" id="confirm-password" placeholder="Repite la contraseña" class="h-11 w-full pl-4 pr-12 text-base">
+                    <input type="password" id="confirm-password" placeholder="${t('auth.repeat_placeholder')}" class="h-11 w-full pl-4 pr-12 text-base">
                     <button type="button" class="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground toggle-pass" data-target="confirm-password">
                         <i data-lucide="eye" class="w-4 h-4 icon-show"></i>
                     </button>
@@ -31,18 +32,18 @@ export function getAuthShieldTemplate() {
                 
                 <div class="flex items-center gap-2 py-1">
                     <input type="checkbox" id="auth-remember" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
-                    <label for="auth-remember" class="text-xs text-muted-foreground cursor-pointer select-none">Recordar mi contraseña en este navegador</label>
+                    <label for="auth-remember" class="text-xs text-muted-foreground cursor-pointer select-none">${t('auth.remember_me')}</label>
                 </div>
 
-                <button id="auth-submit" class="btn-shad btn-shad-primary w-full h-11 font-bold">Desbloquear</button>
+                <button id="auth-submit" class="btn-shad btn-shad-primary w-full h-11 font-bold">${t('auth.unlock')}</button>
                 
                 <button id="auth-biometric" class="hidden btn-shad btn-shad-secondary w-full h-11 font-bold flex items-center justify-center gap-2">
-                     <i data-lucide="fingerprint" class="w-5 h-5"></i> <span id="bio-text">Usar Huella / FaceID</span>
+                     <i data-lucide="fingerprint" class="w-5 h-5"></i> <span id="bio-text">${t('auth.use_bio')}</span>
                 </button>
 
                 <div id="auth-extra-actions" class="hidden pt-4 border-t border-border/50">
                     <button id="auth-force-reload" class="flex items-center justify-center gap-2 w-full p-3 text-xs text-destructive bg-destructive/5 hover:bg-destructive/10 rounded-lg border border-destructive/10 transition-all font-medium">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ¿Problemas? Forzar limpieza y recarga
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ${t('auth.problems')}
                     </button>
                 </div>
             </div>
@@ -61,12 +62,12 @@ export async function checkAuthStatus(onSuccess) {
     if (window.PublicKeyCredential && bioBtn) {
         bioBtn.classList.remove('hidden');
         if (isBioEnabled) {
-            document.getElementById('bio-text').innerText = "Desbloquear con Huella";
+            document.getElementById('bio-text').innerText = t('auth.bio_unlock');
             // Auto-trigger bio check if enabled? 
             // Maybe slightly delayed to avoid conflicts on load
             // setTimeout(() => handleBiometricAuth(onSuccess), 500); 
         } else {
-            document.getElementById('bio-text').innerText = "Activar Huella / FaceID";
+            document.getElementById('bio-text').innerText = t('auth.bio_setup');
         }
     }
 
@@ -129,7 +130,7 @@ export async function handleBiometricAuth(onSuccess) {
             await navigator.credentials.create({
                 publicKey: {
                     challenge,
-                    rp: { name: "Private Notes", id: window.location.hostname },
+                    rp: { name: t('app_name'), id: window.location.hostname },
                     user: {
                         id: new Uint8Array(16),
                         name: "user",
@@ -183,7 +184,7 @@ export async function handleBiometricAuth(onSuccess) {
 
         } catch (e) {
             console.error(e);
-            showToast('❌ Autenticación biométrica fallida');
+            showToast(t('auth.bio_fail'));
         }
     }
 }
@@ -207,9 +208,9 @@ export async function handleMasterAuth(onSuccess) {
     if (!pass) return showToast('Ingresa una contraseña');
 
     if (isSetup) {
-        if (!confirmPass) return showToast('Confirma tu contraseña');
-        if (pass !== confirmPass) return showToast('⚠️ ¡Las contraseñas no coinciden!');
-        if (pass.length < 4) return showToast('La contraseña debe tener al menos 4 caracteres');
+        if (!confirmPass) return showToast(t('auth.confirm_pass'));
+        if (pass !== confirmPass) return showToast(t('auth.password_mismatch'));
+        if (pass.length < 4) return showToast(t('auth.password_short'));
     }
 
     const authHash = await Security.hash(pass);
@@ -232,11 +233,11 @@ export async function handleMasterAuth(onSuccess) {
         if (remember) localStorage.setItem('cn_vault_key_v3', vaultKey);
         // If Login with password, and bio is enabled, we keep bio enabled.
         finishLogin(vaultKey, onSuccess);
-        showToast('Bóveda abierta');
+        showToast(t('auth.vault_opened'));
 
         // After password login, if bio is NOT enabled but supported, maybe prompt? 
         // User said "toco ahi Me pide la contraseña". So better explicit button click.
     } else {
-        return showToast('❌ Contraseña incorrecta');
+        return showToast(t('auth.incorrect_pass'));
     }
 }

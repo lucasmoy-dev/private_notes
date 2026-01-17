@@ -17,10 +17,14 @@ import { getSettingsTemplate, initSettings, handleForceReload } from './src/comp
 import { getCommonUITemplate } from './src/components/CommonUI.js';
 import { renderCategories } from './src/components/Sidebar.js';
 import { renderNotes } from './src/components/NotesGrid.js';
+import { initI18n } from './src/i18n.js';
 
 // --- Initialization ---
 async function initApp() {
     console.log("Iniciando aplicación modular...");
+
+    // Init I18n first
+    initI18n();
 
     // 0. Security Cleanup - Only removed if not remembered
     // 0. Security Cleanup - Only removed if not remembered

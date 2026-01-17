@@ -1,24 +1,17 @@
+import { t } from '../i18n.js';
+
 export function getLayoutTemplate() {
     return `
     <div id="app" class="flex h-screen overflow-hidden opacity-100 transition-opacity duration-300">
         <!-- Sidebar Desktop -->
         <aside class="w-64 hidden md:flex flex-col border-r bg-sidebar">
-            <style>
-                @keyframes logo-rainbow {
-                    0% { filter: drop-shadow(0 0 2px #6366f1) hue-rotate(0deg); }
-                    33% { filter: drop-shadow(0 0 5px #ec4899) hue-rotate(120deg); }
-                    66% { filter: drop-shadow(0 0 2px #10b981) hue-rotate(240deg); }
-                    100% { filter: drop-shadow(0 0 2px #6366f1) hue-rotate(360deg); }
-                }
-                .logo-animate { animation: logo-rainbow 8s infinite linear; }
-            </style>
             <div class="p-6 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 overflow-hidden" id="sidebar-logo-container">
                     <div class="w-10 h-10 rounded-xl bg-transparent flex items-center justify-center shrink-0">
-                        <img src="./favicon.png" alt="Logo" class="w-full h-full object-contain logo-animate">
+                        <img src="./favicon.png" alt="Logo" class="w-full h-full object-contain">
                     </div>
                     <div class="sidebar-title-text transition-opacity duration-300">
-                        <h1 class="text-sm font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent truncate">Private Notes</h1>
+                        <h1 class="text-sm font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent truncate">${t('app_name')}</h1>
                     </div>
                 </div>
                 <button id="sidebar-collapse-btn" class="p-2 hover:bg-accent rounded-md text-muted-foreground transition-all shrink-0" title="Contraer menú">
@@ -29,13 +22,13 @@ export function getLayoutTemplate() {
             <div class="flex-1 overflow-y-auto px-4 space-y-8">
                 <div class="space-y-1">
                     <button class="nav-link w-full" data-view="all">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i> <span class="sidebar-label text-foreground/90 font-bold">Todas las notas</span>
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i> <span class="sidebar-label text-foreground/90 font-bold">${t('sidebar.all_notes')}</span>
                     </button>
                 </div>
 
                 <div class="space-y-4">
                     <div class="flex items-center justify-between px-4" id="sidebar-categories-header">
-                        <h3 class="sidebar-section-title text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Etiquetas</h3>
+                        <h3 class="sidebar-section-title text-[11px] font-bold text-muted-foreground uppercase tracking-wider">${t('sidebar.tags')}</h3>
                     </div>
                     <div id="sidebar-categories" class="space-y-1"></div>
                 </div>
@@ -43,13 +36,13 @@ export function getLayoutTemplate() {
 
             <div class="p-6 space-y-2 mt-auto">
                 <button id="sidebar-manage-cats" class="nav-link w-full text-xs opacity-60 hover:opacity-100">
-                    <i data-lucide="tag" class="w-3.5 h-3.5"></i> <span class="sidebar-label">Gestionar Etiquetas</span>
+                    <i data-lucide="tag" class="w-3.5 h-3.5"></i> <span class="sidebar-label">${t('sidebar.manage_tags')}</span>
                 </button>
                 <button id="settings-trigger" class="nav-link w-full text-xs opacity-60 hover:opacity-100">
-                    <i data-lucide="settings" class="w-3.5 h-3.5"></i> <span class="sidebar-label">Configuración</span>
+                    <i data-lucide="settings" class="w-3.5 h-3.5"></i> <span class="sidebar-label">${t('sidebar.settings')}</span>
                 </button>
                 <button id="sidebar-pwa-install-btn" class="hidden flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 transition-all">
-                    <i data-lucide="download" class="w-4 h-4"></i> <span class="sidebar-label">Instalar Aplicación</span>
+                    <i data-lucide="download" class="w-4 h-4"></i> <span class="sidebar-label">${t('sidebar.install_app')}</span>
                 </button>
                 <div class="mt-auto pt-4 border-t border-border/20 px-4">
                     <div id="app-version" class="text-[9px] text-muted-foreground font-mono opacity-50">v3.6.0</div>
@@ -64,18 +57,18 @@ export function getLayoutTemplate() {
                 <div class="flex items-center gap-4 flex-1">
                     <div class="relative w-full max-w-sm">
                         <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"></i>
-                        <input type="text" id="search-input" placeholder="Buscar notas..." class="pl-12 h-9 w-full" autocomplete="off">
+                        <input type="text" id="search-input" placeholder="${t('header.search_placeholder')}" class="pl-12 h-9 w-full" autocomplete="off">
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button id="sync-btn" class="p-2 hover:bg-accent rounded-md text-muted-foreground transition-colors" title="Sincronizar ahora">
+                    <button id="sync-btn" class="p-2 hover:bg-accent rounded-md text-muted-foreground transition-colors" title="${t('header.sync')}">
                         <i data-lucide="refresh-cw" class="w-5 h-5" id="sync-icon"></i>
                     </button>
                     <button id="pwa-install-btn" class="hidden btn-shad btn-shad-outline h-9 px-3">
-                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Instalar
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> ${t('header.install')}
                     </button>
                     <button id="add-note-btn" class="btn-shad btn-shad-primary h-9">
-                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Nueva Nota
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> ${t('header.new_note')}
                     </button>
                 </div>
             </header>
@@ -87,7 +80,7 @@ export function getLayoutTemplate() {
                 <div class="max-w-7xl mx-auto space-y-8">
                     <div class="flex items-end justify-between">
                         <div>
-                            <h1 id="view-title" class="text-3xl font-bold tracking-tight">Todas las notas</h1>
+                            <h1 id="view-title" class="text-3xl font-bold tracking-tight">${t('header.view_title_all')}</h1>
                         </div>
                     </div>
                     <div id="notes-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
@@ -122,9 +115,9 @@ export function getLayoutTemplate() {
                 <div class="p-6 flex items-center justify-between border-b">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-transparent flex items-center justify-center shrink-0">
-                            <img src="./favicon.png" alt="Logo" class="w-full h-full object-contain logo-animate">
+                            <img src="./favicon.png" alt="Logo" class="w-full h-full object-contain">
                         </div>
-                        <h1 class="text-sm font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent truncate">Private Notes</h1>
+                        <h1 class="text-sm font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent truncate">${t('app_name')}</h1>
                     </div>
                     <button id="close-mobile-sidebar" class="p-2 hover:bg-accent rounded-md">
                         <i data-lucide="x" class="w-5 h-5"></i>
@@ -133,33 +126,33 @@ export function getLayoutTemplate() {
                 <div class="flex-1 overflow-y-auto p-4 space-y-8">
                     <div class="space-y-1">
                         <button class="nav-link-mobile-drawer w-full" data-view="all">
-                            <i data-lucide="layout-grid" class="w-4 h-4"></i> Todas las notas
+                            <i data-lucide="layout-grid" class="w-4 h-4"></i> ${t('sidebar.all_notes')}
                         </button>
                     </div>
                     <div class="space-y-4">
                         <div class="flex items-center justify-between px-2" id="mobile-sidebar-categories-header">
-                            <h3 class="sidebar-section-title">Etiquetas</h3>
+                            <h3 class="sidebar-section-title">${t('sidebar.tags')}</h3>
                         </div>
                         <div id="mobile-sidebar-categories" class="space-y-1 px-2"></div>
                     </div>
                 </div>
                 <div class="p-6 border-t space-y-2">
                     <button id="mobile-pwa-install-btn" class="hidden flex items-center gap-3 w-full p-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-bold shadow-lg shadow-indigo-500/30">
-                        <i data-lucide="download" class="w-5 h-5"></i> Instalar Aplicación
+                        <i data-lucide="download" class="w-5 h-5"></i> ${t('sidebar.install_app')}
                     </button>
                     <button id="mobile-manage-cats" class="flex items-center gap-3 w-full p-3 rounded-md hover:bg-accent text-sm">
-                        <i data-lucide="tag" class="w-4 h-4"></i> Gestionar Etiquetas
+                        <i data-lucide="tag" class="w-4 h-4"></i> ${t('sidebar.manage_tags')}
                     </button>
                     <button id="mobile-settings-btn" class="flex items-center gap-3 w-full p-3 rounded-md hover:bg-accent text-sm">
-                        <i data-lucide="settings" class="w-4 h-4"></i> Configuración
+                        <i data-lucide="settings" class="w-4 h-4"></i> ${t('sidebar.settings')}
                     </button>
                     <div class="pt-4 border-t space-y-3">
                         <div class="flex items-center justify-between px-3">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Sistema</span>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">${t('sidebar.system')}</span>
                             <span id="mobile-app-version" class="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-primary/10 text-primary">v3.6.0</span>
                         </div>
                         <button id="mobile-force-reload-btn" class="flex items-center gap-3 w-full p-3 rounded-md bg-destructive/5 text-destructive text-sm font-medium border border-destructive/10">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Forzar Limpieza y Recarga
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> ${t('sidebar.force_reload')}
                         </button>
                     </div>
                 </div>
