@@ -17,7 +17,7 @@ import { getSettingsTemplate, initSettings, handleForceReload } from './src/comp
 import { getCommonUITemplate } from './src/components/CommonUI.js';
 import { renderCategories } from './src/components/Sidebar.js';
 import { renderNotes } from './src/components/NotesGrid.js';
-import { initI18n } from './src/i18n.js';
+import { initI18n, t } from './src/i18n.js';
 
 // --- Initialization ---
 async function initApp() {

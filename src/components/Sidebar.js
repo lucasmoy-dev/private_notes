@@ -1,7 +1,7 @@
 import { state } from '../state.js';
-import { safeCreateIcons } from '../ui-utils.js';
+import { safeCreateIcons, openPrompt, showToast } from '../ui-utils.js';
 import { SecurityService as Security } from '../security.js';
-import { openPrompt, showToast } from '../ui-utils.js';
+import { t } from '../i18n.js';
 
 export function renderCategories(onViewChange, categories = null) {
     const sidebar = document.getElementById('sidebar-categories');
