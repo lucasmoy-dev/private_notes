@@ -628,8 +628,11 @@ async function addCategory() {
     const name = input?.value.trim();
     if (!name) return;
 
+    const iconPreview = document.getElementById('new-cat-icon-preview');
+    const icon = iconPreview ? iconPreview.getAttribute('data-lucide') : 'tag';
+
     // Add to state
-    const newCat = { id: 'cat_' + Date.now(), name, icon: 'tag', passwordHash: null };
+    const newCat = { id: 'cat_' + Date.now(), name, icon, passwordHash: null };
     state.categories.push(newCat);
 
     // Save and Refresh

@@ -138,8 +138,8 @@ export const translations = {
         app_name: "Notas Privadas",
         sidebar: {
             all_notes: "Todas las notas",
-            tags: "Etiquetas",
-            manage_tags: "Gestionar Etiquetas",
+            tags: "Categorías",
+            manage_tags: "Gestionar Categorías",
             settings: "Configuración",
             install_app: "Instalar Aplicación",
             system: "Sistema",
@@ -199,7 +199,7 @@ export const translations = {
             general: "General",
             sync: "Sincronización Cloud",
             security: "Seguridad y Sesión",
-            danger: "Acciones Avanzadas",
+            danger: "Restablecer Aplicación",
             theme: "Tema Visual",
             light: "Claro",
             dark: "Oscuro",
@@ -240,7 +240,7 @@ export const translations = {
             edit: "Editar Categoría",
             delete: "Eliminar",
             save: "Guardar Categoría",
-            delete_confirm: "¿Eliminar esta categoría? Las notas se mantendrán pero sin etiqueta.",
+            delete_confirm: "¿Eliminar esta categoría? Las notas se mantendrán pero sin categoría.",
             no_category: "Sin categoría"
         },
         common: {
@@ -251,7 +251,7 @@ export const translations = {
             security_prompt: "Seguridad",
             security_desc_prompt: "Ingresa la contraseña para continuar",
             restricted_access: "Acceso Restringido",
-            enter_cat_pass: "Ingresa la contraseña para",
+            enter_cat_pass: "Ingresa la contraseña de la categoría",
             write_here: "Escribe aquí..."
         },
         biometrics: {

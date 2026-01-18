@@ -431,13 +431,7 @@ textarea {
         @apply py-5 px-6 text-lg !important;
     }
 
-    #categories-modal .dialog-content {
-        @apply h-full md:h-[650px] md:max-w-3xl rounded-none md:rounded-3xl !important;
-    }
 
-    #cat-manager-list>div {
-        @apply p-4 gap-4 ring-offset-background transition-shadow shadow-sm !important;
-    }
 }
 
 /* Collapsible Sidebar Support */
