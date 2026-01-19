@@ -47,58 +47,66 @@ export function getEditorTemplate() {
                 </div>
             </div>
 
-            <!-- Toolbar (Unified top) -->
-            <div class="px-3 border-b py-1.5 flex items-center bg-muted/20">
-                <div class="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto no-scrollbar py-0.5">
-                    <button data-cmd="bold" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="bold" class="w-3.5 h-3.5"></i></button>
-                    <button data-cmd="italic" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="italic" class="w-3.5 h-3.5"></i></button>
-                    <button data-cmd="underline" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="underline" class="w-3.5 h-3.5"></i></button>
-                    <div class="w-px h-5 bg-border mx-0.5 shrink-0"></div>
-                    <button id="checklist-btn" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="check-square" class="w-3.5 h-3.5"></i></button>
-                    <button id="mobile-checklist-btn" class="hidden editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="check-square" class="w-3.5 h-3.5"></i></button>
-                    <button data-cmd="insertUnorderedList" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="list" class="w-3.5 h-3.5"></i></button>
-                    <button data-cmd="insertOrderedList" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="list-ordered" class="w-3.5 h-3.5"></i></button>
-                    <div class="w-px h-5 bg-border mx-0.5 shrink-0"></div>
-                    <button id="add-link" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="link" class="w-3.5 h-3.5"></i></button>
-                    <button id="mobile-link-btn" class="hidden editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="link" class="w-3.5 h-3.5"></i></button>
-                    <button id="open-text-colors" class="editor-tool border bg-background shrink-0 relative w-8 h-8"><i data-lucide="type" class="w-3.5 h-3.5"></i><div class="w-2.5 h-[1.5px] bg-red-500 rounded-full absolute bottom-1.5 right-2"></div></button>
-                    <button id="mobile-text-color-btn" class="hidden editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="type" class="w-3.5 h-3.5"></i></button>
-                    <button id="open-emojis" class="editor-tool hidden md:inline-flex border bg-background shrink-0 w-8 h-8"><i data-lucide="smile" class="w-3.5 h-3.5"></i></button>
-                </div>
-            </div>
-
             <div class="flex-1 py-4 overflow-y-auto px-4 relative">
                 <div id="edit-content" contenteditable="true"
                     class="min-h-[300px] outline-none text-base leading-relaxed prose prose-slate dark:prose-invert max-w-none"
                     placeholder="Empieza a escribir..."></div>
             </div>
 
-            <div class="border-t py-1.5 px-3 flex items-center justify-between gap-2 editor-bottom-bar shrink-0">
-                <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                    <button id="open-colors" class="editor-tool border border-input bg-background/50 transition-all shrink-0 w-8 h-8" title="Color de nota">
-                        <i data-lucide="palette" class="w-3.5 h-3.5"></i>
-                    </button>
-                    <button id="open-colors-mobile" class="hidden editor-tool border border-input bg-background/50 shrink-0 w-8 h-8"><i data-lucide="palette" class="w-3.5 h-3.5"></i></button>
-
-                    <div class="relative w-40" id="cat-select-wrapper">
-                        <button id="cat-dropdown-trigger"
-                            class="h-8 w-full px-2 rounded-md border border-input bg-background/50 text-[11px] flex items-center justify-between gap-1 hover:bg-accent transition-all">
-                            <i data-lucide="tag" id="selected-cat-icon" class="w-3 h-3 text-muted-foreground/60"></i>
-                            <span id="selected-cat-label" class="truncate flex-1 text-left">Sin categoría</span>
-                            <i data-lucide="chevron-down" class="w-2.5 h-2.5 text-muted-foreground shrink-0"></i>
+            <!-- Unified Bottom Section -->
+            <div class="border-t bg-muted/5 divide-y divide-border">
+                <!-- Row 1: Formatting Tools (Unified) -->
+                <div class="px-3 py-1.5 flex items-center overflow-x-auto no-scrollbar gap-1.5">
+                    <div class="flex items-center gap-1">
+                        <button data-cmd="bold" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="bold" class="w-3.5 h-3.5"></i></button>
+                        <button data-cmd="italic" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="italic" class="w-3.5 h-3.5"></i></button>
+                        <button data-cmd="underline" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="underline" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                    <div class="w-px h-5 bg-border mx-0.5 shrink-0"></div>
+                    <div class="flex items-center gap-1">
+                        <button id="checklist-btn" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="check-square" class="w-3.5 h-3.5"></i></button>
+                        <button data-cmd="insertUnorderedList" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="list" class="w-3.5 h-3.5"></i></button>
+                        <button data-cmd="insertOrderedList" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="list-ordered" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                    <div class="w-px h-5 bg-border mx-0.5 shrink-0"></div>
+                    <div class="flex items-center gap-1">
+                        <button id="add-link" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="link" class="w-3.5 h-3.5"></i></button>
+                        <button id="open-text-colors" class="editor-tool border bg-background shrink-0 relative w-8 h-8">
+                            <i data-lucide="type" class="w-3.5 h-3.5"></i>
+                            <div class="w-2.5 h-[1.5px] bg-red-500 rounded-full absolute bottom-1.5 right-2"></div>
                         </button>
-                        <div id="cat-dropdown-menu"
-                            class="absolute bottom-full mb-2 left-0 w-44 bg-popover border rounded-md shadow-xl hidden z-50 py-1 overflow-hidden">
-                        </div>
-                        <select id="edit-category" class="hidden">
-                            <option value="">Sin categoría</option>
-                        </select>
+                        <button id="open-emojis" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="smile" class="w-3.5 h-3.5"></i></button>
                     </div>
                 </div>
 
-                <button id="save-note" class="hidden md:flex btn-shad btn-shad-primary h-8 px-4 font-bold text-xs">Hecho</button>
-                <button id="save-note-mobile" class="md:hidden btn-shad btn-shad-primary h-8 px-3 font-bold text-xs">OK</button>
+                <!-- Row 2: Category, Color, and Done Button -->
+                <div class="py-1.5 px-3 flex items-center justify-between gap-2 editor-bottom-bar shrink-0">
+                    <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                        <button id="open-colors" class="editor-tool border border-input bg-background/50 transition-all shrink-0 w-8 h-8" title="Color de nota">
+                            <i data-lucide="palette" class="w-3.5 h-3.5"></i>
+                        </button>
+
+                        <div class="relative w-40" id="cat-select-wrapper">
+                            <button id="cat-dropdown-trigger"
+                                class="h-8 w-full px-2 rounded-md border border-input bg-background/50 text-[11px] flex items-center justify-between gap-1 hover:bg-accent transition-all">
+                                <i data-lucide="tag" id="selected-cat-icon" class="w-3 h-3 text-muted-foreground/60"></i>
+                                <span id="selected-cat-label" class="truncate flex-1 text-left">Sin categoría</span>
+                                <i data-lucide="chevron-down" class="w-2.5 h-2.5 text-muted-foreground shrink-0"></i>
+                            </button>
+                            <div id="cat-dropdown-menu"
+                                class="absolute bottom-full mb-2 left-0 w-44 bg-popover border rounded-md shadow-xl hidden z-50 py-1 overflow-hidden">
+                            </div>
+                            <select id="edit-category" class="hidden">
+                                <option value="">Sin categoría</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="save-note" class="btn-shad btn-shad-primary h-8 px-4 font-bold text-sm rounded-xl">Hecho</button>
+                </div>
             </div>
+        </div>
+    </div>
             
          </div>
     </div>
@@ -129,8 +137,7 @@ export function initEditor(onSave) {
         onSave();
     };
     saveBtn.onclick = handleSave;
-    const saveBtnMobile = document.getElementById('save-note-mobile');
-    if (saveBtnMobile) saveBtnMobile.onclick = handleSave;
+    saveBtn.onclick = handleSave;
 
     const handleDelete = async () => {
         if (state.editingNoteId && confirm('¿Eliminar esta nota?')) {
@@ -189,17 +196,34 @@ export function initEditor(onSave) {
     const toggleLock = async () => {
         const isActive = document.getElementById('opt-toggle-lock').dataset.active === 'true';
         if (!isActive) {
-            const pass = await openPrompt('Restringir Nota', 'Crea una contraseña para esta nota:');
-            if (pass) {
-                const lockEl = document.getElementById('opt-toggle-lock');
-                lockEl.dataset.tempHash = await Security.hash(pass);
-                updateLockUI(true);
-                saveActiveNote(false); // Quick save
-            }
+            const lockEl = document.getElementById('opt-toggle-lock');
+            lockEl.dataset.tempHash = 'MASTER';
+            updateLockUI(true);
+            saveActiveNote(false);
+            showToast('🔒 Nota restringida (usa tu clave maestra)');
         } else {
-            updateLockUI(false);
-            state.tempEditorPassword = null;
-            saveActiveNote(false); // Quick save
+            const result = await openPrompt('Seguridad', 'Confirma tu sesión para quitar la restricción:', true);
+            if (!result) return;
+
+            let isValid = false;
+            if (typeof result === 'object' && result.biometric) {
+                isValid = true;
+            } else {
+                const hash = await Security.hash(result);
+                if (hash === localStorage.getItem('cn_master_hash_v3')) {
+                    isValid = true;
+                }
+            }
+
+            if (isValid) {
+                updateLockUI(false);
+                const lockEl = document.getElementById('opt-toggle-lock');
+                lockEl.dataset.tempHash = '';
+                saveActiveNote(false);
+                showToast('🔓 Restricción quitada');
+            } else {
+                showToast('❌ Clave incorrecta');
+            }
         }
     };
     document.getElementById('opt-toggle-lock').onclick = (e) => {
@@ -207,23 +231,6 @@ export function initEditor(onSave) {
         toggleLock();
     };
 
-    const mobileChecklistBtn = document.getElementById('mobile-checklist-btn');
-    if (mobileChecklistBtn) {
-        mobileChecklistBtn.onclick = () => toggleChecklist();
-    }
-
-    const mobileLinkBtn = document.getElementById('mobile-link-btn');
-    if (mobileLinkBtn) {
-        mobileLinkBtn.onclick = () => setupLinkAction();
-    }
-
-    const mobileTextColorBtn = document.getElementById('mobile-text-color-btn');
-    if (mobileTextColorBtn) {
-        mobileTextColorBtn.onclick = (e) => {
-            restoreSelection();
-            togglePopover(e, 'text-color-popover');
-        };
-    }
 
     // Options menu
     const optionsBtn = document.getElementById('note-options-btn');
@@ -452,6 +459,7 @@ function closeEditor() {
         content.classList.remove('dialog-hide');
         state.editingNoteId = null;
         state.tempEditorPassword = null;
+        state.unlockedNotes.clear(); // Lock restricted items again on editor close
         const lockOpt = document.getElementById('opt-toggle-lock');
         if (lockOpt) lockOpt.dataset.tempHash = '';
 
@@ -552,16 +560,15 @@ export async function saveActiveNote(shouldClose = true) {
 
     if (!state.editingNoteId) state.editingNoteId = noteData.id;
 
-    // 4. Update UI FIRST, then Sync
-    await saveLocal();
+    // 4. Update UI IMMEDIATELY
+    if (window.refreshUI) window.refreshUI();
     if (shouldClose) closeEditor();
 
-    if (window.refreshUI) window.refreshUI();
-
-    // Trigger sync in next tick to allow UI update to render
-    setTimeout(() => {
+    // 5. Persist and Sync in background
+    setTimeout(async () => {
+        await saveLocal();
         if (window.triggerAutoSync) window.triggerAutoSync();
-    }, 50);
+    }, 10);
 }
 
 function saveSelection() {

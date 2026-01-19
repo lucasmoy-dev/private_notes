@@ -133,11 +133,37 @@
     }
 
     .dialog-content {
-        @apply fixed left-[50%] top-[50%] z-50 grid w-[90%] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-2xl duration-300 animate-in fade-in-0 zoom-in-95 sm:rounded-2xl;
+        @apply fixed left-[50%] top-[50%] z-50 grid w-[90%] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-2xl duration-300 sm:rounded-2xl;
+        transform-origin: center center;
+        animation: dialog-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .dialog-content.dialog-hide {
-        @apply animate-out fade-out-0 zoom-out-95 duration-200 !important;
+        animation: dialog-pop-out 0.2s ease-in forwards !important;
+    }
+
+    @keyframes dialog-pop-in {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -48%) scale(0.96);
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    @keyframes dialog-pop-out {
+        from {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        to {
+            opacity: 0;
+            transform: translate(-50%, -48%) scale(0.96);
+        }
     }
 
     .dialog-content.fullscreen {
@@ -394,43 +420,18 @@ textarea {
         @apply h-full w-full z-[120] left-0 top-0;
     }
 
-    /* Editor Spacing Refinements */
-    #edit-title {
-        @apply text-lg !important;
-    }
-
-    .editor-toolbar-container {
-        @apply mb-2 !important;
-    }
-
-    #edit-content {
-        @apply min-h-[50vh] !important;
-    }
-
     /* Editor Mobile Tweaks */
     .editor-tool {
-        @apply h-8 w-8 !important;
-    }
-
-    .editor-toolbar-container {
-        @apply flex overflow-x-auto no-scrollbar py-1 gap-1;
+        @apply h-9 w-9 !important;
     }
 
     .editor-bottom-bar {
-        @apply flex-wrap gap-y-3 !important;
+        @apply flex-nowrap overflow-x-hidden !important;
     }
 
-    /* Settings Mobile Tweaks */
-    #settings-modal .dialog-content {
-        @apply h-full md:h-[650px] md:max-w-4xl !important;
-    }
-
-    #settings-modal .md\:w-64 {
-        @apply p-4 !important;
-    }
-
-    .settings-tab {
-        @apply py-5 px-6 text-lg !important;
+    #editor-modal .dialog-content {
+        display: flex !important;
+        flex-direction: column !important;
     }
 
 

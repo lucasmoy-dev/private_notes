@@ -243,10 +243,19 @@ async function deleteCat(id, onRefresh) {
     if (!cat) return;
 
     if (cat.passwordHash) {
-        const pass = await openPrompt('Seguridad', 'Categoría restringida. Ingresa contraseña para eliminar:', true);
-        if (!pass) return;
-        const hash = await Security.hash(pass);
-        if (hash !== cat.passwordHash) return showToast('❌ Error: Contraseña incorrecta');
+        const result = await openPrompt('Seguridad', `Ingresa tu clave para eliminar "${cat.name}":`, true);
+        if (!result) return;
+
+        let isValid = false;
+        if (typeof result === 'object' && result.biometric) {
+            isValid = true;
+        } else {
+            const hash = await Security.hash(result);
+            if (hash === (cat.passwordHash === 'MASTER' ? localStorage.getItem('cn_master_hash_v3') : cat.passwordHash)) {
+                isValid = true;
+            }
+        }
+        if (!isValid) return showToast('❌ Clave incorrecta');
     }
 
     if (confirm(`¿Eliminar la categoría "${cat.name}"? Las notas no se borrarán.`)) {
@@ -265,18 +274,28 @@ async function toggleLock(id, onRefresh) {
     if (!cat) return;
 
     if (cat.passwordHash) {
-        const pass = await openPrompt('Seguridad', 'Ingresa la contraseña para quitar la restricción:', true);
-        if (!pass) return;
-        const hash = await Security.hash(pass);
-        if (hash !== cat.passwordHash) return showToast('❌ Error: Contraseña incorrecta');
-        cat.passwordHash = null;
-        showToast('🔓 Restricción quitada');
-    } else {
-        const pass = await openPrompt('Seguridad', 'Define una contraseña para restringir esta categoría:', true);
-        if (pass) {
-            cat.passwordHash = await Security.hash(pass);
-            showToast('🔒 Categoría restringida');
+        const result = await openPrompt('Seguridad', 'Confirma tu sesión para quitar la restricción:', true);
+        if (!result) return;
+
+        let isValid = false;
+        if (typeof result === 'object' && result.biometric) {
+            isValid = true;
+        } else {
+            const hash = await Security.hash(result);
+            if (hash === (cat.passwordHash === 'MASTER' ? localStorage.getItem('cn_master_hash_v3') : cat.passwordHash)) {
+                isValid = true;
+            }
         }
+
+        if (isValid) {
+            cat.passwordHash = null;
+            showToast('🔓 Restricción quitada');
+        } else {
+            return showToast('❌ Clave incorrecta');
+        }
+    } else {
+        cat.passwordHash = 'MASTER';
+        showToast('🔒 Categoría restringida (usa tu clave maestra)');
     }
 
     await saveLocal();

@@ -64,18 +64,27 @@ export function renderNotes(onEdit) {
             // If note is locked and not yet unlocked in this session
             if (note.passwordHash && !state.unlockedNotes.has(note.id)) {
                 try {
-                    const pass = await openPrompt(t('common.security_prompt'), t('common.security_desc_prompt'));
-                    if (!pass) return;
-                    const hash = await Security.hash(pass);
-                    if (hash !== note.passwordHash) {
-                        showToast(t('auth.incorrect_pass'));
-                        return;
+                    const result = await openPrompt(t('common.security_prompt'), t('common.security_desc_prompt'), true);
+                    if (!result) return;
+
+                    let isValid = false;
+                    if (typeof result === 'object' && result.biometric) {
+                        isValid = true;
+                    } else {
+                        const hash = await Security.hash(result);
+                        const targetHash = note.passwordHash === 'MASTER' ? localStorage.getItem('cn_master_hash_v3') : note.passwordHash;
+                        if (hash === targetHash) {
+                            isValid = true;
+                        }
                     }
-                    state.unlockedNotes.add(note.id);
-                    // Open immediately
-                    onEdit(note);
-                    // Refresh grid in background to show content
-                    setTimeout(() => renderNotes(onEdit), 300);
+
+                    if (isValid) {
+                        state.unlockedNotes.add(note.id);
+                        onEdit(note);
+                        setTimeout(() => renderNotes(onEdit), 300);
+                    } else {
+                        showToast(t('auth.incorrect_pass'));
+                    }
                 } catch (err) {
                     console.error('Error unlocking note:', err);
                     showToast('❌ Error al desbloquear');

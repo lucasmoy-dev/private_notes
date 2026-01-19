@@ -76,7 +76,8 @@ export function renderCategories(onViewChange, categories = null) {
                         // Granted by OS Biometrics
                     } else {
                         const hash = await Security.hash(result);
-                        if (hash !== cat.passwordHash) {
+                        const targetHash = cat.passwordHash === 'MASTER' ? localStorage.getItem('cn_master_hash_v3') : cat.passwordHash;
+                        if (hash !== targetHash) {
                             showToast(t('auth.incorrect_pass'));
                             return;
                         }

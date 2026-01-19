@@ -54,7 +54,7 @@ export function openPrompt(message, description = '', isPassword = false) {
             // Auto-trigger biometric after a short delay
             setTimeout(() => {
                 bioBtn.click();
-            }, 300);
+            }, 50);
         } else {
             bioBtn.classList.add('hidden');
         }
