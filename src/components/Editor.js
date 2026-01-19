@@ -374,6 +374,13 @@ export function openEditor(note = null) {
     const catSelect = document.getElementById('edit-category');
     const dialogContent = modal.querySelector('.dialog-content');
 
+    if (!modal) return;
+
+    // Reset Animation State
+    dialogContent.classList.remove('dialog-hide');
+    modal.classList.remove('hidden');
+    document.body.classList.add('ov-hidden');
+
     state.editingNoteId = note ? note.id : null;
     titleEl.value = note?.title || '';
     contentEl.innerHTML = (note?.content === undefined || note?.content === 'undefined') ? '' : (note?.content || '');
@@ -457,6 +464,7 @@ function closeEditorInternal() {
     setTimeout(() => {
         modal.classList.add('hidden');
         content.classList.remove('dialog-hide');
+        document.body.classList.remove('ov-hidden');
         state.editingNoteId = null;
         state.tempEditorPassword = null;
         state.unlockedNotes.clear(); // Lock restricted items again on editor close

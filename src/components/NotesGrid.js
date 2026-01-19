@@ -144,10 +144,10 @@ function initSortable(onEdit) {
     if (grid.sortable) grid.sortable.destroy();
 
     grid.sortable = Sortable.create(grid, {
+        draggable: '.note-card',
         animation: 250,
         ghostClass: 'opacity-50',
-        delay: 500,
-        delayOnTouchOnly: true,
+        delay: 0, // No delay on desktop
         onEnd: async () => {
             const newOrder = [];
             grid.querySelectorAll('.note-card').forEach(el => {

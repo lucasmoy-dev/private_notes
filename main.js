@@ -257,9 +257,12 @@ function setupGlobalEvents() {
     // Modal Close Logic
     const closeModals = (e) => {
         const modal = e.target.closest('#settings-modal, #categories-modal, #editor-modal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('ov-hidden');
+        }
     };
-    document.querySelectorAll('.close-modal, .close-settings, .close-categories').forEach(btn => {
+    document.querySelectorAll('.close-modal, .close-settings, .close-categories, .close-editor').forEach(btn => {
         btn.onclick = closeModals;
     });
 
