@@ -1,5 +1,7 @@
 let biometricAbortController = null;
 
+import { KEYS } from './constants.js';
+
 export function showToast(msg, duration = 3000) {
     const toast = document.getElementById('toast');
     if (!toast) return;
@@ -49,7 +51,7 @@ export function openPrompt(message, description = '', isPassword = false) {
         }
 
         // Show biometric button if supported and enabled
-        const isBioEnabled = localStorage.getItem('cn_bio_enabled') === 'true';
+        const isBioEnabled = localStorage.getItem(KEYS.BIO_ENABLED) === 'true';
         if (window.PublicKeyCredential && isBioEnabled && isPassword) {
             bioBtn.classList.remove('hidden');
 

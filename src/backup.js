@@ -1,6 +1,7 @@
 import { state, saveLocal } from './state.js';
 import { SecurityService as Security } from './security.js';
 import { showToast } from './ui-utils.js';
+import { KEYS } from './constants.js';
 
 const BACKUP_KEY = 'cn_local_backups_v3';
 
@@ -21,7 +22,7 @@ export class BackupService {
      * Exports the backup to a file (encrypted)
      */
     static async exportToFile() {
-        const vaultKey = sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3');
+        const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
         if (!vaultKey) throw new Error('Vault not unlocked');
 
         const data = await this.createBackupData();
@@ -49,7 +50,7 @@ export class BackupService {
             reader.onload = async (e) => {
                 try {
                     const encryptedData = JSON.parse(e.target.result);
-                    const vaultKey = sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3');
+                    const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
                     if (!vaultKey) throw new Error('Vault not unlocked');
 
                     const decrypted = await Security.decrypt(encryptedData, vaultKey);
@@ -89,12 +90,12 @@ export class BackupService {
     }
 
     static getLocalBackups() {
-        const stored = localStorage.getItem(BACKUP_KEY);
+        const stored = localStorage.getItem(KEYS.BACKUPS);
         return stored ? JSON.parse(stored) : [];
     }
 
     static async saveLocalBackup() {
-        const vaultKey = sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3');
+        const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
         if (!vaultKey) return; // Can't backup if locked
 
         const data = await this.createBackupData();
@@ -109,7 +110,7 @@ export class BackupService {
 
         // Add to the beginning, keep last 7
         const updated = [newBackup, ...backups].slice(0, 7);
-        localStorage.setItem(BACKUP_KEY, JSON.stringify(updated));
+        localStorage.setItem(KEYS.BACKUPS, JSON.stringify(updated));
     }
 
     static async restoreFromLocal(id) {
@@ -117,7 +118,7 @@ export class BackupService {
         const backup = backups.find(b => b.id === id);
         if (!backup) throw new Error('Backup not found');
 
-        const vaultKey = sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3');
+        const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
         const decrypted = await Security.decrypt(backup.data, vaultKey);
 
         if (decrypted && decrypted.notes && decrypted.categories) {
@@ -130,6 +131,6 @@ export class BackupService {
     }
 
     static clearAllBackups() {
-        localStorage.removeItem(BACKUP_KEY);
+        localStorage.removeItem(KEYS.BACKUPS);
     }
 }

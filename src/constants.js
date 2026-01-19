@@ -1,4 +1,25 @@
-export const APP_VERSION = 'v3.6.77';
+export const APP_VERSION = 'v3.6.78';
+export const APP_NAME = 'private-notes';
+export const STORAGE_PREFIX = APP_NAME + '/';
+
+export const KEYS = {
+    VAULT_KEY: STORAGE_PREFIX + 'vault_key_v3',
+    MASTER_HASH: STORAGE_PREFIX + 'master_hash_v3',
+    SETTINGS: STORAGE_PREFIX + 'settings_v3',
+    NOTES: STORAGE_PREFIX + 'notes_v3',
+    NOTES_ENC: STORAGE_PREFIX + 'notes_v3_enc',
+    CATEGORIES: STORAGE_PREFIX + 'categories_v3',
+    CATEGORIES_ENC: STORAGE_PREFIX + 'categories_v3_enc',
+    BACKUPS: STORAGE_PREFIX + 'local_backups_v3',
+    LANG: STORAGE_PREFIX + 'lang',
+    BIO_ENABLED: STORAGE_PREFIX + 'bio_enabled',
+    REMEMBER_ME: STORAGE_PREFIX + 'remember_me_v3',
+    LAST_VERSION: STORAGE_PREFIX + 'last_version',
+    PWA_DISMISSED: STORAGE_PREFIX + 'pwa_dismissed',
+    DRIVE_TOKEN: STORAGE_PREFIX + 'drive_token',
+    SYNCED_REV: STORAGE_PREFIX + 'synced_rev',
+    THEME: STORAGE_PREFIX + 'theme_v3'
+};
 
 export const NOTE_THEMES = [
     { id: 'default', light: '#ffffff', dark: '#09090b' },

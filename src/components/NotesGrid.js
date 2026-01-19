@@ -3,6 +3,7 @@ import { NOTE_THEMES } from '../constants.js';
 import { safeCreateIcons, isColorDark, openPrompt, showToast } from '../ui-utils.js';
 import { SecurityService as Security } from '../security.js';
 import { t } from '../i18n.js';
+import { KEYS } from '../constants.js';
 import Sortable from 'sortablejs';
 
 export function renderNotes(onEdit, animate = true) {
@@ -73,7 +74,7 @@ export function renderNotes(onEdit, animate = true) {
                         isValid = true;
                     } else {
                         const hash = await Security.hash(result);
-                        const targetHash = note.passwordHash === 'MASTER' ? localStorage.getItem('cn_master_hash_v3') : note.passwordHash;
+                        const targetHash = note.passwordHash === 'MASTER' ? localStorage.getItem(KEYS.MASTER_HASH) : note.passwordHash;
                         if (hash === targetHash) {
                             isValid = true;
                         }

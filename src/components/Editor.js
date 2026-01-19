@@ -209,8 +209,9 @@ export function initEditor(onSave) {
             if (typeof result === 'object' && result.biometric) {
                 isValid = true;
             } else {
+                const { KEYS } = await import('../constants.js');
                 const hash = await Security.hash(result);
-                if (hash === localStorage.getItem('cn_master_hash_v3')) {
+                if (hash === localStorage.getItem(KEYS.MASTER_HASH)) {
                     isValid = true;
                 }
             }
@@ -435,6 +436,17 @@ export function openEditor(note = null) {
 
     modal.classList.remove('hidden');
     contentEl.focus();
+
+    // Auto-expand if resolution < 1280x960
+    if (window.innerWidth < 1280 || window.innerHeight < 960) {
+        dialogContent.classList.add('fullscreen');
+        document.getElementById('note-expand-btn').innerHTML = `<i data-lucide="minimize-2" class="w-4 h-4"></i>`;
+        safeCreateIcons();
+    } else {
+        dialogContent.classList.remove('fullscreen');
+        document.getElementById('note-expand-btn').innerHTML = `<i data-lucide="maximize-2" class="w-4 h-4"></i>`;
+        safeCreateIcons();
+    }
 
     // Store initial state for comparison
     initialNoteState = {

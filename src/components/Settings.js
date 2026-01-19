@@ -1,5 +1,6 @@
 import { safeCreateIcons } from '../ui-utils.js';
 import { t, currentLang, setLanguage } from '../i18n.js';
+import { KEYS } from '../constants.js';
 
 export function getSettingsTemplate() {
     return `
@@ -357,7 +358,7 @@ export function initSettings() {
 
     if (toggleBioBtn) {
         const updateBioUI = () => {
-            const isEnabled = localStorage.getItem('cn_bio_enabled') === 'true';
+            const isEnabled = localStorage.getItem(KEYS.BIO_ENABLED) === 'true';
             if (isEnabled) {
                 bioStatusBadge.textContent = t('biometrics.enabled');
                 bioStatusBadge.classList.remove('bg-muted', 'text-muted-foreground');
@@ -381,10 +382,10 @@ export function initSettings() {
         updateBioUI();
 
         toggleBioBtn.onclick = async () => {
-            const isEnabled = localStorage.getItem('cn_bio_enabled') === 'true';
+            const isEnabled = localStorage.getItem(KEYS.BIO_ENABLED) === 'true';
 
             if (isEnabled) {
-                localStorage.setItem('cn_bio_enabled', 'false');
+                localStorage.setItem(KEYS.BIO_ENABLED, 'false');
                 // IMPORTANT: When disabling bio, we should also remove the saved key from localStorage 
                 // IF we want to strictly require password.
                 // localStorage.removeItem('cn_vault_key_v3'); 
@@ -405,7 +406,7 @@ export function initSettings() {
 
                     const { SecurityService } = await import('../security.js');
                     const authHash = await SecurityService.hash(pass);
-                    const existingHash = localStorage.getItem('cn_master_hash_v3');
+                    const existingHash = localStorage.getItem(KEYS.MASTER_HASH);
 
                     if (authHash !== existingHash) {
                         return showToast(t('biometrics.incorrect_pass'));
@@ -436,8 +437,8 @@ export function initSettings() {
                     });
 
                     const vaultKey = await SecurityService.deriveVaultKey(pass);
-                    localStorage.setItem('cn_vault_key_v3', vaultKey);
-                    localStorage.setItem('cn_bio_enabled', 'true');
+                    localStorage.setItem(KEYS.VAULT_KEY, vaultKey);
+                    localStorage.setItem(KEYS.BIO_ENABLED, 'true');
 
                     updateBioUI();
                     showToast(t('biometrics.success_enable'));

@@ -2,6 +2,7 @@ import { state } from '../state.js';
 import { safeCreateIcons, openPrompt, showToast } from '../ui-utils.js';
 import { SecurityService as Security } from '../security.js';
 import { t } from '../i18n.js';
+import { KEYS } from '../constants.js';
 
 export function renderCategories(onViewChange, categories = null) {
     const sidebar = document.getElementById('sidebar-categories');
@@ -16,13 +17,6 @@ export function renderCategories(onViewChange, categories = null) {
     if (mobileSidebar) mobileSidebar.innerHTML = '';
     if (select) select.innerHTML = `<option value="">${t('categories.no_category')}</option>`;
     if (dropdown) dropdown.innerHTML = `<div class="px-3 py-1.5 text-xs hover:bg-accent cursor-pointer border-b" data-id="">${t('categories.no_category')}</div>`;
-
-    // Toggle Section Headers
-    const hasCats = state.categories.length > 0;
-    const desktopHeader = document.getElementById('sidebar-categories-header');
-    const mobileHeader = document.getElementById('mobile-sidebar-categories-header');
-    if (desktopHeader) desktopHeader.classList.toggle('hidden', !hasCats);
-    if (mobileHeader) mobileHeader.classList.toggle('hidden', !hasCats);
 
     // Update "All Notes" Active State
     document.querySelectorAll('.nav-link[data-view="all"], .nav-link-mobile[data-view="all"], .nav-link-mobile-drawer[data-view="all"]').forEach(l => {
@@ -81,7 +75,7 @@ export function renderCategories(onViewChange, categories = null) {
                         // Granted by OS Biometrics
                     } else {
                         const hash = await Security.hash(result);
-                        const targetHash = cat.passwordHash === 'MASTER' ? localStorage.getItem('cn_master_hash_v3') : cat.passwordHash;
+                        const targetHash = cat.passwordHash === 'MASTER' ? localStorage.getItem(KEYS.MASTER_HASH) : cat.passwordHash;
                         if (hash !== targetHash) {
                             showToast(t('auth.incorrect_pass'));
                             return;

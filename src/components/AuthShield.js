@@ -3,9 +3,10 @@ import { state, loadLocalEncrypted } from '../state.js';
 // ... imports
 import { showToast, safeCreateIcons } from '../ui-utils.js';
 import { t } from '../i18n.js';
+import { KEYS } from '../constants.js';
 
 export function getAuthShieldTemplate() {
-    const isAuthed = !!(sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3'));
+    const isAuthed = !!(sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY));
     return `
     <div id="auth-shield" class="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-sm transition-opacity duration-300 ${isAuthed ? 'opacity-0 pointer-events-none' : ''}" style="${isAuthed ? 'display: none' : ''}">
         <div class="w-full max-w-[320px] p-6 space-y-4 bg-card border rounded-2xl shadow-2xl">
@@ -53,11 +54,11 @@ export function getAuthShieldTemplate() {
 
 export async function checkAuthStatus(onSuccess) {
     const shield = document.getElementById('auth-shield');
-    const isSetup = !localStorage.getItem('cn_master_hash_v3');
-    const savedKeySession = sessionStorage.getItem('cn_vault_key_v3');
-    const savedKeyLocal = localStorage.getItem('cn_vault_key_v3');
-    const isBioEnabled = localStorage.getItem('cn_bio_enabled') === 'true';
-    const isRemembered = localStorage.getItem('cn_remember_me_v3') === 'true';
+    const isSetup = !localStorage.getItem(KEYS.MASTER_HASH);
+    const savedKeySession = sessionStorage.getItem(KEYS.VAULT_KEY);
+    const savedKeyLocal = localStorage.getItem(KEYS.VAULT_KEY);
+    const isBioEnabled = localStorage.getItem(KEYS.BIO_ENABLED) === 'true';
+    const isRemembered = localStorage.getItem(KEYS.REMEMBER_ME) === 'true';
 
     // Show bio button if supported and set up
     const bioBtn = document.getElementById('auth-biometric');
@@ -99,8 +100,8 @@ export async function checkAuthStatus(onSuccess) {
 }
 
 function clearAuth() {
-    sessionStorage.removeItem('cn_vault_key_v3');
-    localStorage.removeItem('cn_vault_key_v3');
+    sessionStorage.removeItem(KEYS.VAULT_KEY);
+    localStorage.removeItem(KEYS.VAULT_KEY);
 }
 
 function showSetupPage() {
@@ -128,7 +129,7 @@ function showLoginPage() {
 }
 
 export async function handleBiometricAuth(onSuccess) {
-    const isEnabled = localStorage.getItem('cn_bio_enabled') === 'true';
+    const isEnabled = localStorage.getItem(KEYS.BIO_ENABLED) === 'true';
 
     if (!isEnabled) {
         // SETUP MODE
@@ -136,7 +137,7 @@ export async function handleBiometricAuth(onSuccess) {
         if (!pass) return showToast('⚠️ Ingresa tu contraseña primero para configurar');
 
         const authHash = await Security.hash(pass);
-        const existingHash = localStorage.getItem('cn_master_hash_v3');
+        const existingHash = localStorage.getItem(KEYS.MASTER_HASH);
 
         if (authHash !== existingHash) return showToast('❌ Contraseña incorrecta');
 
@@ -165,10 +166,10 @@ export async function handleBiometricAuth(onSuccess) {
             });
 
             // Save state
-            localStorage.setItem('cn_bio_enabled', 'true');
+            localStorage.setItem(KEYS.BIO_ENABLED, 'true');
             // Ensure key is saved for auto-retrieval
             const vaultKey = await Security.deriveVaultKey(pass);
-            localStorage.setItem('cn_vault_key_v3', vaultKey);
+            localStorage.setItem(KEYS.VAULT_KEY, vaultKey);
 
             showToast('✅ Huella activada');
 
@@ -195,12 +196,12 @@ export async function handleBiometricAuth(onSuccess) {
             });
 
             // If success, get key
-            const vaultKey = localStorage.getItem('cn_vault_key_v3');
+            const vaultKey = localStorage.getItem(KEYS.VAULT_KEY);
             if (vaultKey) {
                 finishLogin(vaultKey, onSuccess);
             } else {
                 showToast('❌ Error: Llave no encontrada. Ingresa contraseña.');
-                localStorage.setItem('cn_bio_enabled', 'false'); // Reset
+                localStorage.setItem(KEYS.BIO_ENABLED, 'false'); // Reset
             }
 
         } catch (e) {
@@ -215,7 +216,7 @@ async function finishLogin(vaultKey, onSuccess) {
     shield.classList.add('opacity-0', 'pointer-events-none');
     setTimeout(() => shield.style.display = 'none', 300);
     document.getElementById('app').classList.remove('opacity-0');
-    sessionStorage.setItem('cn_vault_key_v3', vaultKey);
+    sessionStorage.setItem(KEYS.VAULT_KEY, vaultKey);
     await loadLocalEncrypted(vaultKey);
     onSuccess();
 }
@@ -223,7 +224,7 @@ async function finishLogin(vaultKey, onSuccess) {
 export async function handleMasterAuth(onSuccess) {
     const pass = document.getElementById('master-password').value;
     const confirmPass = document.getElementById('confirm-password').value;
-    const isSetup = !localStorage.getItem('cn_master_hash_v3');
+    const isSetup = !localStorage.getItem(KEYS.MASTER_HASH);
 
     if (!pass) return showToast('Ingresa una contraseña');
 
@@ -235,27 +236,27 @@ export async function handleMasterAuth(onSuccess) {
 
     const authHash = await Security.hash(pass);
     const vaultKey = await Security.deriveVaultKey(pass);
-    const existingHash = localStorage.getItem('cn_master_hash_v3');
+    const existingHash = localStorage.getItem(KEYS.MASTER_HASH);
 
     const remember = document.getElementById('auth-remember').checked;
 
 
     if (!existingHash) {
-        localStorage.setItem('cn_master_hash_v3', authHash);
+        localStorage.setItem(KEYS.MASTER_HASH, authHash);
         if (remember) {
-            localStorage.setItem('cn_vault_key_v3', vaultKey);
-            localStorage.setItem('cn_remember_me_v3', 'true');
+            localStorage.setItem(KEYS.VAULT_KEY, vaultKey);
+            localStorage.setItem(KEYS.REMEMBER_ME, 'true');
         }
         finishLogin(vaultKey, onSuccess);
         showToast(t('auth.vault_created'));
     } else if (existingHash === authHash) {
         if (remember) {
-            localStorage.setItem('cn_vault_key_v3', vaultKey);
-            localStorage.setItem('cn_remember_me_v3', 'true');
-        } else if (localStorage.getItem('cn_bio_enabled') !== 'true') {
+            localStorage.setItem(KEYS.VAULT_KEY, vaultKey);
+            localStorage.setItem(KEYS.REMEMBER_ME, 'true');
+        } else if (localStorage.getItem(KEYS.BIO_ENABLED) !== 'true') {
             // If not remembering and not using bio, clean up local key
-            localStorage.removeItem('cn_vault_key_v3');
-            localStorage.removeItem('cn_remember_me_v3');
+            localStorage.removeItem(KEYS.VAULT_KEY);
+            localStorage.removeItem(KEYS.REMEMBER_ME);
         }
         finishLogin(vaultKey, onSuccess);
         showToast(t('auth.vault_opened'));

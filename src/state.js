@@ -1,4 +1,5 @@
 import { SecurityService as Security } from './security.js';
+import { KEYS } from './constants.js';
 
 export const state = {
     notes: [],
@@ -18,35 +19,35 @@ export const state = {
 };
 
 export async function saveLocal() {
-    const vaultKey = sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3');
+    const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
     if (vaultKey) {
         const encryptedNotes = await Security.encrypt(state.notes, vaultKey);
         const encryptedCats = await Security.encrypt(state.categories, vaultKey);
-        localStorage.setItem('cn_notes_v3_enc', JSON.stringify(encryptedNotes));
-        localStorage.setItem('cn_categories_v3_enc', JSON.stringify(encryptedCats));
+        localStorage.setItem(KEYS.NOTES_ENC, JSON.stringify(encryptedNotes));
+        localStorage.setItem(KEYS.CATEGORIES_ENC, JSON.stringify(encryptedCats));
 
-        localStorage.removeItem('cn_notes_v3');
-        localStorage.removeItem('cn_categories_v3');
+        localStorage.removeItem(KEYS.NOTES);
+        localStorage.removeItem(KEYS.CATEGORIES);
     }
-    localStorage.setItem('cn_settings_v3', JSON.stringify(state.settings));
+    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(state.settings));
 }
 
 export async function loadLocalEncrypted(password) {
     try {
-        const encryptedNotes = localStorage.getItem('cn_notes_v3_enc');
-        const encryptedCats = localStorage.getItem('cn_categories_v3_enc');
+        const encryptedNotes = localStorage.getItem(KEYS.NOTES_ENC);
+        const encryptedCats = localStorage.getItem(KEYS.CATEGORIES_ENC);
 
         if (encryptedNotes) {
             state.notes = await Security.decrypt(JSON.parse(encryptedNotes), password);
         } else {
-            const plainNotes = localStorage.getItem('cn_notes_v3');
+            const plainNotes = localStorage.getItem(KEYS.NOTES);
             if (plainNotes) state.notes = JSON.parse(plainNotes);
         }
 
         if (encryptedCats) {
             state.categories = await Security.decrypt(JSON.parse(encryptedCats), password);
         } else {
-            const plainCats = localStorage.getItem('cn_categories_v3');
+            const plainCats = localStorage.getItem(KEYS.CATEGORIES);
             if (plainCats) state.categories = JSON.parse(plainCats);
         }
     } catch (err) {
@@ -56,7 +57,7 @@ export async function loadLocalEncrypted(password) {
 }
 
 export function loadSettings() {
-    const saved = localStorage.getItem('cn_settings_v3');
+    const saved = localStorage.getItem(KEYS.SETTINGS);
     if (saved) {
         state.settings = { ...state.settings, ...JSON.parse(saved) };
         // Migration of old setting name if exists

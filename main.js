@@ -1,6 +1,6 @@
 import './style.css';
 import { state, saveLocal, loadSettings } from './src/state.js';
-import { APP_VERSION } from './src/constants.js';
+import { APP_VERSION, KEYS } from './src/constants.js';
 import { showToast, safeCreateIcons, openPrompt } from './src/ui-utils.js';
 import { SecurityService as Security } from './src/security.js';
 import { DriveSync } from './src/drive.js';
@@ -29,9 +29,9 @@ async function initApp() {
 
     // 0. Security Cleanup - Only removed if not remembered
     // 0. Security Cleanup - Only removed if not remembered
-    const rememberedKey = localStorage.getItem('cn_vault_key_v3');
+    const rememberedKey = localStorage.getItem(KEYS.VAULT_KEY);
     if (rememberedKey) {
-        sessionStorage.setItem('cn_vault_key_v3', rememberedKey);
+        sessionStorage.setItem(KEYS.VAULT_KEY, rememberedKey);
     }
 
     // 1. Inject UI Structure IMMEDIATELY
@@ -49,15 +49,15 @@ async function initApp() {
     setupGlobalEvents();
 
     // 5. Version check for auto-update
-    const lastVersion = localStorage.getItem('cn_last_version');
+    const lastVersion = localStorage.getItem(KEYS.LAST_VERSION);
     if (lastVersion && lastVersion !== APP_VERSION) {
-        localStorage.setItem('cn_last_version', APP_VERSION);
+        localStorage.setItem(KEYS.LAST_VERSION, APP_VERSION);
         console.log(`Nueva versión detectada (${APP_VERSION}). Recargando...`);
         showToast('🚀 Actualizando a la última versión...');
         setTimeout(() => location.reload(true), 1500);
         return;
     }
-    localStorage.setItem('cn_last_version', APP_VERSION);
+    localStorage.setItem(KEYS.LAST_VERSION, APP_VERSION);
 
     // 6. Auth Check
     await checkAuthStatus(refreshUI);

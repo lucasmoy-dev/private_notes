@@ -462,12 +462,30 @@ aside.collapsed {
 
 aside.collapsed .sidebar-label,
 aside.collapsed h1,
-aside.collapsed #app-version {
+aside.collapsed #app-version,
+aside.collapsed .sidebar-section-title {
     display: none !important;
 }
 
-aside.collapsed .p-6 {
-    @apply px-3 !important;
+aside.collapsed .p-5 {
+    padding: 1.25rem 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+}
+
+aside.collapsed #sidebar-logo-container {
+    padding: 0 !important;
+    margin: 0 0 0.5rem 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+aside.collapsed #sidebar-collapse-btn {
+    display: none !important;
 }
 
 aside.collapsed .nav-link {
@@ -484,8 +502,16 @@ aside.collapsed .nav-link *:not(i):not([data-lucide]) {
     display: none !important;
 }
 
-aside.collapsed .sidebar-section-title {
-    display: none !important;
+.dialog-content {
+    @apply fixed left-[50%] top-[50%] z-50 grid w-[90%] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-2xl sm:rounded-2xl;
+    transform-origin: center center;
+    animation: dialog-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.dialog-content.fullscreen {
+    @apply w-full h-full max-w-none max-h-none rounded-none left-0 top-0 translate-x-0 translate-y-0 !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Emoji / Flag Visibility Fix */

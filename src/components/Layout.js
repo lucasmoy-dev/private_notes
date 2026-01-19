@@ -27,9 +27,6 @@ export function getLayoutTemplate() {
                 </div>
 
                 <div class="space-y-3">
-                    <div class="flex items-center justify-between px-3" id="sidebar-categories-header">
-                        <h3 class="sidebar-section-title text-[10px] font-bold text-muted-foreground uppercase tracking-widest">${t('sidebar.tags')}</h3>
-                    </div>
                     <div id="sidebar-categories" class="space-y-0.5"></div>
                 </div>
             </div>
@@ -130,9 +127,6 @@ export function getLayoutTemplate() {
                         </button>
                     </div>
                     <div class="space-y-3">
-                        <div class="flex items-center justify-between px-2" id="mobile-sidebar-categories-header">
-                            <h3 class="sidebar-section-title text-[10px]">${t('sidebar.tags')}</h3>
-                        </div>
                         <div id="mobile-sidebar-categories" class="space-y-0.5"></div>
                     </div>
                 </div>

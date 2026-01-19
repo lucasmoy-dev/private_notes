@@ -1,4 +1,6 @@
-export const translations = {
+import { KEYS } from './constants.js';
+
+const translations = {
     en: {
         app_name: "Private Notes",
         sidebar: {
@@ -1652,7 +1654,7 @@ export const translations = {
 export let currentLang = 'en';
 
 export function initI18n() {
-    const saved = localStorage.getItem('cn_lang');
+    const saved = localStorage.getItem(KEYS.LANG);
     const browser = navigator.language.split('-')[0];
     const supported = Object.keys(translations);
     currentLang = saved || (supported.includes(browser) ? browser : 'en');
@@ -1661,7 +1663,7 @@ export function initI18n() {
 
 export function setLanguage(lang) {
     currentLang = lang;
-    localStorage.setItem('cn_lang', lang);
+    localStorage.setItem(KEYS.LANG, lang);
     document.documentElement.lang = lang;
     location.reload(); // Simple reload to apply all changes
 }
