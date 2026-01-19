@@ -27,7 +27,9 @@ async function initApp() {
     // Init I18n first
     initI18n();
 
-    // 0. Security Cleanup - Only removed if not remembered
+    // 0. Migration - Before anything else
+    migrateLegacyStorage();
+
     // 0. Security Cleanup - Only removed if not remembered
     const rememberedKey = localStorage.getItem(KEYS.VAULT_KEY);
     if (rememberedKey) {
@@ -742,4 +744,46 @@ function setTheme(t) {
     state.settings.theme = t;
     applyTheme();
     saveLocal();
+}
+
+function migrateLegacyStorage() {
+    const mapping = {
+        'cn_master_hash_v3': KEYS.MASTER_HASH,
+        'cn_notes_v3_enc': KEYS.NOTES,
+        'cn_categories_v3_enc': KEYS.CATEGORIES,
+        'cn_vault_v3_enc': KEYS.VAULT,
+        'cn_vault_key_v3': KEYS.VAULT_KEY,
+        'cn_settings_v3': KEYS.SETTINGS,
+        'gdrive_token_v3': KEYS.DRIVE_TOKEN,
+        'cn_bio_enabled_v3': KEYS.BIO_ENABLED,
+        'cn_remember_me_v3': KEYS.REMEMBER_ME,
+        'cn_last_version_v3': KEYS.LAST_VERSION,
+        'cn_backups_v3': KEYS.BACKUPS
+    };
+
+    let migrated = false;
+
+    // Local Storage
+    for (const [oldKey, newKey] of Object.entries(mapping)) {
+        const value = localStorage.getItem(oldKey);
+        if (value && !localStorage.getItem(newKey)) {
+            localStorage.setItem(newKey, value);
+            migrated = true;
+            console.log(`[Migration] Migrated ${oldKey} -> ${newKey} (localStorage)`);
+        }
+    }
+
+    // Session Storage
+    const oldSessionKey = 'cn_vault_key_v3';
+    const newSessionKey = KEYS.VAULT_KEY;
+    const sessionValue = sessionStorage.getItem(oldSessionKey);
+    if (sessionValue && !sessionStorage.getItem(newSessionKey)) {
+        sessionStorage.setItem(newSessionKey, sessionValue);
+        migrated = true;
+        console.log(`[Migration] Migrated ${oldSessionKey} -> ${newSessionKey} (sessionStorage)`);
+    }
+
+    if (migrated) {
+        console.log("[Migration] Storage migration completed.");
+    }
 }

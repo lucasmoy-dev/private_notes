@@ -473,18 +473,19 @@ aside.collapsed .p-5 {
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 0 !important;
+    gap: 1.5rem !important;
 }
 
 aside.collapsed #sidebar-logo-container {
     padding: 0 !important;
-    margin: 0 0 0.5rem 0 !important;
+    margin: 0 !important;
     display: flex !important;
     justify-content: center !important;
     width: 100% !important;
 }
 
 aside.collapsed #sidebar-collapse-btn {
+    @apply w-8 h-8 rounded-full bg-muted/30 hover:bg-muted flex items-center justify-center border border-border/50 transition-all !important;
     display: flex !important;
 }
 
