@@ -145,7 +145,7 @@
     @keyframes dialog-pop-in {
         from {
             opacity: 0;
-            transform: translate(-49.5%, -49.5%) scale(0.95);
+            transform: translate(-50%, -50%) scale(0.95);
         }
 
         to {
@@ -162,7 +162,7 @@
 
         to {
             opacity: 0;
-            transform: translate(-49.5%, -49.5%) scale(0.95);
+            transform: translate(-50%, -50%) scale(0.95);
         }
     }
 
