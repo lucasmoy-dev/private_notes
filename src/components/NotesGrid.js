@@ -5,10 +5,11 @@ import { SecurityService as Security } from '../security.js';
 import { t } from '../i18n.js';
 import Sortable from 'sortablejs';
 
-export function renderNotes(onEdit) {
+export function renderNotes(onEdit, animate = true) {
     const grid = document.getElementById('notes-grid');
     if (!grid) return;
     grid.innerHTML = '';
+    grid.classList.toggle('no-animate', !animate);
 
     const filtered = state.currentView === 'all'
         ? state.notes.filter(n => {

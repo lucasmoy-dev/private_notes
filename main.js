@@ -96,8 +96,8 @@ function injectAppStructure() {
     console.log("Estructura inyectada.");
 }
 
-function refreshUI() {
-    renderNotes(openEditor);
+function refreshUI(animate = true) {
+    renderNotes(openEditor, animate);
     renderCategories(onViewChange, state.categories);
     updateViewHeader();
     safeCreateIcons();
@@ -106,7 +106,7 @@ function refreshUI() {
 function onViewChange(viewId, title) {
     state.currentView = viewId;
     updateViewHeader(title);
-    renderNotes(openEditor);
+    renderNotes(openEditor, false); // No animation on view change for speed
 
     // Global UI update for navigation links
     document.querySelectorAll('[data-view]').forEach(l => {
@@ -528,6 +528,30 @@ async function handleSync() {
     syncButtons.forEach(b => b.classList.add('text-primary'));
 
     try {
+        // Silent token check/refresh if expired
+        const hasToken = localStorage.getItem('gdrive_token_v3');
+        if (hasToken) {
+            const token = JSON.parse(hasToken);
+            const now = Date.now();
+            // If token expires in less than 5 mins, or we don't know, request silently
+            if (!token.expires_at || now > (token.expires_at - 300000)) {
+                console.log("[Sync] Token expired or near expiry, requesting silently...");
+                await new Promise((resolve) => {
+                    const originalCallback = state.tokenClient.callback;
+                    state.tokenClient.callback = (resp) => {
+                        state.tokenClient.callback = originalCallback;
+                        if (!resp.error) {
+                            resp.expires_at = Date.now() + (resp.expires_in * 1000);
+                            localStorage.setItem('gdrive_token_v3', JSON.stringify(resp));
+                            gapi.client.setToken(resp);
+                        }
+                        resolve();
+                    };
+                    state.tokenClient.requestAccessToken({ prompt: '' });
+                });
+            }
+        }
+
         const drive = new DriveSync('notev3_', state.settings.drivePath, state.settings.notesPerChunk);
         const folderId = await drive.getOrCreateFolder(state.settings.drivePath);
 
@@ -536,6 +560,7 @@ async function handleSync() {
         if (cloudData) {
             try {
                 if (cloudData && Array.isArray(cloudData.notes)) {
+                    // ... (rest of the logic)
                     // Simple Merge: Last write wins
                     const cloudNotesMap = new Map(cloudData.notes.map(n => [n.id, n]));
                     const localNotesMap = new Map(state.notes.map(n => [n.id, n]));

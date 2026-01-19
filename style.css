@@ -145,7 +145,7 @@
     @keyframes dialog-pop-in {
         from {
             opacity: 0;
-            transform: translate(-50%, -48%) scale(0.96);
+            transform: translate(-49.5%, -49.5%) scale(0.95);
         }
 
         to {
@@ -162,7 +162,7 @@
 
         to {
             opacity: 0;
-            transform: translate(-50%, -48%) scale(0.96);
+            transform: translate(-49.5%, -49.5%) scale(0.95);
         }
     }
 
@@ -291,7 +291,13 @@ input.pl-12 {
 }
 
 .note-animate-in {
-    animation: note-in 0.3s ease-out forwards;
+    animation: note-in 0.25s ease-out forwards;
+}
+
+.no-animate .note-animate-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 /* Input Styles */

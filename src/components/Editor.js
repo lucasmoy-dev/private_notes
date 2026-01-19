@@ -467,7 +467,7 @@ function closeEditor() {
         document.getElementById('edit-title').value = '';
         document.getElementById('edit-content').innerHTML = '';
 
-        if (window.refreshUI) window.refreshUI();
+        if (window.refreshUI) window.refreshUI(false);
     }, 200);
 }
 
@@ -561,7 +561,8 @@ export async function saveActiveNote(shouldClose = true) {
     if (!state.editingNoteId) state.editingNoteId = noteData.id;
 
     // 4. Update UI IMMEDIATELY
-    if (window.refreshUI) window.refreshUI();
+    if (shouldClose) state.unlockedNotes.clear();
+    if (window.refreshUI) window.refreshUI(false);
     if (shouldClose) closeEditor();
 
     // 5. Persist and Sync in background
