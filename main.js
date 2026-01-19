@@ -440,7 +440,7 @@ function initGapi() {
                         if (resp.error) return showToast('❌ Error de vinculación');
 
                         // Verify existing data on connect
-                        const vaultKey = sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3');
+                        const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
                         if (!vaultKey) return showToast('❌ Error: Sesión no válida');
 
                         try {
@@ -457,7 +457,7 @@ function initGapi() {
                                 showToast('✅ Drive verificado: Contraseña correcta');
                             }
 
-                            localStorage.setItem('gdrive_token_v3', JSON.stringify(resp));
+                            localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(resp));
                             gapi.client.setToken(resp);
                             updateDriveStatus(true);
                             showToast('✅ Vinculado con Google Drive');
@@ -470,7 +470,7 @@ function initGapi() {
                 });
 
                 // Check if we already have a token
-                const hasToken = localStorage.getItem('gdrive_token_v3');
+                const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
                 if (hasToken) {
                     const token = JSON.parse(hasToken);
                     gapi.client.setToken(token);
@@ -519,7 +519,7 @@ function updateDriveStatus(connected) {
 let isSyncing = false;
 async function handleSync() {
     if (isSyncing) return;
-    const vaultKey = sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3');
+    const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
     if (!vaultKey) return;
 
     const syncIcons = document.querySelectorAll('#sync-icon, [data-lucide="refresh-cw"]');
@@ -531,7 +531,7 @@ async function handleSync() {
 
     try {
         // Silent token check/refresh if expired
-        const hasToken = localStorage.getItem('gdrive_token_v3');
+        const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
         if (hasToken) {
             const token = JSON.parse(hasToken);
             const now = Date.now();
@@ -544,7 +544,7 @@ async function handleSync() {
                         state.tokenClient.callback = originalCallback;
                         if (!resp.error) {
                             resp.expires_at = Date.now() + (resp.expires_in * 1000);
-                            localStorage.setItem('gdrive_token_v3', JSON.stringify(resp));
+                            localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(resp));
                             gapi.client.setToken(resp);
                         }
                         resolve();
@@ -617,8 +617,8 @@ async function handleSync() {
 }
 
 function triggerAutoSync() {
-    const hasToken = localStorage.getItem('gdrive_token_v3');
-    const vaultKey = sessionStorage.getItem('cn_vault_key_v3') || localStorage.getItem('cn_vault_key_v3');
+    const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
+    const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
     if (state.gapiLoaded && hasToken && vaultKey) {
         handleSync();
     }
@@ -671,14 +671,14 @@ async function addCategory() {
     refreshUI();
 
     // Auto-sync if connected
-    const hasToken = localStorage.getItem('gdrive_token_v3');
+    const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
     if (hasToken) handleSync();
 }
 
 
 function handleLogout() {
-    localStorage.removeItem('cn_vault_key_v3');
-    sessionStorage.removeItem('cn_vault_key_v3');
+    localStorage.removeItem(KEYS.VAULT_KEY);
+    sessionStorage.removeItem(KEYS.VAULT_KEY);
     // Legacy cleanup
     localStorage.removeItem('cn_pass_plain_v3');
     sessionStorage.removeItem('cn_pass_plain_v3');

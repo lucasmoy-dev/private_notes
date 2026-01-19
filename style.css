@@ -485,7 +485,7 @@ aside.collapsed #sidebar-logo-container {
 }
 
 aside.collapsed #sidebar-collapse-btn {
-    display: none !important;
+    display: flex !important;
 }
 
 aside.collapsed .nav-link {
