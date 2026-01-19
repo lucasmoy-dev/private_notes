@@ -622,15 +622,24 @@ async function handleSync() {
 
                     state.notes = mergedNotes.sort((a, b) => b.updatedAt - a.updatedAt);
 
-                    // Merge categories prioritizing LOCAL ORDER
-                    // If the user reordered locally, we want to keep that order.
-                    // New cloud categories will be appended.
+                    // Merge categories prioritizing LOCAL ORDER and PRIVATE STATUS
                     const cloudCatsMap = new Map(cloudData.categories.map(c => [c.id, c]));
                     const localCatsMap = new Map(state.categories.map(c => [c.id, c]));
 
-                    // Use LOCAL keys first to define order
                     const allCatIds = new Set([...localCatsMap.keys(), ...cloudCatsMap.keys()]);
-                    state.categories = Array.from(allCatIds).map(id => localCatsMap.get(id) || cloudCatsMap.get(id));
+                    state.categories = Array.from(allCatIds).map(id => {
+                        const local = localCatsMap.get(id);
+                        const cloud = cloudCatsMap.get(id);
+                        if (!local) return cloud;
+                        if (!cloud) return local;
+
+                        // Conflict: Same ID. Prefer Local for Order/Name, 
+                        // but if either is private, keep it private.
+                        return {
+                            ...local,
+                            passwordHash: local.passwordHash || cloud.passwordHash
+                        };
+                    });
 
                     await saveLocal();
                     refreshUI();

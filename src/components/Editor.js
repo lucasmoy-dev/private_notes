@@ -603,11 +603,13 @@ function restoreSelection() {
     }
 }
 
+window.updateEditorCategoryUI = updateCategoryUI;
+
 function updateCategoryUI() {
     const catId = document.getElementById('edit-category').value;
     const cat = state.categories.find(c => c.id === catId);
     if (document.getElementById('selected-cat-label')) {
-        document.getElementById('selected-cat-label').innerText = cat ? cat.name : 'Sin categoría';
+        document.getElementById('selected-cat-label').innerText = cat ? cat.name : t('categories.no_category');
     }
     if (document.getElementById('selected-cat-icon')) {
         const iconEl = document.getElementById('selected-cat-icon');

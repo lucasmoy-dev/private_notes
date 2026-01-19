@@ -29,12 +29,47 @@ export function renderCategories(onViewChange, categories = null) {
 
     const addOption = (id, name, icon) => {
         if (!dropdown) return;
+        const cat = state.categories.find(c => c.id === id);
+        const isLocked = cat && cat.passwordHash;
+
         const item = document.createElement('div');
-        item.className = 'px-3 py-1.5 text-xs hover:bg-accent cursor-pointer flex items-center gap-2';
-        item.innerHTML = `<i data-lucide="${icon || 'tag'}" class="w-3.5 h-3.5 text-foreground/70"></i> ${name}`;
-        item.onclick = () => {
+        item.className = 'px-3 py-2 text-xs hover:bg-accent cursor-pointer flex items-center justify-between group transition-colors cat-dropdown-item';
+        item.innerHTML = `
+            <div class="flex items-center gap-2">
+                <i data-lucide="${icon || 'tag'}" class="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors"></i>
+                <span class="truncate">${name}</span>
+            </div>
+            ${isLocked ? '<i data-lucide="lock" class="w-2.5 h-2.5 text-muted-foreground/50"></i>' : ''}
+        `;
+
+        item.onclick = async (e) => {
+            e.stopPropagation();
+            if (isLocked && !state.unlockedCategories.has(id)) {
+                const result = await openPrompt(t('common.restricted_access'), `${t('common.enter_cat_pass')} "${name}":`, true);
+                if (!result) return;
+
+                let isValid = false;
+                if (typeof result === 'object' && result.biometric) {
+                    isValid = true;
+                } else {
+                    const hash = await Security.hash(result);
+                    const targetHash = cat.passwordHash === 'MASTER' ? localStorage.getItem(KEYS.MASTER_HASH) : cat.passwordHash;
+                    if (hash === targetHash) {
+                        isValid = true;
+                    }
+                }
+
+                if (isValid) {
+                    state.unlockedCategories.add(id);
+                } else {
+                    return showToast(t('auth.incorrect_pass'));
+                }
+            }
+
             if (select) select.value = id;
-            updateCategoryUI();
+            if (window.updateEditorCategoryUI) window.updateEditorCategoryUI();
+            else updateCategoryUI();
+
             dropdown.classList.add('hidden');
         };
         dropdown.appendChild(item);
@@ -43,7 +78,15 @@ export function renderCategories(onViewChange, categories = null) {
     const updateCategoryUI = () => {
         const catId = document.getElementById('edit-category').value;
         const cat = state.categories.find(c => c.id === catId);
-        document.getElementById('selected-cat-label').innerText = cat ? cat.name : t('categories.no_category');
+        const label = document.getElementById('selected-cat-label');
+        if (label) label.innerText = cat ? cat.name : t('categories.no_category');
+
+        // Also update icon if we have the reference
+        const iconEl = document.getElementById('selected-cat-icon');
+        if (iconEl) {
+            iconEl.setAttribute('data-lucide', cat ? (cat.icon || 'tag') : 'tag');
+            safeCreateIcons();
+        }
     };
 
     if (dropdown) {
@@ -51,7 +94,8 @@ export function renderCategories(onViewChange, categories = null) {
         if (defaultOpt) {
             defaultOpt.onclick = () => {
                 if (select) select.value = '';
-                updateCategoryUI();
+                if (window.updateEditorCategoryUI) window.updateEditorCategoryUI();
+                else updateCategoryUI();
                 dropdown.classList.add('hidden');
             };
         }
@@ -70,20 +114,27 @@ export function renderCategories(onViewChange, categories = null) {
                     if (overlay) overlay.classList.add('hidden');
                 }
 
-                if (cat.passwordHash) {
+                if (cat.passwordHash && !state.unlockedCategories.has(cat.id)) {
                     const result = await openPrompt(t('common.restricted_access'), `${t('common.enter_cat_pass')} "${cat.name}":`, true);
                     if (!result) return;
 
                     // Biometric Bypass
+                    let isValid = false;
                     if (typeof result === 'object' && result.biometric) {
-                        // Granted by OS Biometrics
+                        isValid = true;
                     } else {
                         const hash = await Security.hash(result);
                         const targetHash = cat.passwordHash === 'MASTER' ? localStorage.getItem(KEYS.MASTER_HASH) : cat.passwordHash;
-                        if (hash !== targetHash) {
-                            showToast(t('auth.incorrect_pass'));
-                            return;
+                        if (hash === targetHash) {
+                            isValid = true;
                         }
+                    }
+
+                    if (isValid) {
+                        state.unlockedCategories.add(cat.id);
+                    } else {
+                        showToast(t('auth.incorrect_pass'));
+                        return;
                     }
                 }
                 onViewChange(cat.id, cat.name);
