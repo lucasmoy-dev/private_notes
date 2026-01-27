@@ -23,11 +23,19 @@ export async function saveLocal() {
     if (vaultKey) {
         // Clean up deleted notes older than 30 days
         const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+
+        // Anti-Duplication: Remove notes with identical title and content (except for deleted ones)
+        const seen = new Set();
         state.notes = state.notes.filter(note => {
-            // Keep all non-deleted notes
-            if (!note.deleted) return true;
-            // Keep recently deleted notes (for sync purposes)
-            return note.updatedAt > thirtyDaysAgo;
+            if (note.deleted) return note.updatedAt > thirtyDaysAgo;
+
+            // Generate a simple key to detect content clones
+            // We include category to avoid merging same-titled notes in different categories
+            const contentKey = `${note.title?.trim()}|${note.content?.trim()}|${note.categoryId}`;
+            if (seen.has(contentKey)) return false; // Skip duplicate
+
+            seen.add(contentKey);
+            return true;
         });
 
         const encryptedNotes = await Security.encrypt(state.notes, vaultKey);

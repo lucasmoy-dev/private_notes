@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+
 @layer base {
     :root {
         --background: 210 20% 98%;
@@ -136,27 +138,22 @@
     }
 
     .dialog-content {
-        @apply fixed left-[50%] top-[50%] z-50 grid w-[90%] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-2xl sm:rounded-2xl;
+        @apply fixed left-[50%] top-[50%] z-50 flex flex-col w-[92%] max-w-2xl translate-x-[-50%] translate-y-[-50%] bg-background shadow-2xl overflow-hidden;
+        border-radius: 20px;
         transform-origin: center center;
-        animation: dialog-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-            height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-            max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-            max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-            top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-            left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-            transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-            border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: note-modal-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid hsl(var(--border));
     }
 
     .dialog-content.dialog-hide {
-        animation: dialog-pop-out 0.2s ease-in forwards !important;
+        animation: dialog-pop-out 0.1s ease-in forwards !important;
     }
 
     @keyframes dialog-pop-in {
         from {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0.95);
+            transform: translate(-50%, -46%) scale(0.96);
         }
 
         to {
@@ -173,7 +170,7 @@
 
         to {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0.95);
+            transform: translate(-50%, -48%) scale(0.98);
         }
     }
 
@@ -184,30 +181,62 @@
 
 
 
+    .editor-menu-item {
+        @apply flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-primary/10 rounded-xl transition-all duration-200 cursor-pointer text-foreground/90 hover:text-primary selection:bg-transparent font-medium;
+    }
+
+    .editor-menu-item i,
+    .editor-menu-item svg {
+        @apply text-muted-foreground/70 transition-colors group-hover:text-primary w-4 h-4;
+    }
+
+    .editor-menu-item:hover i,
+    .editor-menu-item:hover svg {
+        @apply text-primary;
+    }
+
     .popover-content {
-        @apply z-50 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95;
+        @apply z-[250] rounded-2xl border bg-popover/95 backdrop-blur-xl text-popover-foreground shadow-2xl outline-none animate-in fade-in-0 zoom-in-95 border-border/50;
     }
 
-    .editor-tool {
-        @apply h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-all duration-200 shrink-0;
+    /* Toast Notification */
+    #toast {
+        @apply fixed bottom-12 left-1/2 -translate-x-1/2 z-[1000] opacity-0 pointer-events-none transition-all duration-300 translate-y-4;
     }
 
-    .editor-tool.active {
-        @apply bg-violet-500 text-white border-violet-500 shadow-md ring-1 ring-violet-400/30 !important;
-        @apply dark:bg-violet-600 dark:border-violet-700 !important;
-        opacity: 1 !important;
+    #toast.show {
+        @apply opacity-100 translate-y-0;
     }
 
-    .menu-active-violet {
-        @apply bg-violet-500/10 text-violet-600 dark:text-violet-400 font-bold !important;
+    /* Premium Editor Tool Styles */
+    #editor-modal .editor-tool {
+        @apply h-8 w-8 flex items-center justify-center rounded-full transition-all duration-200 border border-transparent;
     }
 
-    .editor-tool i {
-        @apply transition-transform duration-200;
+    #editor-modal .editor-tool:hover {
+        @apply bg-muted;
     }
 
-    .editor-tool:active i {
-        @apply scale-90;
+    #editor-modal .editor-tool.active {
+        @apply !bg-indigo-600 !text-white !opacity-100 shadow-lg ring-2 ring-indigo-500/30;
+    }
+
+    #editor-modal .editor-tool svg {
+        @apply w-4 h-4;
+    }
+
+    #editor-modal #close-editor,
+    #editor-modal #expand-editor,
+    #editor-modal #node-options-btn {
+        @apply h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted font-bold;
+    }
+
+    #editor-modal .editor-bottom-bar {
+        @apply border-t bg-background px-4 py-2 flex items-center justify-between gap-3;
+    }
+
+    .cat-badge {
+        @apply h-7 px-3 rounded-full border border-border bg-muted/30 text-[11px] font-bold flex items-center gap-2 hover:bg-muted transition-all uppercase tracking-wider text-muted-foreground;
     }
 
     /* Note Card */
@@ -225,6 +254,16 @@
 
     .note-card.pinned {
         @apply border-primary/50 ring-1 ring-primary/20;
+    }
+
+    /* Editor Specific Fixes */
+    .editor-bottom-bar {
+        overflow: visible !important;
+    }
+
+    #cat-select-wrapper {
+        position: relative;
+        overflow: visible !important;
     }
 }
 
@@ -290,6 +329,35 @@ input.pl-12 {
 }
 
 /* Animations */
+@keyframes note-modal-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -45%) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes dropdown-item-in {
+    from {
+        opacity: 0;
+        transform: translateX(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.editor-menu-item {
+    animation: dropdown-item-in 0.2s ease-out forwards;
+    animation-delay: calc(var(--item-index) * 0.03s);
+}
+
 @keyframes note-in {
     from {
         opacity: 0;
@@ -346,11 +414,14 @@ textarea {
     background-color: hsl(var(--accent));
 }
 
-/* Custom Dropdown */
+/* Custom Dropdown animation */
+#cat-dropdown-menu:not(.hidden) {
+    display: flex !important;
+    flex-direction: column;
+}
+
 #cat-dropdown-menu {
-    @apply bg-popover text-popover-foreground border shadow-2xl rounded-xl p-1.5 mt-2 w-max min-w-[140px] max-w-[220px] z-[100];
-    transform-origin: top left;
-    animation: dropdown-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: bottom left;
 }
 
 @keyframes dropdown-in {
@@ -367,6 +438,7 @@ textarea {
 
 #cat-dropdown-menu div {
     @apply relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none transition-all hover:bg-accent hover:text-accent-foreground gap-2 mb-0.5 last:mb-0;
+    animation: dropdown-item-in 0.2s ease-out forwards;
 }
 
 #cat-dropdown-menu div:active {
@@ -692,7 +764,7 @@ textarea:focus {
     bottom: 5rem;
     left: 50%;
     transform: translateX(-50%) translateY(1rem);
-    z-index: 500;
+    z-index: 2000 !important;
     pointer-events: none;
     opacity: 0;
     transition: all 0.3s ease;

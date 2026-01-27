@@ -37,31 +37,54 @@ export function renderNotes(onEdit, animate = true) {
 
         const cat = state.categories.find(c => c.id === note.categoryId);
         const isUnlocked = state.unlockedNotes.has(note.id);
+        const isDarkTheme = isColorDark(bgColor);
 
         card.innerHTML = `
-            <div class="note-card-content">
-                <div class="flex items-start justify-between mb-2">
-                    <h3 class="font-bold text-base line-clamp-2 leading-snug flex-1 pr-3">${note.title}</h3>
-                    <div class="flex items-center gap-2 shrink-0 pt-0.5">
-                        ${note.pinned ? '<i data-lucide="pin" class="w-4 h-4 fill-current text-primary"></i>' : ''}
-                        ${note.passwordHash ? `<i data-lucide="${isUnlocked ? 'unlock' : 'lock'}" class="w-4 h-4 lock-indicator cursor-pointer opacity-80" data-id="${note.id}"></i>` : ''}
+            <div class="note-card-content flex flex-col h-full">
+                <div class="flex items-start justify-between mb-2.5 gap-2">
+                    <h3 class="font-bold text-[15px] line-clamp-2 leading-[1.3] flex-1">${note.title}</h3>
+                    <div class="flex items-center gap-2 shrink-0 pt-1 opacity-80">
+                        ${note.pinned ? '<i data-lucide="pin" class="w-3.5 h-3.5 rotate-[15deg]"></i>' : ''}
+                        ${note.passwordHash ? `<i data-lucide="${isUnlocked ? 'unlock' : 'lock'}" class="w-3.5 h-3.5 ${isUnlocked ? 'text-primary' : ''}"></i>` : ''}
                     </div>
                 </div>
-                <div class="text-[13px] opacity-70 line-clamp-6 leading-relaxed mb-4 flex-1">
-                    ${(note.passwordHash && !isUnlocked) ? `<div class="flex items-center gap-3 py-8 italic opacity-50"><i data-lucide="shield-alert" class="w-6 h-6"></i> ${t('common.restricted_access')}</div>` : note.content}
+                <div class="text-[13px] opacity-75 line-clamp-[8] leading-[1.5] mb-5 flex-1">
+                    ${(note.passwordHash && !isUnlocked) ? `<div class="flex items-center gap-3 py-10 italic opacity-40 justify-center"><i data-lucide="shield-lock" class="w-5 h-5"></i></div>` : note.content}
                 </div>
-                ${(cat && state.currentView === 'all') ? `
-                <div class="mt-auto">
-                    <span class="flex items-center gap-1.5 text-[9px] px-2 py-1 rounded-full bg-primary/10 border border-primary/20 font-bold text-primary uppercase tracking-widest">
-                        <i data-lucide="${cat.icon || 'tag'}" class="w-3 h-3 text-primary"></i>
-                        ${cat.name}
-                    </span>
-                </div>` : ''}
+                <div class="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-foreground/5">
+                    <div class="flex-1 min-w-0">
+                        ${(cat) ? `
+                        <span class="inline-flex items-center gap-1.5 text-[9px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-black uppercase tracking-[0.15em] border border-primary/10">
+                            <i data-lucide="${cat.icon || 'tag'}" class="w-2.5 h-2.5"></i>
+                            <span class="truncate">${cat.name}</span>
+                        </span>` : ''}
+                    </div>
+                    <button class="delete-note-btn p-1.5 rounded-xl hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive transition-all opacity-0 group-hover:opacity-100" data-id="${note.id}" title="Eliminar">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
             </div>
         `;
 
-        card.onclick = async (e) => {
-            if (e.target.closest('.delete-note-btn')) return;
+        card.addEventListener('click', async (e) => {
+            const deleteBtn = e.target.closest('.delete-note-btn');
+            if (deleteBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (confirm('¿Deseas eliminar esta nota?')) {
+                    const id = deleteBtn.dataset.id;
+                    const index = state.notes.findIndex(n => n.id === id);
+                    if (index >= 0) {
+                        state.notes[index].deleted = true;
+                        state.notes[index].updatedAt = Date.now();
+                        await saveLocal();
+                        renderNotes(onEdit);
+                        window.triggerAutoSync?.();
+                    }
+                }
+                return;
+            }
 
             // If note is locked and not yet unlocked in this session
             if (note.passwordHash && !state.unlockedNotes.has(note.id)) {
@@ -95,7 +118,7 @@ export function renderNotes(onEdit, animate = true) {
             }
 
             onEdit(note);
-        };
+        });
         return card;
     };
 

@@ -2,605 +2,442 @@ import { state, saveLocal } from '../state.js';
 import { NOTE_THEMES, PALETTE, EMOJIS } from '../constants.js';
 import { isColorDark, safeCreateIcons, showToast, openPrompt } from '../ui-utils.js';
 import { SecurityService as Security } from '../security.js';
+import { EditorUI } from './EditorUI.js';
 
 let lastSelectedRange = null;
-let initialNoteState = null; // To track changes
+let initialNoteState = null;
 
 export function getEditorTemplate() {
     return `
     <div id="editor-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm dialog-overlay"></div>
-        <div class="dialog-content max-w-2xl h-[85vh] flex flex-col p-0 rounded-2xl">
-            <div class="flex items-center gap-2 border-b pb-2 px-3 pt-3">
-                <button id="close-editor" class="text-muted-foreground hover:text-foreground p-1.5 -ml-1" title="Volver">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </button>
-                <input type="text" id="edit-title" placeholder="Título"
-                    class="bg-transparent text-lg font-bold outline-none border-none placeholder:text-muted-foreground w-full">
+        <div class="dialog-content max-w-2xl h-[85vh] flex flex-col p-0 rounded-2xl shadow-2xl transition-all duration-300">
+            <div class="flex items-center gap-4 px-6 pt-6 pb-2 border-b border-border/10 shrink-0">
+                <input type="text" id="edit-title" placeholder="Título de la nota"
+                    class="bg-transparent text-xl font-black outline-none border-none placeholder:text-muted-foreground flex-1 min-w-0 truncate">
                 
-                <div class="flex items-center gap-1">
-                    <button id="note-expand-btn" class="editor-tool hidden md:inline-flex" title="Expandir">
-                        <i data-lucide="maximize-2" class="w-4 h-4"></i>
+                <div class="flex items-center gap-1 shrink-0">
+                    <button id="expand-editor" class="editor-tool" title="Expandir/Contraer">
+                        <i data-lucide="maximize-2"></i>
                     </button>
                     <div class="relative">
-                        <button id="note-options-btn" class="editor-tool" title="Más opciones">
-                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                        <button id="node-options-btn" class="editor-tool" title="Más opciones">
+                            <i data-lucide="more-vertical"></i>
                         </button>
-                        <div id="note-options-menu" class="hidden absolute right-0 top-full mt-1 bg-popover border shadow-2xl rounded-xl p-1 z-[120] min-w-[170px]">
-                            <button id="opt-copy-all" class="flex items-center gap-3 w-full px-3 py-2.5 text-sm hover:bg-accent rounded-md transition-colors">
-                                <i data-lucide="copy" class="w-4 h-4 text-muted-foreground"></i> Copiar todo
-                            </button>
-                            <button id="opt-download" class="flex items-center gap-3 w-full px-3 py-2.5 text-sm hover:bg-accent rounded-md transition-colors border-b pb-2.5 mb-1.5">
-                                <i data-lucide="download" class="w-4 h-4 text-muted-foreground"></i> Descargar .txt
-                            </button>
-                            <button id="opt-toggle-pin" class="flex items-center gap-3 w-full px-3 py-2.5 text-sm hover:bg-accent rounded-md transition-colors">
-                                <i data-lucide="pin" class="w-4 h-4 text-muted-foreground" id="opt-pin-icon"></i> <span id="opt-pin-label">Fijar nota</span>
-                            </button>
-                            <button id="opt-toggle-lock" class="flex items-center gap-3 w-full px-3 py-2.5 text-sm hover:bg-accent rounded-md transition-colors border-b pb-2.5 mb-1.5">
-                                <i data-lucide="lock" class="w-4 h-4 text-muted-foreground" id="opt-lock-icon"></i> <span id="opt-lock-label">Restringir</span>
-                            </button>
-                             <button id="opt-delete-note" class="flex items-center gap-3 w-full px-3 py-2.5 text-sm hover:bg-destructive/5 text-destructive rounded-md transition-colors font-medium">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar nota
-                            </button>
+                        <div id="note-options-menu" class="hidden absolute right-0 top-full mt-2 bg-popover border shadow-2xl rounded-2xl p-2 z-[125] min-w-[220px] animate-in zoom-in-95 duration-200">
+                             <div class="px-2 py-1.5 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] mb-1">Acciones</div>
+                             <button id="opt-copy-all" class="editor-menu-item group" style="--item-index: 0">
+                                 <i data-lucide="copy"></i> Copiar contenido
+                             </button>
+                             <button id="opt-download" class="editor-menu-item group" style="--item-index: 1">
+                                 <i data-lucide="download"></i> Descargar nota
+                             </button>
+                             <div class="h-px bg-border my-2 mx-1 opacity-50"></div>
+                             <div class="px-2 py-1.5 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] mb-1">Estado</div>
+                             <button id="opt-toggle-pin" class="editor-menu-item group" style="--item-index: 2">
+                                 <i data-lucide="pin" id="opt-pin-icon"></i> <span id="opt-pin-label">Fijar nota</span>
+                             </button>
+                             <button id="opt-toggle-lock" class="editor-menu-item group" style="--item-index: 3">
+                                 <i data-lucide="lock" id="opt-lock-icon"></i> <span id="opt-lock-label">Restringir</span>
+                             </button>
                         </div>
                     </div>
+                    <button id="close-editor" class="editor-tool !text-muted-foreground hover:!text-foreground" title="Cerrar">
+                        <i data-lucide="x"></i>
+                    </button>
                 </div>
             </div>
 
-            <div class="flex-1 py-4 overflow-y-auto px-4 relative">
+            <div class="flex-1 py-8 overflow-y-auto px-8 relative custom-scrollbar">
                 <div id="edit-content" contenteditable="true"
-                    class="min-h-[300px] outline-none text-base leading-relaxed prose prose-slate dark:prose-invert max-w-none"
-                    placeholder="Empieza a escribir..."></div>
+                    class="min-h-[400px] outline-none text-[15px] leading-relaxed prose prose-slate dark:prose-invert max-w-none font-medium"
+                    placeholder="Escribe algo increíble..."></div>
             </div>
 
-            <!-- Unified Bottom Section -->
-            <div class="border-t bg-muted/5 divide-y divide-border">
-                <!-- Row 1: Formatting Tools (Unified) -->
-                <div class="px-3 py-1.5 flex items-center overflow-x-auto no-scrollbar gap-1.5">
-                    <div class="flex items-center gap-1">
-                        <button data-cmd="bold" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="bold" class="w-3.5 h-3.5"></i></button>
-                        <button data-cmd="italic" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="italic" class="w-3.5 h-3.5"></i></button>
-                        <button data-cmd="underline" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="underline" class="w-3.5 h-3.5"></i></button>
-                    </div>
-                    <div class="w-px h-5 bg-border mx-0.5 shrink-0"></div>
-                    <div class="flex items-center gap-1">
-                        <button id="checklist-btn" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="check-square" class="w-3.5 h-3.5"></i></button>
-                        <button data-cmd="insertUnorderedList" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="list" class="w-3.5 h-3.5"></i></button>
-                        <button data-cmd="insertOrderedList" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="list-ordered" class="w-3.5 h-3.5"></i></button>
-                    </div>
-                    <div class="w-px h-5 bg-border mx-0.5 shrink-0"></div>
-                    <div class="flex items-center gap-1">
-                        <button id="add-link" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="link" class="w-3.5 h-3.5"></i></button>
-                        <button id="open-text-colors" class="editor-tool border bg-background shrink-0 relative w-8 h-8">
-                            <i data-lucide="type" class="w-3.5 h-3.5"></i>
-                            <div class="w-2.5 h-[1.5px] bg-red-500 rounded-full absolute bottom-1.5 right-2"></div>
+            <div class="bg-background flex flex-col divide-y divide-border/40">
+                <div class="px-4 py-2.5 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button data-cmd="bold" class="editor-tool" title="Negrita"><i data-lucide="bold"></i></button>
+                        <button data-cmd="italic" class="editor-tool" title="Cursiva"><i data-lucide="italic"></i></button>
+                        <button data-cmd="underline" class="editor-tool" title="Subrayado"><i data-lucide="underline"></i></button>
+                        <div class="w-px h-4 bg-border/50 mx-1"></div>
+                        <button id="checklist-btn" class="editor-tool" title="Lista de tareas"><i data-lucide="check-square"></i></button>
+                        <button data-cmd="insertUnorderedList" class="editor-tool" title="Lista"><i data-lucide="list"></i></button>
+                        <div class="w-px h-4 bg-border/50 mx-1"></div>
+                        <button id="add-link" class="editor-tool" title="Enlace"><i data-lucide="link"></i></button>
+                        <button id="open-text-colors" class="editor-tool relative" title="Color de texto">
+                            <i data-lucide="type"></i>
+                            <div class="w-2 h-[2px] bg-indigo-500 rounded-full absolute bottom-1.5 left-1/2 -translate-x-1/2"></div>
                         </button>
-                        <button id="open-emojis" class="editor-tool border bg-background shrink-0 w-8 h-8"><i data-lucide="smile" class="w-3.5 h-3.5"></i></button>
+                        <button id="open-emojis" class="editor-tool" title="Emojis"><i data-lucide="smile"></i></button>
+                        <button id="open-colors" class="editor-tool" title="Fondo"><i data-lucide="palette"></i></button>
+                    </div>
+                    
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button id="opt-delete-note" class="editor-tool !text-destructive hover:!bg-destructive/10" title="Eliminar"><i data-lucide="trash-2"></i></button>
+                        <div class="w-px h-4 bg-border/50 mx-1"></div>
+                        <button id="quick-save-note" class="editor-tool !bg-indigo-600 !text-white hover:!bg-indigo-700 shadow-sm" title="Guardar"><i data-lucide="save"></i></button>
+                        <button id="done-note" class="editor-tool !bg-emerald-600 !text-white hover:!bg-emerald-700 shadow-sm" title="Guardar y cerrar"><i data-lucide="check"></i></button>
                     </div>
                 </div>
 
-                <!-- Row 2: Category, Color, and Done Button -->
-                <div class="py-1.5 px-3 flex items-center justify-between gap-2 editor-bottom-bar shrink-0">
-                    <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                        <button id="open-colors" class="editor-tool border border-input bg-background/50 transition-all shrink-0 w-8 h-8" title="Color de nota">
-                            <i data-lucide="palette" class="w-3.5 h-3.5"></i>
+                <div class="py-2.5 px-4 flex items-center justify-between gap-4 bg-muted/20">
+                    <div id="cat-select-wrapper">
+                        <button id="cat-dropdown-trigger" class="cat-badge">
+                            <i data-lucide="tag" id="selected-cat-icon" class="w-3.5 h-3.5"></i>
+                            <span id="selected-cat-label" class="truncate">Sin categoría</span>
+                            <i data-lucide="chevron-up" class="w-3 h-3 opacity-40"></i>
                         </button>
-
-                        <div class="relative w-40" id="cat-select-wrapper">
-                            <button id="cat-dropdown-trigger"
-                                class="h-8 w-full px-2 rounded-md border border-input bg-background/50 text-[11px] flex items-center justify-between gap-1 hover:bg-accent transition-all">
-                                <i data-lucide="tag" id="selected-cat-icon" class="w-3 h-3 text-muted-foreground/60"></i>
-                                <span id="selected-cat-label" class="truncate flex-1 text-left">Sin categoría</span>
-                                <i data-lucide="chevron-down" class="w-2.5 h-2.5 text-muted-foreground shrink-0"></i>
-                            </button>
-                            <div id="cat-dropdown-menu"
-                                class="absolute bottom-full mb-2 left-0 w-44 bg-popover border rounded-md shadow-xl hidden z-50 py-1 overflow-hidden">
-                            </div>
-                            <select id="edit-category" class="hidden">
-                                <option value="">Sin categoría</option>
-                            </select>
-                        </div>
+                        <select id="edit-category" class="hidden">
+                            <option value="">Sin categoría</option>
+                        </select>
                     </div>
-
-                    <button id="save-note" class="btn-shad btn-shad-primary h-8 px-4 font-bold text-sm rounded-xl">Hecho</button>
+                    <div class="text-[10px] text-muted-foreground/60 font-bold uppercase tracking-tighter" id="last-saved-time">Guardado hace un momento</div>
                 </div>
             </div>
         </div>
-    </div>
-            
-         </div>
-    </div>
-    
-    <!-- Popovers -->
-    <div id="color-popover" class="fixed z-[60] hidden popover-content">
-        <div class="grid grid-cols-6 gap-2" id="bg-color-grid"></div>
-    </div>
-    <div id="text-color-popover" class="fixed z-[60] hidden popover-content">
-        <div class="grid grid-cols-6 gap-2" id="text-color-grid"></div>
-    </div>
-    <div id="emoji-popover" class="fixed z-[60] hidden popover-content w-80">
-        <div class="grid grid-cols-8 gap-2 h-64 overflow-y-auto" id="emoji-grid"></div>
+
+        <!-- External Popovers (Outside Modal for Viewport-Relative Positioning) -->
+        <div id="color-popover" class="fixed z-[350] hidden popover-content p-4 w-72">
+            <div class="px-2 py-2 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.2em] mb-2">Color de fondo</div>
+            <div id="bg-color-grid" class="grid grid-cols-5 gap-3"></div>
+        </div>
+
+        <div id="text-color-popover" class="fixed z-[350] hidden popover-content p-4 w-72">
+            <div class="px-2 py-2 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.2em] mb-2">Color de texto</div>
+            <div id="text-color-grid" class="grid grid-cols-6 gap-3"></div>
+        </div>
+
+        <div id="emoji-popover" class="fixed z-[350] hidden popover-content w-80 h-80 p-2 bg-popover border shadow-2xl overflow-y-auto custom-scrollbar">
+            <div id="emoji-grid" class="grid grid-cols-8 gap-1"></div>
+        </div>
+
+        <div id="cat-dropdown-menu"
+                class="fixed w-64 bg-popover border border-border/50 shadow-2xl hidden z-[350] py-2 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div class="px-4 py-2 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.25em] mb-1">Categorías</div>
+            <div id="cat-options-container" class="max-h-72 overflow-y-auto custom-scrollbar px-2"></div>
+        </div>
     </div>`;
 }
 
 export function initEditor(onSave) {
     const modal = document.getElementById('editor-modal');
-    const titleEl = document.getElementById('edit-title');
     const contentEl = document.getElementById('edit-content');
-    const closeBtn = document.getElementById('close-editor');
-    const saveBtn = document.getElementById('save-note');
 
-    closeBtn.onclick = () => saveActiveNote();
+    // Core Button Listeners
+    // Core Button Listeners
+    document.getElementById('close-editor').onclick = () => saveActiveNote();
 
-    const handleSave = async () => {
-        await saveActiveNote();
+    // Close on overlay click
+    const overlay = modal.querySelector('.dialog-overlay');
+    if (overlay) {
+        overlay.onclick = () => saveActiveNote();
+    }
+
+    document.getElementById('quick-save-note').onclick = async (e) => {
+        const btn = e.currentTarget;
+        const icon = btn.querySelector('i');
+
+        // Visual feedback
+        btn.classList.add('scale-110', 'ring-4', 'ring-indigo-500/20');
+        icon.classList.add('animate-spin');
+
+        await saveActiveNote(false);
         onSave();
-    };
-    saveBtn.onclick = handleSave;
-    saveBtn.onclick = handleSave;
+        showToast('✓ Nota guardada');
 
-    const handleDelete = async () => {
-        if (state.editingNoteId && confirm('¿Eliminar esta nota?')) {
-            const note = state.notes.find(n => n.id === state.editingNoteId);
-            if (note) {
-                note.deleted = true;
-                note.updatedAt = Date.now();
-                await saveLocal();
-                if (window.triggerAutoSync) window.triggerAutoSync();
-            }
-            closeEditor();
-            onSave();
-        }
+        setTimeout(() => {
+            btn.classList.remove('scale-110', 'ring-4', 'ring-indigo-500/20');
+            icon.classList.remove('animate-spin');
+        }, 500);
     };
-    document.getElementById('opt-delete-note').onclick = handleDelete;
 
-    document.querySelectorAll('.editor-tool[data-cmd]').forEach(btn => {
-        if (btn.dataset.cmd) {
-            btn.onmousedown = (e) => {
-                e.preventDefault();
-                restoreSelection();
-                document.execCommand(btn.dataset.cmd, false, btn.dataset.val || null);
+    document.getElementById('done-note').onclick = async () => {
+        await saveActiveNote(false);
+        onSave();
+        closeEditor();
+    };
+
+    // Selection & Formatting Listeners
+    document.addEventListener('selectionchange', () => {
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            const content = document.getElementById('edit-content');
+            if (content && content.contains(range.commonAncestorContainer)) {
+                lastSelectedRange = range;
                 updateToolsUI();
-            };
+            }
         }
     });
 
-    initPopovers();
-    contentEl.onkeyup = () => { saveSelection(); updateToolsUI(); handleAutoLinks(); };
-    contentEl.onmouseup = () => { saveSelection(); updateToolsUI(); };
-    contentEl.onfocus = () => { saveSelection(); updateToolsUI(); };
+    if (contentEl) {
+        contentEl.addEventListener('keyup', updateToolsUI);
+        contentEl.addEventListener('mouseup', updateToolsUI);
+        contentEl.addEventListener('paste', () => setTimeout(updateToolsUI, 10));
+    }
 
-
-
-    const titleInput = document.getElementById('edit-title');
-    titleInput.onfocus = () => titleInput.select();
-    titleInput.onclick = () => titleInput.select();
-
-    // Fullscreen toggler
-    const expandBtn = document.getElementById('note-expand-btn');
-    expandBtn.onclick = () => {
-        const dialog = modal.querySelector('.dialog-content');
-        dialog.classList.toggle('fullscreen');
-        const isFull = dialog.classList.contains('fullscreen');
-        expandBtn.innerHTML = `<i data-lucide="${isFull ? 'minimize-2' : 'maximize-2'}" class="w-5 h-5"></i>`;
-        safeCreateIcons();
-    };
-
-
-    // Note Toggles (Pin/Lock) - Now in Options Menu
-    const togglePin = () => {
-        const isActive = document.getElementById('opt-toggle-pin').dataset.active === 'true';
-        updatePinUI(!isActive);
-        saveActiveNote(false); // Quick save
-    };
-    document.getElementById('opt-toggle-pin').onclick = (e) => {
-        e.stopPropagation();
-        togglePin();
-    };
-
-    const toggleLock = async () => {
-        const isActive = document.getElementById('opt-toggle-lock').dataset.active === 'true';
-        if (!isActive) {
-            const lockEl = document.getElementById('opt-toggle-lock');
-            lockEl.dataset.tempHash = 'MASTER';
-            updateLockUI(true);
-            saveActiveNote(false);
-            showToast('🔒 Nota restringida (usa tu clave maestra)');
-        } else {
-            const result = await openPrompt('Seguridad', 'Confirma tu sesión para quitar la restricción:', true);
-            if (!result) return;
-
-            let isValid = false;
-            if (typeof result === 'object' && result.biometric) {
-                isValid = true;
-            } else {
-                const { KEYS } = await import('../constants.js');
-                const hash = await Security.hash(result);
-                if (hash === localStorage.getItem(KEYS.MASTER_HASH)) {
-                    isValid = true;
-                }
-            }
-
-            if (isValid) {
-                updateLockUI(false);
-                const lockEl = document.getElementById('opt-toggle-lock');
-                lockEl.dataset.tempHash = '';
-                saveActiveNote(false);
-                showToast('🔓 Restricción quitada');
-            } else {
-                showToast('❌ Clave incorrecta');
+    // Delete Logic
+    document.getElementById('opt-delete-note').onclick = async () => {
+        if (state.editingNoteId && confirm('¿Deseas eliminar esta nota?')) {
+            const index = state.notes.findIndex(n => n.id === state.editingNoteId);
+            if (index >= 0) {
+                state.notes[index].deleted = true;
+                state.notes[index].updatedAt = Date.now();
+                await saveLocal();
+                closeEditor();
+                onSave();
+                window.triggerAutoSync?.();
             }
         }
     };
-    document.getElementById('opt-toggle-lock').onclick = (e) => {
-        e.stopPropagation();
-        toggleLock();
-    };
 
+    // Expand Logic
+    const expandBtn = document.getElementById('expand-editor');
+    if (expandBtn) {
+        expandBtn.onclick = () => {
+            const dialog = modal.querySelector('.dialog-content');
+            const isFullscreen = dialog.classList.toggle('fullscreen');
+            const icon = expandBtn.querySelector('i');
+            if (icon) {
+                icon.setAttribute('data-lucide', isFullscreen ? 'minimize-2' : 'maximize-2');
+                safeCreateIcons();
+            }
+        };
+    }
 
-    // Options menu
-    const optionsBtn = document.getElementById('note-options-btn');
+    // Extra Options Menu Toggle
+    const optionsBtn = document.getElementById('node-options-btn');
     const optionsMenu = document.getElementById('note-options-menu');
-    optionsBtn.onclick = (e) => {
-        e.stopPropagation();
-        optionsMenu.classList.toggle('hidden');
+    if (optionsBtn && optionsMenu) {
+        optionsBtn.onclick = (e) => {
+            e.stopPropagation();
+            optionsMenu.classList.toggle('hidden');
+        };
+    }
+
+    // Command Buttons (Formatting)
+    document.querySelectorAll('[data-cmd]').forEach(btn => {
+        btn.onmousedown = (e) => e.preventDefault(); // Keep focus
+        btn.onclick = () => {
+            document.execCommand(btn.dataset.cmd, false, null);
+            updateToolsUI();
+        };
+    });
+
+    // Content Editable Input Event
+    contentEl.oninput = () => {
+        // Auto-save logic could go here, but we use manual save
     };
 
+    // Copy Content
     document.getElementById('opt-copy-all').onclick = () => {
-        const content = document.getElementById('edit-content').innerText;
-        navigator.clipboard.writeText(content).then(() => {
-            showToast('✅ Contenido copiado');
-            optionsMenu.classList.add('hidden');
-        });
+        const text = contentEl.innerText;
+        navigator.clipboard.writeText(text);
+        showToast('✓ Contenido copiado');
+        optionsMenu.classList.add('hidden');
     };
 
+    // Download Note
     document.getElementById('opt-download').onclick = () => {
-        const title = document.getElementById('edit-title').value || 'nota';
-        const content = document.getElementById('edit-content').innerText;
-        const blob = new Blob([content], { type: 'text/plain' });
+        const title = document.getElementById('edit-title').value || 'Sin título';
+        const text = contentEl.innerText;
+        const blob = new Blob([text], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `${title}.txt`;
         a.click();
+        URL.revokeObjectURL(url);
         optionsMenu.classList.add('hidden');
     };
 
-    document.addEventListener('click', () => {
-        if (optionsMenu) optionsMenu.classList.add('hidden');
-    });
-
-    const setupLinkAction = async () => {
-        const url = await openPrompt('Insertar Enlace', 'Ingresa la URL:', false);
-        if (url) {
-            restoreSelection();
-            document.execCommand('createLink', false, url.startsWith('http') ? url : 'https://' + url);
-            // Fix links to open in new tab
-            const links = contentEl.querySelectorAll('a');
-            links.forEach(l => l.target = '_blank');
+    // Pin Toggle
+    document.getElementById('opt-toggle-pin').onclick = () => {
+        const note = state.notes.find(n => n.id === state.editingNoteId);
+        if (note) {
+            note.pinned = !note.pinned;
+            note.updatedAt = Date.now();
+            EditorUI.updatePinUI(note.pinned);
         }
     };
 
-    document.getElementById('add-link').onclick = setupLinkAction;
-    document.getElementById('checklist-btn').onclick = () => toggleChecklist();
+    // Lock Toggle
+    document.getElementById('opt-toggle-lock').onclick = async () => {
+        const note = state.notes.find(n => n.id === state.editingNoteId);
+        if (!note) return;
 
-    const toggleChecklist = () => {
-        restoreSelection();
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            const parentLi = range.commonAncestorContainer.parentElement?.closest('li');
-
-            if (parentLi && parentLi.parentElement.classList.contains('checklist')) {
-                // Already in a checklist, remove it (standard list)
-                parentLi.parentElement.classList.remove('checklist');
-            } else {
-                document.execCommand('insertUnorderedList');
-                setTimeout(() => {
-                    const sel = window.getSelection();
-                    if (sel.rangeCount > 0) {
-                        let node = sel.focusNode;
-                        while (node && node.nodeName !== 'UL' && node !== contentEl) node = node.parentNode;
-                        if (node && node.nodeName === 'UL') {
-                            node.classList.add('checklist');
-                            node.querySelectorAll('li').forEach(li => {
-                                if (!li.dataset.checked) li.dataset.checked = 'false';
-                            });
-                        }
-                    }
-                }, 10);
+        if (note.passwordHash) {
+            if (confirm('¿Quitar la restricción de esta nota?')) {
+                note.passwordHash = null;
+                note.updatedAt = Date.now();
+                EditorUI.updateLockUI(false);
+                showToast('🔓 Restricción eliminada');
+            }
+        } else {
+            const pass = await openPrompt('Restringir Nota', 'Establece una contraseña para esta nota:', true);
+            if (pass) {
+                note.passwordHash = await Security.hash(pass);
+                note.updatedAt = Date.now();
+                EditorUI.updateLockUI(true);
+                showToast('🔒 Nota restringida');
             }
         }
-        updateToolsUI();
     };
 
-    // Tab for indentation
+    // Link Action
+    document.getElementById('add-link').onclick = async () => {
+        const url = await openPrompt('Insertar Enlace', 'URL del enlace:', false);
+        if (url) {
+            restoreSelection();
+            const formattedUrl = url.startsWith('http') ? url : 'https://' + url;
+            document.execCommand('createLink', false, formattedUrl);
+            contentEl.querySelectorAll('a').forEach(l => l.target = '_blank');
+        }
+    };
+
+    document.getElementById('checklist-btn').onclick = toggleChecklist;
+
+    // Keyboard handling
     contentEl.onkeydown = (e) => {
         if (e.key === 'Tab') {
             e.preventDefault();
-            if (e.shiftKey) document.execCommand('outdent');
-            else document.execCommand('indent');
+            document.execCommand(e.shiftKey ? 'outdent' : 'indent');
         }
     };
 
-    // Checklist handler
-    contentEl.addEventListener('click', (e) => {
-        const li = e.target.closest('.checklist li');
-        if (li) {
-            // Check if we clicked the checkbox area (left side)
-            const rect = li.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            if (clickX < 35) { // Increased hit area for touch
-                e.preventDefault();
-                li.dataset.checked = li.dataset.checked === 'true' ? 'false' : 'true';
-                // Save without closing
-                saveActiveNote(false);
-                updateToolsUI();
+    // Global document listeners
+    document.addEventListener('click', (e) => {
+        // Close popovers if clicked outside
+        if (!e.target.closest('.editor-tool') && !e.target.closest('.popover-content') && !e.target.closest('#cat-dropdown-trigger')) {
+            EditorUI.hidePopovers();
+        }
+
+        // Close options menu if clicked outside
+        if (optionsMenu && !optionsMenu.classList.contains('hidden')) {
+            if (!optionsBtn.contains(e.target) && !optionsMenu.contains(e.target)) {
+                optionsMenu.classList.add('hidden');
             }
         }
     });
 
-    // Close on overlay click
-    modal.querySelector('.dialog-overlay').onclick = () => {
+    initPopovers();
+    window.addEventListener('popstate', handlePopState);
+}
+
+function handlePopState() {
+    const modal = document.getElementById('editor-modal');
+    if (modal && !modal.classList.contains('hidden')) {
         saveActiveNote();
-    };
-    // Mobile Back Button Support
-    window.addEventListener('popstate', (event) => {
-        const modal = document.getElementById('editor-modal');
-        if (modal && !modal.classList.contains('hidden')) {
-            // If the back button was pressed and editor is open
-            saveActiveNote(false); // Save without triggering close (since we are already closing)
-            closeEditorInternal(); // Close UI
-        }
-    });
+    }
 }
 
-// ... existing code ...
-
-function handleAutoLinks() {
-    // ... existing code ...
-}
-
-function updateToolsUI() {
-    // ... existing code ...
-}
-
-export function openEditor(note = null) {
-    history.pushState({ modal: 'editor' }, '', '');
-
+export async function openEditor(note = null) {
     const modal = document.getElementById('editor-modal');
     const titleEl = document.getElementById('edit-title');
     const contentEl = document.getElementById('edit-content');
-    const catSelect = document.getElementById('edit-category');
-    const dialogContent = modal.querySelector('.dialog-content');
+    const categoryEl = document.getElementById('edit-category');
 
-    if (!modal) return;
+    state.editingNoteId = note ? note.id : 'note_' + Date.now();
+    initialNoteState = note ? JSON.stringify(note) : null;
 
-    // Reset Animation State
-    dialogContent.classList.remove('dialog-hide');
+    titleEl.value = note ? note.title : '';
+    contentEl.innerHTML = note ? note.content : '';
+    categoryEl.value = note ? note.categoryId : '';
+
+    EditorUI.updateCategoryUI();
+    EditorUI.renderCategoryOptions((catId) => {
+        if (note) note.categoryId = catId;
+    });
+
+    if (note) {
+        EditorUI.updatePinUI(note.pinned || false);
+        EditorUI.updateLockUI(!!note.passwordHash);
+    } else {
+        EditorUI.updatePinUI(false);
+        EditorUI.updateLockUI(false);
+    }
+
+    // Set initial theme
+    const currentTheme = note ? (NOTE_THEMES.find(t => t.id === note.themeId) || NOTE_THEMES[0]) : NOTE_THEMES[0];
+    const isDark = isColorDark(state.settings.theme === 'dark' ? currentTheme.dark : currentTheme.light);
+    EditorUI.applyTheme(currentTheme, isDark, modal.querySelector('.dialog-content'), titleEl, contentEl, modal);
+
     modal.classList.remove('hidden');
     document.body.classList.add('ov-hidden');
 
-    state.editingNoteId = note ? note.id : null;
-    titleEl.value = note?.title || '';
-    contentEl.innerHTML = (note?.content === undefined || note?.content === 'undefined') ? '' : (note?.content || '');
+    // Add history state to allow back button to close editor
+    window.history.pushState({ editor: true }, '');
 
-    let defaultCat = '';
-
-    // Safety: Ensure select options exist (Fix for race condition on load)
-    if (catSelect && catSelect.options.length <= 1 && state.categories.length > 0) {
-        state.categories.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.id;
-            opt.innerText = c.name;
-            catSelect.appendChild(opt);
-        });
-    }
-
-    if (!note && state.currentView !== 'all') defaultCat = state.currentView;
-    catSelect.value = note ? (note.categoryId || '') : defaultCat;
-
-    const theme = NOTE_THEMES.find(t => t.id === (note ? note.themeId : 'default')) || NOTE_THEMES[0];
-    const bgColor = (state.settings.theme === 'dark') ? theme.dark : theme.light;
-    const isDark = (theme.id === 'default') ? (state.settings.theme === 'dark') : isColorDark(bgColor);
-
-    dialogContent.style.backgroundColor = bgColor;
-    dialogContent.style.color = isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
-    dialogContent.dataset.themeId = theme.id;
-
-    titleEl.style.color = isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
-    contentEl.style.color = isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
-
-    const tools = modal.querySelectorAll('.editor-tool:not(.active), #cat-dropdown-trigger');
-    tools.forEach(tool => {
-        tool.style.color = isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
-        tool.style.borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        tool.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-    });
-
-    // Reset active tools inline styles to let CSS take over reliably
-    modal.querySelectorAll('.editor-tool.active').forEach(tool => {
-        tool.style.backgroundColor = '';
-        tool.style.color = '';
-        tool.style.borderColor = '';
-    });
-
-    updatePinUI(note ? note.pinned : false);
-    updateLockUI(note ? !!note.passwordHash : false);
-    updateCategoryUI();
-
-    modal.classList.remove('hidden');
-    contentEl.focus();
-
-    // Auto-expand if resolution < 1280x960
-    if (window.innerWidth < 1280 || window.innerHeight < 960) {
-        dialogContent.classList.add('fullscreen');
-        document.getElementById('note-expand-btn').innerHTML = `<i data-lucide="minimize-2" class="w-4 h-4"></i>`;
-        safeCreateIcons();
-    } else {
-        dialogContent.classList.remove('fullscreen');
-        document.getElementById('note-expand-btn').innerHTML = `<i data-lucide="maximize-2" class="w-4 h-4"></i>`;
-        safeCreateIcons();
-    }
-
-    // Store initial state for comparison
-    initialNoteState = {
-        title: note?.title || '',
-        content: (note?.content === undefined || note?.content === 'undefined') ? '' : (note?.content || ''),
-        categoryId: note ? (note.categoryId || '') : defaultCat,
-        pinned: note ? note.pinned : false,
-        themeId: theme.id,
-        passwordHash: note ? note.passwordHash : null
-    };
+    updateToolsUI();
+    safeCreateIcons();
 }
 
-function closeEditorInternal() {
-    const modal = document.getElementById('editor-modal');
-    const content = modal.querySelector('.dialog-content');
+export async function saveActiveNote(close = true) {
+    const title = document.getElementById('edit-title').value.trim();
+    const content = document.getElementById('edit-content').innerHTML;
+    const categoryId = document.getElementById('edit-category').value;
 
-    // Add closing animation
-    content.classList.add('dialog-hide');
-
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        content.classList.remove('dialog-hide');
-        document.body.classList.remove('ov-hidden');
-        state.editingNoteId = null;
-        state.tempEditorPassword = null;
-        state.unlockedNotes.clear(); // Lock restricted items again on editor close
-        const lockOpt = document.getElementById('opt-toggle-lock');
-        if (lockOpt) lockOpt.dataset.tempHash = '';
-
-        // Clear sensitive fields in modal to avoid leaks after closing
-        document.getElementById('edit-title').value = '';
-        document.getElementById('edit-content').innerHTML = '';
-
-        if (window.refreshUI) window.refreshUI(false);
-    }, 200);
-}
-
-function closeEditor() {
-    // If we have history state, go back (triggers popstate -> closeEditorInternal)
-    if (history.state?.modal === 'editor') {
-        history.back();
-    } else {
-        // Fallback for direct calls or messed up history
-        closeEditorInternal();
-    }
-}
-
-export async function saveActiveNote(shouldClose = true) {
-    const titleEl = document.getElementById('edit-title');
-    const contentEl = document.getElementById('edit-content');
-    const catSelect = document.getElementById('edit-category');
-    const dialogContent = document.querySelector('#editor-modal .dialog-content');
-
-    if (!titleEl || !contentEl) return;
-
-    let title = titleEl.value.trim();
-    const content = contentEl.innerHTML;
-    const catId = catSelect ? catSelect.value : '';
-    const themeId = dialogContent ? dialogContent.dataset.themeId : 'default';
-
-    // 1. Check for Empty Note (No Title & No Content)
-    const isEmpty = !title && (!content || content.trim() === '' || content === '<br>');
-
-    if (isEmpty) {
-        // If it was an existing note, delete it. If new, just don't save.
-        if (state.editingNoteId) {
-            const existingIndex = state.notes.findIndex(n => n.id === state.editingNoteId);
-            if (existingIndex >= 0) {
-                // Change to soft delete
-                state.notes[existingIndex].deleted = true;
-                state.notes[existingIndex].updatedAt = Date.now();
-                await saveLocal();
-                if (window.refreshUI) window.refreshUI();
-                if (window.triggerAutoSync) window.triggerAutoSync(); // Sync deletion
-            }
-        }
-        if (shouldClose) closeEditor();
+    if (!title && !content) {
+        if (close) closeEditor();
         return;
-    }
-
-    // 2. Default Title if missing but content exists
-    if (!title) {
-        const now = new Date();
-        title = now.getFullYear() + '-' +
-            String(now.getMonth() + 1).padStart(2, '0') + '-' +
-            String(now.getDate()).padStart(2, '0') + ', ' +
-            String(now.getHours()).padStart(2, '0') + ':' +
-            String(now.getMinutes()).padStart(2, '0');
     }
 
     const noteIndex = state.notes.findIndex(n => n.id === state.editingNoteId);
-    const pinEl = document.getElementById('opt-toggle-pin');
-    const lockEl = document.getElementById('opt-toggle-lock');
+    let note;
 
-    const isPinned = pinEl ? pinEl.dataset.active === 'true' : false;
-    const hasLock = lockEl ? lockEl.dataset.active === 'true' : false;
-    const tempHash = lockEl ? lockEl.dataset.tempHash || '' : '';
-    const passwordHash = hasLock ? (tempHash || (noteIndex >= 0 ? state.notes[noteIndex].passwordHash : null)) : null;
-
-    // 3. Check against Initial State (No Changes)
-    if (initialNoteState && state.editingNoteId) {
-        const isUnchanged =
-            title === initialNoteState.title &&
-            content === initialNoteState.content &&
-            catId === initialNoteState.categoryId &&
-            isPinned === initialNoteState.pinned &&
-            themeId === initialNoteState.themeId &&
-            passwordHash === initialNoteState.passwordHash;
-
-        if (isUnchanged && shouldClose) {
-            closeEditor();
-            return; // Exit without saving/syncing
-        }
+    if (noteIndex >= 0) {
+        note = state.notes[noteIndex];
+        note.title = title || 'Sin título';
+        note.content = content;
+        note.categoryId = categoryId;
+        note.updatedAt = Date.now();
+        note.themeId = document.querySelector('.dialog-content').dataset.themeId || 'default';
+    } else {
+        note = {
+            id: state.editingNoteId,
+            title: title || 'Sin título',
+            content: content,
+            categoryId: categoryId,
+            themeId: document.querySelector('.dialog-content').dataset.themeId || 'default',
+            pinned: false,
+            passwordHash: null,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            deleted: false
+        };
+        state.notes.unshift(note);
     }
 
-    // Check if note was already deleted (prevent resurrection)
-    if (noteIndex >= 0 && state.notes[noteIndex].deleted) {
-        return;
-    }
-
-    const noteData = {
-        id: state.editingNoteId || Date.now().toString(),
-        title: title,
-        content: content,
-        categoryId: catId || null,
-        pinned: isPinned,
-        themeId: themeId || 'default',
-        passwordHash: passwordHash,
-        deleted: (noteIndex >= 0 ? state.notes[noteIndex].deleted : false),
-        updatedAt: Date.now()
-    };
-
-    if (hasLock && !noteData.passwordHash) {
-        // Fallback safety (should be handled by toggleLock)
-        const pass = await openPrompt('Seguridad', 'Establece una contraseña para esta nota:');
-        if (pass) noteData.passwordHash = await Security.hash(pass);
-        else return;
-    }
-
-    if (noteIndex >= 0) state.notes[noteIndex] = noteData;
-    else state.notes.unshift(noteData);
-
-    if (!state.editingNoteId) state.editingNoteId = noteData.id;
-
-    // 4. Update UI IMMEDIATELY
-    if (shouldClose) state.unlockedNotes.clear();
-    if (window.refreshUI) window.refreshUI(false);
-    if (shouldClose) closeEditor();
-
-    // 5. Persist and Sync in background
-    setTimeout(async () => {
-        await saveLocal();
-        if (window.triggerAutoSync) window.triggerAutoSync();
-    }, 10);
+    await saveLocal();
+    if (close) closeEditor();
 }
 
-function saveSelection() {
-    const sel = window.getSelection();
-    if (sel.rangeCount > 0) lastSelectedRange = sel.getRangeAt(0);
+function closeEditor() {
+    const modal = document.getElementById('editor-modal');
+    const dialog = modal.querySelector('.dialog-content');
+
+    // Smooth close animation
+    dialog.classList.add('dialog-hide');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        dialog.classList.remove('dialog-hide');
+        document.body.classList.remove('ov-hidden');
+        state.editingNoteId = null;
+
+        if (window.history.state && window.history.state.editor) {
+            window.history.back();
+        }
+    }, 50);
+}
+
+function updateToolsUI() {
+    document.querySelectorAll('[data-cmd]').forEach(btn => {
+        const cmd = btn.dataset.cmd;
+        const active = document.queryCommandState(cmd);
+        btn.classList.toggle('active', active);
+    });
 }
 
 function restoreSelection() {
@@ -611,152 +448,112 @@ function restoreSelection() {
     }
 }
 
-window.updateEditorCategoryUI = updateCategoryUI;
+// Listeners relocated to initEditor
 
-function updateCategoryUI() {
-    const catId = document.getElementById('edit-category').value;
-    const cat = state.categories.find(c => c.id === catId);
-    if (document.getElementById('selected-cat-label')) {
-        document.getElementById('selected-cat-label').innerText = cat ? cat.name : t('categories.no_category');
+function toggleChecklist() {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+
+    const range = sel.getRangeAt(0);
+    const container = range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentElement : range.commonAncestorContainer;
+
+    const li = container.closest('li');
+    if (li && li.parentElement.classList.contains('checklist')) {
+        // Toggle off
+        const ul = li.parentElement;
+        ul.classList.remove('checklist');
+        ul.querySelectorAll('li').forEach(item => item.removeAttribute('data-checked'));
+    } else {
+        // Toggle on
+        document.execCommand('insertUnorderedList');
+        const ul = window.getSelection().anchorNode.parentElement.closest('ul');
+        if (ul) {
+            ul.classList.add('checklist');
+            ul.querySelectorAll('li').forEach(item => {
+                if (!item.hasAttribute('data-checked')) item.setAttribute('data-checked', 'false');
+                item.onclick = (e) => {
+                    if (e.target === item) {
+                        const isChecked = item.getAttribute('data-checked') === 'true';
+                        item.setAttribute('data-checked', !isChecked);
+                        saveActiveNote(false);
+                    }
+                };
+            });
+        }
     }
-    if (document.getElementById('selected-cat-icon')) {
-        const iconEl = document.getElementById('selected-cat-icon');
-        iconEl.setAttribute('data-lucide', cat ? (cat.icon || 'tag') : 'tag');
-        safeCreateIcons();
-    }
-}
-
-function updatePinUI(active) {
-    const btn = document.getElementById('opt-toggle-pin');
-    if (!btn) return;
-    btn.dataset.active = active.toString();
-
-    const label = document.getElementById('opt-pin-label');
-    const icon = document.getElementById('opt-pin-icon');
-
-    if (label) label.innerText = active ? 'Desfijar nota' : 'Fijar nota';
-    if (icon) icon.setAttribute('class', active ? 'w-4 h-4 text-violet-600' : 'w-4 h-4 text-muted-foreground');
-
-    btn.classList.toggle('menu-active-violet', active);
-}
-
-function updateLockUI(active) {
-    const btn = document.getElementById('opt-toggle-lock');
-    if (!btn) return;
-    btn.dataset.active = active.toString();
-
-    const label = document.getElementById('opt-lock-label');
-    const icon = document.getElementById('opt-lock-icon');
-
-    if (label) label.innerText = active ? 'Quitar restricción' : 'Restringir';
-    if (icon) {
-        icon.setAttribute('data-lucide', active ? 'lock' : 'lock-open');
-        icon.setAttribute('class', active ? 'w-4 h-4 text-violet-600' : 'w-4 h-4 text-muted-foreground');
-    }
-
-    btn.classList.toggle('menu-active-violet', active);
-    safeCreateIcons();
+    updateToolsUI();
 }
 
 function initPopovers() {
-    document.getElementById('open-colors').onclick = (e) => togglePopover(e, 'color-popover');
-    const openColorsMobile = document.getElementById('open-colors-mobile');
-    if (openColorsMobile) openColorsMobile.onclick = (e) => togglePopover(e, 'color-popover');
+    const binds = [
+        { id: 'open-colors', pop: 'color-popover' },
+        { id: 'open-text-colors', pop: 'text-color-popover' },
+        { id: 'open-emojis', pop: 'emoji-popover' },
+        { id: 'cat-dropdown-trigger', pop: 'cat-dropdown-menu' }
+    ];
 
-    document.getElementById('open-text-colors').onmousedown = (e) => { e.preventDefault(); saveSelection(); };
-    document.getElementById('open-text-colors').onclick = (e) => togglePopover(e, 'text-color-popover');
+    binds.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (el) el.onclick = (e) => EditorUI.togglePopover(e, b.pop);
+    });
 
-    const emojiTrigger = (e) => { e.preventDefault(); saveSelection(); togglePopover(e, 'emoji-popover'); };
-    document.getElementById('open-emojis').onmousedown = (e) => e.preventDefault();
-    document.getElementById('open-emojis').onclick = emojiTrigger;
-    const mobileEmojiBtn = document.getElementById('mobile-open-emojis');
-    if (mobileEmojiBtn) {
-        mobileEmojiBtn.onmousedown = (e) => e.preventDefault();
-        mobileEmojiBtn.onclick = emojiTrigger;
+    // Populate BG Colors
+    const bgGrid = document.getElementById('bg-color-grid');
+    if (bgGrid) {
+        bgGrid.innerHTML = '';
+        NOTE_THEMES.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'w-10 h-10 rounded-full cursor-pointer border-2 border-transparent hover:border-primary transition-all shadow-sm';
+            div.style.backgroundColor = state.settings.theme === 'dark' ? t.dark : t.light;
+            div.onclick = () => {
+                const content = document.querySelector('.dialog-content');
+                const isDark = isColorDark(state.settings.theme === 'dark' ? t.dark : t.light);
+                EditorUI.applyTheme(t, isDark, content, document.getElementById('edit-title'), document.getElementById('edit-content'), document.getElementById('editor-modal'));
+                EditorUI.hidePopovers();
+            };
+            bgGrid.appendChild(div);
+        });
     }
 
-    const bgGrid = document.getElementById('bg-color-grid');
-    NOTE_THEMES.forEach(theme => {
-        const div = document.createElement('div');
-        div.className = 'w-8 h-8 rounded-full cursor-pointer border hover:scale-110 transition-transform';
-        div.style.backgroundColor = (state.settings.theme === 'dark') ? theme.dark : theme.light;
-        div.onclick = () => {
-            const content = document.querySelector('#editor-modal .dialog-content');
-            content.style.backgroundColor = (state.settings.theme === 'dark') ? theme.dark : theme.light;
-            content.dataset.themeId = theme.id;
-            hidePopovers();
-        };
-        bgGrid.appendChild(div);
-    });
-
+    // Populate Text Colors
     const textGrid = document.getElementById('text-color-grid');
-    PALETTE.forEach(color => {
-        const div = document.createElement('div');
-        div.className = 'w-8 h-8 rounded-full cursor-pointer border hover:scale-110 transition-transform';
-        div.style.backgroundColor = color;
-        div.onmousedown = (e) => e.preventDefault();
-        div.onclick = () => {
-            restoreSelection();
-            document.execCommand('foreColor', false, color);
-            hidePopovers();
-        };
-        textGrid.appendChild(div);
-    });
+    if (textGrid) {
+        textGrid.innerHTML = '';
+        PALETTE.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'w-8 h-8 rounded-full cursor-pointer border border-border/50 hover:scale-110 transition-all';
+            div.style.backgroundColor = c;
+            div.onmousedown = (e) => e.preventDefault();
+            div.onclick = () => {
+                restoreSelection();
+                document.execCommand('foreColor', false, c);
+                EditorUI.hidePopovers();
+            };
+            textGrid.appendChild(div);
+        });
+    }
 
+    // Emojis
     const emojiGrid = document.getElementById('emoji-grid');
-    EMOJIS.forEach(emoji => {
-        const span = document.createElement('span');
-        span.className = 'cursor-pointer hover:bg-accent p-2 rounded text-xl text-center';
-        span.innerText = emoji;
-        span.onclick = () => {
-            restoreSelection();
-            document.execCommand('insertHTML', false, emoji);
-            hidePopovers();
-        };
-        emojiGrid.appendChild(span);
-    });
+    if (emojiGrid) {
+        emojiGrid.innerHTML = '';
+        EMOJIS.forEach(e => {
+            const span = document.createElement('span');
+            span.className = 'cursor-pointer hover:bg-primary/10 p-2 rounded-xl text-xl text-center transition-all hover:scale-125 inline-flex items-center justify-center';
+            span.innerText = e;
+            span.onclick = () => {
+                restoreSelection();
+                document.execCommand('insertHTML', false, e);
+                EditorUI.hidePopovers();
+            };
+            emojiGrid.appendChild(span);
+        });
+    }
 
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.editor-tool') && !e.target.closest('.popover-content') && !e.target.closest('#cat-dropdown-trigger')) {
-            hidePopovers();
+        if (!e.target.closest('.editor-tool') && !e.target.closest('.popover-content')) {
+            EditorUI.hidePopovers();
         }
-    });
-
-    const catTrigger = document.getElementById('cat-dropdown-trigger');
-    catTrigger.onclick = (e) => {
-        e.stopPropagation();
-        document.getElementById('cat-dropdown-menu').classList.toggle('hidden');
-    };
-}
-
-function togglePopover(e, id) {
-    e.stopPropagation();
-    const pop = document.getElementById(id);
-    const rect = e.currentTarget.getBoundingClientRect();
-    hidePopovers(id);
-    pop.classList.remove('hidden');
-
-    const popHeight = 250;
-    const spaceBelow = window.innerHeight - rect.bottom;
-
-    if (spaceBelow < popHeight) {
-        pop.style.top = 'auto';
-        pop.style.bottom = `${window.innerHeight - rect.top + 8}px`;
-    } else {
-        pop.style.top = `${rect.bottom + 8}px`;
-        pop.style.bottom = 'auto';
-    }
-
-    pop.style.left = `${Math.min(rect.left, window.innerWidth - pop.offsetWidth - 20)}px`;
-    if (rect.left + 300 > window.innerWidth) {
-        pop.style.left = 'auto';
-        pop.style.right = '20px';
-    }
-}
-
-function hidePopovers(exceptId = null) {
-    ['color-popover', 'text-color-popover', 'emoji-popover', 'cat-dropdown-menu'].forEach(id => {
-        const el = document.getElementById(id);
-        if (id !== exceptId && el) el.classList.add('hidden');
     });
 }

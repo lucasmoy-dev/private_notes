@@ -569,12 +569,17 @@ async function handleSync() {
                 if (cloudData && Array.isArray(cloudData.notes)) {
                     // ... (rest of the logic)
                     // Simple Merge: Last write wins (respecting deleted flag)
+                    // Simple Merge: Last write wins (respecting deleted flag)
                     const cloudNotesMap = new Map(cloudData.notes.map(n => [n.id, n]));
+
+                    // CRITICAL: Re-read state.notes right before merging to avoid losing 
+                    // changes made while downloading/decrypting from cloud
                     const localNotesMap = new Map(state.notes.map(n => [n.id, n]));
 
                     // Combine all IDs
                     const allIds = new Set([...cloudNotesMap.keys(), ...localNotesMap.keys()]);
                     const mergedNotes = Array.from(allIds).map(id => {
+                        // Refresh local reference here too if possible, but localNotesMap is enough
                         const local = localNotesMap.get(id);
                         const cloud = cloudNotesMap.get(id);
 
