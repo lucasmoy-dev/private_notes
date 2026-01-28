@@ -346,8 +346,13 @@ export async function openEditor(note = null) {
     categoryEl.value = note ? note.categoryId : '';
 
     EditorUI.updateCategoryUI();
-    EditorUI.renderCategoryOptions((catId) => {
-        if (note) note.categoryId = catId;
+    EditorUI.renderCategoryOptions(async (catId) => {
+        if (note) {
+            note.categoryId = catId;
+            note.updatedAt = Date.now();
+            await saveLocal();
+            window.triggerAutoSync?.();
+        }
     });
 
     if (note) {
@@ -362,6 +367,19 @@ export async function openEditor(note = null) {
     const currentTheme = note ? (NOTE_THEMES.find(t => t.id === note.themeId) || NOTE_THEMES[0]) : NOTE_THEMES[0];
     const isDark = isColorDark(state.settings.theme === 'dark' ? currentTheme.dark : currentTheme.light);
     EditorUI.applyTheme(currentTheme, isDark, modal.querySelector('.dialog-content'), titleEl, contentEl, modal);
+
+    const dialog = modal.querySelector('.dialog-content');
+
+    // Auto-expand on small screens (<= 1200px)
+    if (window.innerWidth <= 1200) {
+        dialog.classList.add('fullscreen');
+        const icon = document.getElementById('expand-editor')?.querySelector('i');
+        if (icon) icon.setAttribute('data-lucide', 'minimize-2');
+    } else {
+        dialog.classList.remove('fullscreen');
+        const icon = document.getElementById('expand-editor')?.querySelector('i');
+        if (icon) icon.setAttribute('data-lucide', 'maximize-2');
+    }
 
     modal.classList.remove('hidden');
     document.body.classList.add('ov-hidden');

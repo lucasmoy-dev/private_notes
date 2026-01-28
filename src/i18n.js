@@ -119,7 +119,8 @@ const translations = {
             security_desc_prompt: "Enter password to continue",
             restricted_access: "Restricted Access",
             enter_cat_pass: "Enter password for category",
-            write_here: "Write here..."
+            write_here: "Write here...",
+            locked: "Protected"
         },
         biometrics: {
             title: "Fingerprint / Face ID",
@@ -268,7 +269,8 @@ const translations = {
             security_desc_prompt: "Ingresa la contraseña para continuar",
             restricted_access: "Acceso Restringido",
             enter_cat_pass: "Ingresa la contraseña de la categoría",
-            write_here: "Escribe aquí..."
+            write_here: "Escribe aquí...",
+            locked: "Protegida"
         },
         biometrics: {
             title: "Huella / Face ID",

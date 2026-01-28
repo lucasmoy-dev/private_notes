@@ -49,7 +49,12 @@ export function renderNotes(onEdit, animate = true) {
                     </div>
                 </div>
                 <div class="text-[13px] opacity-75 line-clamp-[8] leading-[1.5] mb-5 flex-1">
-                    ${(note.passwordHash && !isUnlocked) ? `<div class="flex items-center gap-3 py-10 italic opacity-40 justify-center"><i data-lucide="shield-lock" class="w-5 h-5"></i></div>` : note.content}
+                    ${(note.passwordHash && !isUnlocked) ? `
+                        <div class="flex flex-col items-center gap-3 py-10 opacity-30 justify-center">
+                            <i data-lucide="eye-off" class="w-8 h-8"></i>
+                            <span class="text-[10px] font-bold uppercase tracking-widest">${t('common.locked')}</span>
+                        </div>
+                    ` : note.content}
                 </div>
                 <div class="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-foreground/5">
                     <div class="flex-1 min-w-0">
