@@ -7,6 +7,7 @@ import { DriveSync } from './src/drive.js';
 
 const CLIENT_ID = '974464877836-721dprai6taijtuufmrkh438q68e97sp.apps.googleusercontent.com';
 let deferredPrompt = null;
+let syncDebounce = null;
 
 // Components
 import { getAuthShieldTemplate, checkAuthStatus, handleMasterAuth } from './src/components/AuthShield.js';

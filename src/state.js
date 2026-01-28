@@ -24,17 +24,12 @@ export async function saveLocal() {
         // Clean up deleted notes older than 30 days
         const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
 
-        // Anti-Duplication: Remove notes with identical title and content (except for deleted ones)
-        const seen = new Set();
+        // Anti-Duplication: Primary ID based filtering
+        const seenIds = new Set();
         state.notes = state.notes.filter(note => {
+            if (!note.id || seenIds.has(note.id)) return false;
             if (note.deleted) return note.updatedAt > thirtyDaysAgo;
-
-            // Generate a simple key to detect content clones
-            // We include category to avoid merging same-titled notes in different categories
-            const contentKey = `${note.title?.trim()}|${note.content?.trim()}|${note.categoryId}`;
-            if (seen.has(contentKey)) return false; // Skip duplicate
-
-            seen.add(contentKey);
+            seenIds.add(note.id);
             return true;
         });
 
