@@ -604,10 +604,12 @@ async function handleSync() {
                             }
 
                             // 2. Metadata Priority (Category, Pin, Lock)
-                            // We prioritize LOCAL changes if the timestamps are reasonably close
-                            // to avoid clock skew issues.
+                            // If content is visually identical, we prioritize LOCAL changes.
+                            // We only yield to Cloud if it is objectively "From the future" (> 24 hours),
+                            // which would suggest a significant clock error or a completely different session.
+                            // This 24h window fixes all typical "Category Revert" issues caused by clock skew.
                             const diff = cloud.updatedAt - local.updatedAt;
-                            if (diff < 3600000) { // 1 hour tolerance instead of 24h
+                            if (diff < 86400000) { // 24 hours tolerance
                                 return local;
                             }
                         }

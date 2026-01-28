@@ -347,9 +347,10 @@ export async function openEditor(note = null) {
 
     EditorUI.updateCategoryUI();
     EditorUI.renderCategoryOptions(async (catId) => {
-        if (note) {
-            note.categoryId = catId;
-            note.updatedAt = Date.now();
+        const liveNote = state.notes.find(n => n.id === state.editingNoteId);
+        if (liveNote) {
+            liveNote.categoryId = catId;
+            liveNote.updatedAt = Date.now();
             await saveLocal();
             window.triggerAutoSync?.();
         }

@@ -117,6 +117,43 @@ export function renderCategoryManager(onRefreshSidebar, categories = null) {
         document.getElementById(`del-${cat.id}`).onclick = () => deleteCat(cat.id, onRefreshSidebar);
     });
 
+    // New Category Logic
+    const addBtn = document.getElementById('add-cat-btn');
+    const nameInputTop = document.getElementById('new-cat-name');
+
+    const handleAdd = async () => {
+        const name = nameInputTop.value.trim();
+        if (!name) return;
+
+        const newCat = {
+            id: 'cat_' + Date.now(),
+            name: name,
+            icon: selectedNewIcon || 'tag',
+            passwordHash: null,
+            updatedAt: Date.now()
+        };
+
+        state.categories.push(newCat);
+        nameInputTop.value = '';
+        selectedNewIcon = 'tag';
+
+        const preview = document.getElementById('new-cat-icon-preview');
+        if (preview) preview.setAttribute('data-lucide', 'tag');
+
+        await saveLocal();
+        renderCategoryManager(onRefreshSidebar);
+        onRefreshSidebar();
+        if (window.triggerAutoSync) window.triggerAutoSync();
+        showToast('✅ Categoría creada');
+    };
+
+    if (addBtn) addBtn.onclick = handleAdd;
+    if (nameInputTop) {
+        nameInputTop.onkeydown = (e) => {
+            if (e.key === 'Enter') handleAdd();
+        };
+    }
+
     const newCatIconBtn = document.getElementById('new-cat-icon-trigger');
     if (newCatIconBtn) {
         newCatIconBtn.onclick = (e) => {
@@ -251,7 +288,7 @@ async function deleteCat(id, onRefresh) {
             isValid = true;
         } else {
             const hash = await Security.hash(result);
-            if (hash === (cat.passwordHash === 'MASTER' ? localStorage.getItem('cn_master_hash_v3') : cat.passwordHash)) {
+            if (hash === (cat.passwordHash === 'MASTER' ? localStorage.getItem(KEYS.MASTER_HASH) : cat.passwordHash)) {
                 isValid = true;
             }
         }
@@ -282,7 +319,7 @@ async function toggleLock(id, onRefresh) {
             isValid = true;
         } else {
             const hash = await Security.hash(result);
-            if (hash === (cat.passwordHash === 'MASTER' ? localStorage.getItem('cn_master_hash_v3') : cat.passwordHash)) {
+            if (hash === (cat.passwordHash === 'MASTER' ? localStorage.getItem(KEYS.MASTER_HASH) : cat.passwordHash)) {
                 isValid = true;
             }
         }
