@@ -15,7 +15,7 @@ export const state = {
     unlockedNotes: new Set(),
     unlockedCategories: new Set(),
     gapiLoaded: false,
-    tokenClient: null
+    codeClient: null
 };
 
 export async function saveLocal() {

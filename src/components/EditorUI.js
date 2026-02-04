@@ -91,7 +91,7 @@ export class EditorUI {
         const pop = document.getElementById(id);
         if (!pop) return;
 
-        const isVisible = pop.getAttribute('data-state') === 'open';
+        const isVisible = !pop.classList.contains('hidden') && pop.getAttribute('data-state') === 'open';
 
         // Close all first
         this.hidePopovers();
@@ -104,6 +104,7 @@ export class EditorUI {
         const rect = e.currentTarget.getBoundingClientRect();
 
         // Prepare for measurement
+        pop.classList.remove('hidden');
         pop.style.display = 'block';
         pop.style.visibility = 'hidden';
 
@@ -117,7 +118,6 @@ export class EditorUI {
         const offset = 8;
 
         // Default to OPEN UPWARDS for bottom toolbar items, unless there's no space on top
-        // This is better for bottom-aligned toolbars
         const spaceAbove = rect.top;
 
         if (spaceAbove > popHeight + 20) {
@@ -133,10 +133,9 @@ export class EditorUI {
             pop.classList.add('slide-in-from-top-2');
         }
 
-        // Horizontal alignment: Center to button if possible, otherwise align to edges
+        // Horizontal alignment
         let left = rect.left + (rect.width / 2) - (popWidth / 2);
 
-        // Keep within viewport bounds with 15px padding
         if (left < 15) left = 15;
         if (left + popWidth > window.innerWidth - 15) {
             left = window.innerWidth - popWidth - 15;
@@ -151,6 +150,7 @@ export class EditorUI {
             const el = document.getElementById(id);
             if (el) {
                 el.setAttribute('data-state', 'closed');
+                el.classList.add('hidden');
                 el.style.display = 'none';
             }
         });

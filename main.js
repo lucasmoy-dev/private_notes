@@ -4,6 +4,7 @@ import { APP_VERSION, KEYS } from './src/constants.js';
 import { showToast, safeCreateIcons, openPrompt } from './src/ui-utils.js';
 import { SecurityService as Security } from './src/security.js';
 import { DriveSync } from './src/drive.js';
+import { AuthService } from './src/auth.js';
 
 const CLIENT_ID = '974464877836-721dprai6taijtuufmrkh438q68e97sp.apps.googleusercontent.com';
 let deferredPrompt = null;
@@ -440,38 +441,33 @@ function initGapi() {
                 });
                 state.gapiLoaded = true;
 
-                state.tokenClient = google.accounts.oauth2.initTokenClient({
+                state.codeClient = google.accounts.oauth2.initCodeClient({
                     client_id: CLIENT_ID,
                     scope: "https://www.googleapis.com/auth/drive.file",
+                    ux_mode: 'popup',
+                    access_type: 'offline',
+                    prompt: 'consent',
                     callback: async (resp) => {
-                        if (resp.error) return showToast('❌ Error de vinculación');
+                        if (resp.error) return showToast('❌ Error de vinculación: ' + resp.error);
 
-                        // Verify existing data on connect
-                        const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
-                        if (!vaultKey) return showToast('❌ Error: Sesión no válida');
+                        if (resp.code) {
+                            try {
+                                const verifier = sessionStorage.getItem('pkce_verifier');
+                                const tokens = await AuthService.exchangeCodeForTokens(resp.code, verifier, CLIENT_ID);
 
-                        try {
-                            const drive = new DriveSync('notev3_', state.settings.drivePath, state.settings.notesPerChunk);
-                            const folderId = await drive.getOrCreateFolder(state.settings.drivePath);
+                                if (tokens.refresh_token) {
+                                    await AuthService.saveRefreshToken(tokens.refresh_token);
+                                }
 
-                            // Set token for this request
-                            gapi.client.setToken(resp);
-
-                            const cloudData = await drive.loadChunks(folderId, vaultKey);
-
-                            if (cloudData) {
-                                // If loadChunks succeeded with vaultKey, it means the key is correct for existing data
-                                showToast('✅ Drive verificado: Contraseña correcta');
+                                localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(tokens));
+                                gapi.client.setToken(tokens);
+                                updateDriveStatus(true);
+                                showToast('✅ Google Drive vinculado correctamente');
+                                handleSync();
+                            } catch (err) {
+                                console.error('Token exchange error:', err);
+                                showToast('❌ Error al canjear código. Revisa la consola.');
                             }
-
-                            localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(resp));
-                            gapi.client.setToken(resp);
-                            updateDriveStatus(true);
-                            showToast('✅ Vinculado con Google Drive');
-                            handleSync(); // Sync immediately on first connect
-                        } catch (err) {
-                            console.error('Drive connection error:', err);
-                            showToast('❌ Error al verificar Drive');
                         }
                     },
                 });
@@ -481,10 +477,7 @@ function initGapi() {
                 if (hasToken) {
                     const token = JSON.parse(hasToken);
                     gapi.client.setToken(token);
-                    // Update multiple times to ensure the UI is ready
                     updateDriveStatus(true);
-                    setTimeout(() => updateDriveStatus(true), 500);
-                    setTimeout(() => updateDriveStatus(true), 2000);
                 } else {
                     updateDriveStatus(false);
                 }
@@ -493,14 +486,20 @@ function initGapi() {
     }, 500);
 }
 
-function handleGoogleAuth() {
-    if (!state.tokenClient) {
+async function handleGoogleAuth() {
+    if (!state.codeClient) {
         if (typeof gapi === 'undefined' || typeof google === 'undefined') {
             return showToast('⏳ Cargando librerías de Google...');
         }
         return showToast('⏳ Inicializando API de Google...');
     }
-    state.tokenClient.requestAccessToken({ prompt: '' });
+
+    const { verifier, challenge } = await AuthService.generatePKCE();
+    sessionStorage.setItem('pkce_verifier', verifier);
+    state.codeClient.requestCode({
+        code_challenge: challenge,
+        code_challenge_method: 'S256'
+    });
 }
 
 function updateDriveStatus(connected) {
@@ -540,24 +539,34 @@ async function handleSync() {
         // Silent token check/refresh if expired
         const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
         if (hasToken) {
-            const token = JSON.parse(hasToken);
+            let token = JSON.parse(hasToken);
             const now = Date.now();
-            // If token expires in less than 5 mins, or we don't know, request silently
+
+            // If token expires in less than 5 mins, or we don't know, refresh it
             if (!token.expires_at || now > (token.expires_at - 300000)) {
-                console.log("[Sync] Token expired or near expiry, requesting silently...");
-                await new Promise((resolve) => {
-                    const originalCallback = state.tokenClient.callback;
-                    state.tokenClient.callback = (resp) => {
-                        state.tokenClient.callback = originalCallback;
-                        if (!resp.error) {
-                            resp.expires_at = Date.now() + (resp.expires_in * 1000);
-                            localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(resp));
-                            gapi.client.setToken(resp);
-                        }
-                        resolve();
-                    };
-                    state.tokenClient.requestAccessToken({ prompt: '' });
-                });
+                console.log("[Sync] Access token expired or near expiry, attempting refresh...");
+                const refreshToken = await AuthService.getRefreshToken();
+
+                if (refreshToken) {
+                    try {
+                        const newTokens = await AuthService.refreshAccessToken(refreshToken, CLIENT_ID);
+                        // Merge new tokens with old ones (to keep the refresh token if not rotated)
+                        token = { ...token, ...newTokens };
+                        localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(token));
+                        gapi.client.setToken(token);
+                        console.log("[Sync] Token refreshed successfully.");
+                    } catch (err) {
+                        console.error("[Sync] Token refresh failed:", err);
+                        // If refresh fails, we might need to re-auth
+                        showToast('⚠️ Sesión de Drive expirada. Reconectando...');
+                        handleGoogleAuth();
+                        return;
+                    }
+                } else {
+                    console.warn("[Sync] No refresh token found, requesting new access...");
+                    handleGoogleAuth();
+                    return;
+                }
             }
         }
 
@@ -743,9 +752,10 @@ async function addCategory() {
 }
 
 
-function handleLogout() {
+async function handleLogout() {
     localStorage.removeItem(KEYS.VAULT_KEY);
     sessionStorage.removeItem(KEYS.VAULT_KEY);
+    await AuthService.clearTokens();
     // Legacy cleanup
     localStorage.removeItem('cn_pass_plain_v3');
     sessionStorage.removeItem('cn_pass_plain_v3');

@@ -159,9 +159,6 @@ export function renderNotes(onEdit, animate = true) {
     }
 
     safeCreateIcons();
-
-    // Initialize/Refresh Drag & Drop
-    initSortable(onEdit);
 }
 
 function initSortable(onEdit) {
@@ -175,7 +172,9 @@ function initSortable(onEdit) {
         draggable: '.note-card',
         animation: 250,
         ghostClass: 'opacity-50',
-        delay: 0, // No delay on desktop
+        delay: 500, // 500ms delay on touch to prevent accidental drag
+        delayOnTouchOnly: true, // Only apply delay on touch devices
+        touchStartThreshold: 5, // Allow 5px of movement before canceling the drag
         onEnd: async () => {
             const newOrder = [];
             grid.querySelectorAll('.note-card').forEach(el => {

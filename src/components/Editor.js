@@ -32,12 +32,15 @@ export function getEditorTemplate() {
                              <button id="opt-download" class="editor-menu-item group" style="--item-index: 1">
                                  <i data-lucide="download"></i> Descargar nota
                              </button>
+                             <button id="opt-move-top" class="editor-menu-item group" style="--item-index: 2">
+                                 <i data-lucide="arrow-up-to-line"></i> Traer al frente
+                             </button>
                              <div class="h-px bg-border my-2 mx-1 opacity-50"></div>
                              <div class="px-2 py-1.5 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] mb-1">Estado</div>
-                             <button id="opt-toggle-pin" class="editor-menu-item group" style="--item-index: 2">
+                             <button id="opt-toggle-pin" class="editor-menu-item group" style="--item-index: 3">
                                  <i data-lucide="pin" id="opt-pin-icon"></i> <span id="opt-pin-label">Fijar nota</span>
                              </button>
-                             <button id="opt-toggle-lock" class="editor-menu-item group" style="--item-index: 3">
+                             <button id="opt-toggle-lock" class="editor-menu-item group" style="--item-index: 4">
                                  <i data-lucide="lock" id="opt-lock-icon"></i> <span id="opt-lock-label">Restringir</span>
                              </button>
                         </div>
@@ -113,7 +116,7 @@ export function getEditorTemplate() {
         </div>
 
         <div id="cat-dropdown-menu"
-                class="fixed w-64 bg-popover border border-border/50 shadow-2xl hidden z-[350] py-2 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                class="fixed w-64 bg-popover border border-border/50 shadow-2xl hidden z-[350] py-2 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-200 popover-content">
             <div class="px-4 py-2 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.25em] mb-1">Categorías</div>
             <div id="cat-options-container" class="max-h-72 overflow-y-auto custom-scrollbar px-2"></div>
         </div>
@@ -253,6 +256,28 @@ export function initEditor(onSave) {
         optionsMenu.classList.add('hidden');
     };
 
+    // Move to Top
+    document.getElementById('opt-move-top').onclick = async () => {
+        const index = state.notes.findIndex(n => n.id === state.editingNoteId);
+        if (index > 0) {
+            const note = state.notes.splice(index, 1)[0];
+            state.notes.unshift(note);
+            note.updatedAt = Date.now();
+            await saveLocal();
+            onSave();
+            window.triggerAutoSync?.();
+            showToast('✓ Nota movida al principio');
+            optionsMenu.classList.add('hidden');
+        } else if (index === 0) {
+            showToast('La nota ya está al principio');
+            optionsMenu.classList.add('hidden');
+        } else {
+            // New note, it will be unshifted on save anyway
+            showToast('✓ Se guardará al principio');
+            optionsMenu.classList.add('hidden');
+        }
+    };
+
     // Pin Toggle
     document.getElementById('opt-toggle-pin').onclick = async () => {
         const note = state.notes.find(n => n.id === state.editingNoteId);
@@ -353,7 +378,13 @@ export async function openEditor(note = null) {
 
     titleEl.value = note ? note.title : '';
     contentEl.innerHTML = note ? note.content : '';
-    categoryEl.value = note ? note.categoryId : '';
+
+    // Default to current category for new notes
+    if (note) {
+        categoryEl.value = note.categoryId || '';
+    } else {
+        categoryEl.value = (state.currentView && state.currentView !== 'all') ? state.currentView : '';
+    }
 
     EditorUI.updateCategoryUI();
     EditorUI.renderCategoryOptions(async (catId) => {
