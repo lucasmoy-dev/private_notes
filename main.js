@@ -499,10 +499,10 @@ async function handleGoogleAuth() {
 
     const { verifier, challenge } = await AuthService.generatePKCE();
     sessionStorage.setItem('pkce_verifier', verifier);
-    state.codeClient.requestCode({
-        code_challenge: challenge,
-        code_challenge_method: 'S256'
-    });
+
+    // Skip PKCE challenge parameters as they cause conflicts with client_secret 
+    // for 'Web application' client types.
+    state.codeClient.requestCode();
 }
 
 function updateDriveStatus(connected) {

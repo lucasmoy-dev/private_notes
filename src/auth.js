@@ -22,10 +22,14 @@ export class AuthService {
         const params = new URLSearchParams({
             client_id: clientId,
             code: code,
-            code_verifier: verifier,
             grant_type: 'authorization_code',
-            redirect_uri: window.location.origin + window.location.pathname
+            redirect_uri: 'postmessage'
         });
+
+        // If we have a secret (confidential client), Google usually doesn't want PKCE in the same request
+        if (verifier && !clientSecret) {
+            params.append('code_verifier', verifier);
+        }
 
         if (clientSecret) {
             params.append('client_secret', clientSecret);
