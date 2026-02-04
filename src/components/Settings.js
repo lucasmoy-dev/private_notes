@@ -151,6 +151,18 @@ export function getSettingsTemplate() {
                                 <p class="text-xs text-muted-foreground">${t('settings.drive_folder_hint')}</p>
                             </div>
                             <div class="space-y-3">
+                                <label class="text-sm font-medium">Google Client Secret (Optional/PKCE)</label>
+                                <div class="relative">
+                                    <input type="password" id="config-client-secret" class="h-12 px-5 w-full rounded-xl" placeholder="••••••••••••••••••••" autocomplete="off">
+                                    <button class="absolute right-4 top-1/2 -translate-y-1/2 toggle-pass" data-target="config-client-secret">
+                                        <i data-lucide="eye" class="w-4 h-4 text-muted-foreground"></i>
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-muted-foreground leading-relaxed">
+                                    Google requiere el secreto para intercambiar tokens en aplicaciones web. Se guardará solo localmente en tu navegador.
+                                </p>
+                            </div>
+                            <div class="space-y-3">
                                 <label class="text-sm font-medium">${t('settings.notes_per_chunk')}</label>
                                 <div class="flex items-center gap-3">
                                     <input type="number" id="config-notes-per-chunk" class="h-12 px-5 w-full rounded-xl" placeholder="50" min="10" max="500">

@@ -8,7 +8,8 @@ export const state = {
         theme: 'dark',
         drivePath: '/backup/notes/',
         algo: 'aes-256-gcm',
-        notesPerChunk: 50
+        notesPerChunk: 50,
+        clientSecret: ''
     },
     currentView: 'all',
     editingNoteId: null,

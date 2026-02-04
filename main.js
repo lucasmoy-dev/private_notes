@@ -195,6 +195,7 @@ function setupGlobalEvents() {
         state.settings.drivePath = document.getElementById('config-drive-path').value;
         state.settings.algo = document.getElementById('config-algo').value;
         state.settings.notesPerChunk = parseInt(document.getElementById('config-notes-per-chunk').value) || 50;
+        state.settings.clientSecret = document.getElementById('config-client-secret').value;
         await saveLocal();
         showToast('✅ Configuración guardada');
         triggerAutoSync();
@@ -453,7 +454,8 @@ function initGapi() {
                         if (resp.code) {
                             try {
                                 const verifier = sessionStorage.getItem('pkce_verifier');
-                                const tokens = await AuthService.exchangeCodeForTokens(resp.code, verifier, CLIENT_ID);
+                                const secret = state.settings.clientSecret;
+                                const tokens = await AuthService.exchangeCodeForTokens(resp.code, verifier, CLIENT_ID, secret);
 
                                 if (tokens.refresh_token) {
                                     await AuthService.saveRefreshToken(tokens.refresh_token);
@@ -549,7 +551,8 @@ async function handleSync() {
 
                 if (refreshToken) {
                     try {
-                        const newTokens = await AuthService.refreshAccessToken(refreshToken, CLIENT_ID);
+                        const secret = state.settings.clientSecret;
+                        const newTokens = await AuthService.refreshAccessToken(refreshToken, CLIENT_ID, secret);
                         // Merge new tokens with old ones (to keep the refresh token if not rotated)
                         token = { ...token, ...newTokens };
                         localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(token));
@@ -775,6 +778,7 @@ function openSettings() {
         modal.classList.remove('hidden');
         document.getElementById('config-drive-path').value = state.settings.drivePath;
         document.getElementById('config-algo').value = state.settings.algo;
+        document.getElementById('config-client-secret').value = state.settings.clientSecret || '';
         if (document.getElementById('config-sync-chunk-size')) {
             document.getElementById('config-sync-chunk-size').value = state.settings.syncChunkSize || 500;
         }
