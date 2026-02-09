@@ -1,5 +1,5 @@
 import { state, saveLocal } from '../state.js';
-import { NOTE_THEMES, PALETTE, EMOJIS } from '../constants.js';
+import { NOTE_THEMES, PALETTE, EMOJIS, KEYS } from '../constants.js';
 import { isColorDark, safeCreateIcons, showToast, openPrompt } from '../ui-utils.js';
 import { SecurityService as Security } from '../security.js';
 import { EditorUI } from './EditorUI.js';
@@ -17,7 +17,7 @@ export function getEditorTemplate() {
                     class="bg-transparent text-xl font-black outline-none border-none placeholder:text-muted-foreground flex-1 min-w-0 truncate">
                 
                 <div class="flex items-center gap-1 shrink-0">
-                    <button id="expand-editor" class="editor-tool" title="Expandir/Contraer">
+                    <button id="expand-editor" class="editor-tool hidden md:flex" title="Expandir/Contraer">
                         <i data-lucide="maximize-2"></i>
                     </button>
                     <div class="relative">
@@ -58,25 +58,31 @@ export function getEditorTemplate() {
             </div>
 
             <div class="bg-background flex flex-col divide-y divide-border/40">
-                <div class="px-4 py-2.5 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button data-cmd="bold" class="editor-tool" title="Negrita"><i data-lucide="bold"></i></button>
-                        <button data-cmd="italic" class="editor-tool" title="Cursiva"><i data-lucide="italic"></i></button>
-                        <button data-cmd="underline" class="editor-tool" title="Subrayado"><i data-lucide="underline"></i></button>
+                <div class="px-4 py-2 flex md:items-center justify-between gap-3 overflow-x-auto no-scrollbar flex-col md:flex-row">
+                    <div class="flex items-center gap-0.5 md:gap-1 shrink-0 flex-wrap">
+                        <div class="flex items-center gap-0.5 md:gap-1">
+                            <button data-cmd="bold" class="editor-tool" title="Negrita"><i data-lucide="bold"></i></button>
+                            <button data-cmd="italic" class="editor-tool" title="Cursiva"><i data-lucide="italic"></i></button>
+                            <button data-cmd="underline" class="editor-tool" title="Subrayado"><i data-lucide="underline"></i></button>
+                        </div>
                         <div class="w-px h-4 bg-border/50 mx-1"></div>
-                        <button id="checklist-btn" class="editor-tool" title="Lista de tareas"><i data-lucide="check-square"></i></button>
-                        <button data-cmd="insertUnorderedList" class="editor-tool" title="Lista"><i data-lucide="list"></i></button>
+                        <div class="flex items-center gap-0.5 md:gap-1">
+                            <button id="checklist-btn" class="editor-tool" title="Lista de tareas"><i data-lucide="check-square"></i></button>
+                            <button data-cmd="insertUnorderedList" class="editor-tool" title="Lista"><i data-lucide="list"></i></button>
+                        </div>
                         <div class="w-px h-4 bg-border/50 mx-1"></div>
-                        <button id="add-link" class="editor-tool" title="Enlace"><i data-lucide="link"></i></button>
-                        <button id="open-text-colors" class="editor-tool relative" title="Color de texto">
-                            <i data-lucide="type"></i>
-                            <div class="w-2 h-[2px] bg-indigo-500 rounded-full absolute bottom-1.5 left-1/2 -translate-x-1/2"></div>
-                        </button>
-                        <button id="open-emojis" class="editor-tool" title="Emojis"><i data-lucide="smile"></i></button>
-                        <button id="open-colors" class="editor-tool" title="Fondo"><i data-lucide="palette"></i></button>
+                        <div class="flex items-center gap-0.5 md:gap-1">
+                            <button id="add-link" class="editor-tool" title="Enlace"><i data-lucide="link"></i></button>
+                            <button id="open-text-colors" class="editor-tool relative" title="Color de texto">
+                                <i data-lucide="type"></i>
+                                <div class="w-2 h-[2px] bg-indigo-500 rounded-full absolute bottom-1.5 left-1/2 -translate-x-1/2"></div>
+                            </button>
+                            <button id="open-emojis" class="editor-tool" title="Emojis"><i data-lucide="smile"></i></button>
+                            <button id="open-colors" class="editor-tool" title="Fondo"><i data-lucide="palette"></i></button>
+                        </div>
                     </div>
                     
-                    <div class="flex items-center gap-1.5 shrink-0">
+                    <div class="flex items-center gap-1.5 shrink-0 justify-end pb-2 md:pb-0">
                         <button id="opt-delete-note" class="editor-tool !text-destructive hover:!bg-destructive/10" title="Eliminar"><i data-lucide="trash-2"></i></button>
                         <div class="w-px h-4 bg-border/50 mx-1"></div>
                         <button id="quick-save-note" class="editor-tool !bg-indigo-600 !text-white hover:!bg-indigo-700 shadow-sm" title="Guardar"><i data-lucide="save"></i></button>
@@ -231,8 +237,14 @@ export function initEditor(onSave) {
 
     // Content Editable Input Event
     contentEl.oninput = () => {
-        // Auto-save logic could go here, but we use manual save
+        saveActiveNoteDraft();
+        updateToolsUI();
     };
+
+    const titleEl = document.getElementById('edit-title');
+    if (titleEl) {
+        titleEl.oninput = () => saveActiveNoteDraft();
+    }
 
     // Copy Content
     document.getElementById('opt-copy-all').onclick = () => {
@@ -358,6 +370,7 @@ export function initEditor(onSave) {
 
     initPopovers();
     window.addEventListener('popstate', handlePopState);
+    window.saveActiveNoteDraft = saveActiveNoteDraft;
 }
 
 function handlePopState() {
@@ -397,6 +410,7 @@ export async function openEditor(note = null) {
             onSave(); // Refresh background grid
             window.triggerAutoSync?.();
         }
+        if (window.saveActiveNoteDraft) window.saveActiveNoteDraft();
     });
 
     if (note) {
@@ -472,8 +486,38 @@ export async function saveActiveNote(close = true) {
     }
 
     await saveLocal();
-    window.triggerAutoSync?.();
+    localStorage.removeItem(KEYS.DRAFT); // Clear draft on successful manual save
     if (close) closeEditor();
+}
+
+let draftDebounce = null;
+export async function saveActiveNoteDraft() {
+    clearTimeout(draftDebounce);
+    draftDebounce = setTimeout(async () => {
+        const title = document.getElementById('edit-title').value;
+        const content = document.getElementById('edit-content').innerHTML;
+        const categoryId = document.getElementById('edit-category').value;
+        const themeId = document.querySelector('.dialog-content')?.dataset.themeId || 'default';
+
+        if (!title && !content) return;
+
+        const draft = {
+            id: state.editingNoteId,
+            title: title || 'Sin título',
+            content: content,
+            categoryId: categoryId,
+            themeId: themeId,
+            updatedAt: Date.now()
+        };
+
+        const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
+        if (vaultKey) {
+            const encrypted = await Security.encrypt(draft, vaultKey);
+            localStorage.setItem(KEYS.DRAFT, JSON.stringify(encrypted));
+            const timeEl = document.getElementById('last-saved-time');
+            if (timeEl) timeEl.innerText = 'Borrador guardado localmente';
+        }
+    }, 1000);
 }
 
 function closeEditor() {
@@ -539,7 +583,7 @@ function toggleChecklist() {
                     if (e.target === item) {
                         const isChecked = item.getAttribute('data-checked') === 'true';
                         item.setAttribute('data-checked', !isChecked);
-                        saveActiveNote(false);
+                        saveActiveNoteDraft();
                     }
                 };
             });
@@ -574,6 +618,7 @@ function initPopovers() {
                 const isDark = isColorDark(state.settings.theme === 'dark' ? t.dark : t.light);
                 EditorUI.applyTheme(t, isDark, content, document.getElementById('edit-title'), document.getElementById('edit-content'), document.getElementById('editor-modal'));
                 EditorUI.hidePopovers();
+                saveActiveNoteDraft();
             };
             bgGrid.appendChild(div);
         });
@@ -592,6 +637,7 @@ function initPopovers() {
                 restoreSelection();
                 document.execCommand('foreColor', false, c);
                 EditorUI.hidePopovers();
+                saveActiveNoteDraft();
             };
             textGrid.appendChild(div);
         });
@@ -609,6 +655,7 @@ function initPopovers() {
                 restoreSelection();
                 document.execCommand('insertHTML', false, e);
                 EditorUI.hidePopovers();
+                saveActiveNoteDraft();
             };
             emojiGrid.appendChild(span);
         });

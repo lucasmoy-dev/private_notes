@@ -3,16 +3,12 @@ import { state, saveLocal, loadSettings } from './src/state.js';
 import { APP_VERSION, KEYS } from './src/constants.js';
 import { showToast, safeCreateIcons, openPrompt } from './src/ui-utils.js';
 import { SecurityService as Security } from './src/security.js';
-import { DriveSync } from './src/drive.js';
-import { AuthService } from './src/auth.js';
 
-const CLIENT_ID = '974464877836-721dprai6taijtuufmrkh438q68e97sp.apps.googleusercontent.com';
-const CLIENT_SECRET = [71, 79, 67, 83, 80, 88, 45, 112, 121, 52, 68, 109, 80, 83, 107, 45, 100, 75, 55, 99, 73, 66, 116, 106, 65, 81, 75, 90, 70, 75, 118, 95, 66, 87, 95].map(c => String.fromCharCode(c)).join('');
 let deferredPrompt = null;
 let syncDebounce = null;
 
 // Components
-import { getAuthShieldTemplate, checkAuthStatus, handleMasterAuth } from './src/components/AuthShield.js';
+import { getAuthShieldTemplate, checkAuthStatus, handleMasterAuth, lockApp } from './src/components/AuthShield.js';
 import { getLayoutTemplate } from './src/components/Layout.js';
 import { getEditorTemplate, initEditor, openEditor, saveActiveNote } from './src/components/Editor.js';
 import { getCategoryManagerTemplate, renderCategoryManager } from './src/components/CategoryManager.js';
@@ -54,25 +50,41 @@ async function initApp() {
     setupGlobalEvents();
 
     // 5. Version check for auto-update
-    const lastVersion = localStorage.getItem(KEYS.LAST_VERSION);
-    if (lastVersion && lastVersion !== APP_VERSION) {
-        localStorage.setItem(KEYS.LAST_VERSION, APP_VERSION);
-        console.log(`Nueva versión detectada (${APP_VERSION}). Recargando...`);
-        showToast('🚀 Actualizando a la última versión...');
-        setTimeout(() => location.reload(true), 1500);
-        return;
-    }
     localStorage.setItem(KEYS.LAST_VERSION, APP_VERSION);
 
     // 6. Auth Check
-    await checkAuthStatus(refreshUI);
+    await checkAuthStatus(async () => {
+        refreshUI();
+        const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
+        if (vaultKey) {
+            await restoreDraft(vaultKey);
+
+            // Auto-Sync from Folder if connected
+            try {
+                const { FileStorage } = await import('./src/file-storage.js');
+                const handle = await FileStorage.getHandle(false); // Check without prompt first
+                if (handle && state.notes.length === 0) {
+                    console.log('[Sync] Folder connected and app empty. Pulling data...');
+                    const result = await FileStorage.pullData(vaultKey);
+                    if (result && result.notes.length > 0) {
+                        state.notes = result.notes;
+                        state.categories = result.categories || [];
+                        await saveLocal();
+                        refreshUI();
+                        showToast('✅ Datos sincronizados desde la carpeta');
+                    }
+                }
+            } catch (e) {
+                console.warn('[Sync] Auto-pull failed', e);
+            }
+        }
+    });
     BackupService.runAutoBackup();
 
     // 7. Final UI Polish
     initSearch();
     initMobileNav();
     initPWA();
-    initGapi();
     registerSW();
     injectVersion();
     applySidebarState();
@@ -163,9 +175,7 @@ function setupGlobalEvents() {
     // Standard Buttons
     bindClick('add-note-btn', () => openEditor());
     bindClick('mobile-add-btn', () => openEditor());
-    bindClick('sync-btn', handleSync);
-    bindClick('mobile-sync-btn', handleSync);
-    bindClick('mobile-sync-btn-bottom', handleSync);
+    // bindClick('sync-btn', handleSync); // Removed for Local Folder Sync
     bindClick('settings-trigger', openSettings);
     bindClick('mobile-settings-btn', () => {
         closeMobileSidebar();
@@ -193,18 +203,12 @@ function setupGlobalEvents() {
 
     // Settings Logic - Unified Save
     const saveSettings = async () => {
-        state.settings.drivePath = document.getElementById('config-drive-path').value;
         state.settings.algo = document.getElementById('config-algo').value;
-        state.settings.notesPerChunk = parseInt(document.getElementById('config-notes-per-chunk').value) || 50;
-        state.settings.clientSecret = document.getElementById('config-client-secret').value;
         await saveLocal();
         showToast('✅ Configuración guardada');
-        triggerAutoSync();
     };
 
-    bindClick('save-sync-config', saveSettings);
     bindClick('save-security-config', saveSettings);
-    bindClick('connect-drive-btn', handleGoogleAuth);
 
     bindClick('theme-light', () => setTheme('light'));
     bindClick('theme-dark', () => setTheme('dark'));
@@ -327,10 +331,20 @@ function setupGlobalEvents() {
         };
     }
 
-    window.triggerAutoSync = () => {
-        clearTimeout(syncDebounce);
-        syncDebounce = setTimeout(handleSync, 2000); // Reduced from 5s to 2s
-    };
+    // App Lock on Resume
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
+            if (vaultKey) {
+                const lockEnabled = localStorage.getItem(KEYS.APP_LOCK) !== 'false';
+                if (lockEnabled) {
+                    console.log("[Lock] App re-focused, locking...");
+                    lockApp();
+                }
+            }
+        }
+    });
+
     window.handleLogout = handleLogout;
     window.openEditor = openEditor;
 }
@@ -433,274 +447,37 @@ function initPWA() {
     bindClick('mobile-pwa-install-btn', installLogic);
 }
 
-function initGapi() {
-    const checkGapi = setInterval(() => {
-        if (typeof gapi !== 'undefined' && typeof google !== 'undefined' && google.accounts) {
-            clearInterval(checkGapi);
-            gapi.load('client', async () => {
-                await gapi.client.init({
-                    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"]
-                });
-                state.gapiLoaded = true;
-
-                state.codeClient = google.accounts.oauth2.initCodeClient({
-                    client_id: CLIENT_ID,
-                    scope: "https://www.googleapis.com/auth/drive.file",
-                    ux_mode: 'popup',
-                    access_type: 'offline',
-                    prompt: 'consent',
-                    callback: async (resp) => {
-                        if (resp.error) return showToast('❌ Error de vinculación: ' + resp.error);
-
-                        if (resp.code) {
-                            try {
-                                const verifier = sessionStorage.getItem('pkce_verifier');
-                                const secret = state.settings.clientSecret || CLIENT_SECRET;
-                                const tokens = await AuthService.exchangeCodeForTokens(resp.code, verifier, CLIENT_ID, secret);
-
-                                if (tokens.refresh_token) {
-                                    await AuthService.saveRefreshToken(tokens.refresh_token);
-                                }
-
-                                localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(tokens));
-                                gapi.client.setToken(tokens);
-                                updateDriveStatus(true);
-                                showToast('✅ Google Drive vinculado correctamente');
-                                handleSync();
-                            } catch (err) {
-                                console.error('Token exchange error:', err);
-                                showToast('❌ Error al canjear código. Revisa la consola.');
-                            }
-                        }
-                    },
-                });
-
-                // Check if we already have a token
-                const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
-                if (hasToken) {
-                    const token = JSON.parse(hasToken);
-                    gapi.client.setToken(token);
-                    updateDriveStatus(true);
-                } else {
-                    updateDriveStatus(false);
-                }
-            });
-        }
-    }, 500);
-}
-
-async function handleGoogleAuth() {
-    if (!state.codeClient) {
-        if (typeof gapi === 'undefined' || typeof google === 'undefined') {
-            return showToast('⏳ Cargando librerías de Google...');
-        }
-        return showToast('⏳ Inicializando API de Google...');
-    }
-
-    const { verifier, challenge } = await AuthService.generatePKCE();
-    sessionStorage.setItem('pkce_verifier', verifier);
-
-    // Skip PKCE challenge parameters as they cause conflicts with client_secret 
-    // for 'Web application' client types.
-    state.codeClient.requestCode();
-}
-
-function updateDriveStatus(connected) {
-    const status = document.getElementById('drive-status');
-    const syncBtn = document.getElementById('sync-btn');
-
-    if (status) {
-        status.innerHTML = connected
-            ? '<span class="flex items-center gap-2 text-green-500 font-bold"><i data-lucide="check-circle" class="w-4 h-4"></i> Conectado</span>'
-            : '<span class="flex items-center gap-2 text-muted-foreground font-bold font-mono uppercase"><i data-lucide="x-circle" class="w-4 h-4"></i> No conectado</span>';
-        status.className = connected
-            ? 'text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary'
-            : 'text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground';
-    }
-
-    if (syncBtn) {
-        syncBtn.style.opacity = connected ? '1' : '0.3';
-        syncBtn.style.pointerEvents = connected ? 'auto' : 'none';
-    }
-    safeCreateIcons();
-}
-
-let isSyncing = false;
-async function handleSync() {
-    if (isSyncing) return;
-    const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
-    if (!vaultKey) return;
-
-    const syncIcons = document.querySelectorAll('#sync-icon, [data-lucide="refresh-cw"]');
-    const syncButtons = document.querySelectorAll('#sync-btn, #mobile-sync-btn, #mobile-sync-btn-bottom');
-
-    isSyncing = true;
-    syncIcons.forEach(i => i.classList.add('animate-spin'));
-    syncButtons.forEach(b => b.classList.add('text-primary'));
+async function restoreDraft(vaultKey) {
+    const encrypted = localStorage.getItem(KEYS.DRAFT);
+    if (!encrypted) return;
 
     try {
-        // Silent token check/refresh if expired
-        const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
-        if (hasToken) {
-            let token = JSON.parse(hasToken);
-            const now = Date.now();
-
-            // If token expires in less than 5 mins, or we don't know, refresh it
-            if (!token.expires_at || now > (token.expires_at - 300000)) {
-                console.log("[Sync] Access token expired or near expiry, attempting refresh...");
-                const refreshToken = await AuthService.getRefreshToken();
-
-                if (refreshToken) {
-                    try {
-                        const secret = state.settings.clientSecret || CLIENT_SECRET;
-                        const newTokens = await AuthService.refreshAccessToken(refreshToken, CLIENT_ID, secret);
-                        // Merge new tokens with old ones (to keep the refresh token if not rotated)
-                        token = { ...token, ...newTokens };
-                        localStorage.setItem(KEYS.DRIVE_TOKEN, JSON.stringify(token));
-                        gapi.client.setToken(token);
-                        console.log("[Sync] Token refreshed successfully.");
-                    } catch (err) {
-                        console.error("[Sync] Token refresh failed:", err);
-                        // If refresh fails, we might need to re-auth
-                        showToast('⚠️ Sesión de Drive expirada. Reconectando...');
-                        handleGoogleAuth();
-                        return;
-                    }
-                } else {
-                    console.warn("[Sync] No refresh token found, requesting new access...");
-                    handleGoogleAuth();
-                    return;
+        const draft = await Security.decrypt(JSON.parse(encrypted), vaultKey);
+        if (draft) {
+            console.log("Restaurando borrador localizado...");
+            const noteIndex = state.notes.findIndex(n => n.id === draft.id);
+            if (noteIndex >= 0) {
+                if (draft.updatedAt > state.notes[noteIndex].updatedAt) {
+                    state.notes[noteIndex] = { ...state.notes[noteIndex], ...draft };
                 }
+            } else {
+                state.notes.unshift({
+                    ...draft,
+                    pinned: draft.pinned || false,
+                    passwordHash: draft.passwordHash || null,
+                    createdAt: draft.createdAt || draft.updatedAt,
+                    deleted: false
+                });
             }
+            await saveLocal();
+            localStorage.removeItem(KEYS.DRAFT);
+            showToast('📝 Borrador recuperado automáticamente');
+            refreshUI();
         }
-
-        const drive = new DriveSync('notev3_', state.settings.drivePath, state.settings.notesPerChunk);
-        const folderId = await drive.getOrCreateFolder(state.settings.drivePath);
-
-        // 1. Download & Merge (Pull)
-        const cloudData = await drive.loadChunks(folderId, vaultKey);
-        if (cloudData) {
-            try {
-                if (cloudData && Array.isArray(cloudData.notes)) {
-                    // ... (rest of the logic)
-                    // Simple Merge: Last write wins (respecting deleted flag)
-                    // Simple Merge: Last write wins (respecting deleted flag)
-                    const cloudNotesMap = new Map(cloudData.notes.map(n => [n.id, n]));
-
-                    // CRITICAL: Re-read state.notes right before merging to avoid losing 
-                    // changes made while downloading/decrypting from cloud
-                    const localNotesMap = new Map(state.notes.map(n => [n.id, n]));
-
-                    // Combine all IDs
-                    const allIds = new Set([...cloudNotesMap.keys(), ...localNotesMap.keys()]);
-                    const mergedNotes = Array.from(allIds).map(id => {
-                        // Refresh local reference here too if possible, but localNotesMap is enough
-                        const local = localNotesMap.get(id);
-                        const cloud = cloudNotesMap.get(id);
-
-                        // If only one exists, use it
-                        if (!local) return cloud;
-                        if (!cloud) return local;
-
-                        // Both exist: use the one with the most recent updatedAt
-                        // This properly handles deleted notes since the deleted flag
-                        // is part of the note object with the latest timestamp
-                        // Content-Aware Merge Strategy (Expanded & Aggressive)
-                        const localContent = (local.content || '').trim().replace(/\r\n/g, '\n');
-                        const cloudContent = (cloud.content || '').trim().replace(/\r\n/g, '\n');
-
-                        if (localContent === cloudContent) {
-                            // Content is identical (ignoring whitespace/line-endings).
-                            // Conflict is strictly Metadata (Category, Pin, Lock) or Deletion.
-
-                            // 1. Deletion Priority
-                            if (local.deleted !== !!cloud.deleted) {
-                                return local.deleted ? local : cloud;
-                            }
-
-                            // 2. Metadata Priority (Category, Pin, Lock)
-                            // If content is visually identical, we prioritize LOCAL changes.
-                            // We only yield to Cloud if it is objectively "From the future" (> 24 hours),
-                            // which would suggest a significant clock error or a completely different session.
-                            // This 24h window fixes all typical "Category Revert" issues caused by clock skew.
-                            const diff = cloud.updatedAt - local.updatedAt;
-                            if (diff < 86400000) { // 24 hours tolerance
-                                return local;
-                            }
-                        }
-
-                        // Standard Timestamp Logic for other cases (edits vs edits, or edit vs delete)
-                        if (cloud.updatedAt > local.updatedAt) {
-                            // Anti-Resurrection Shield:
-                            // If local is deleted, but cloud is active and slightly newer (clock skew),
-                            // prioritize deletion.
-                            const diff = cloud.updatedAt - local.updatedAt;
-                            if (local.deleted && !cloud.deleted && diff < 120000) { // 2 mins tolerance
-                                return local;
-                            }
-                            return cloud;
-                        }
-                        return local;
-                    });
-
-                    state.notes = mergedNotes.sort((a, b) => b.updatedAt - a.updatedAt);
-
-                    // Merge categories prioritizing LOCAL ORDER and PRIVATE STATUS
-                    const cloudCatsMap = new Map(cloudData.categories.map(c => [c.id, c]));
-                    const localCatsMap = new Map(state.categories.map(c => [c.id, c]));
-
-                    const allCatIds = new Set([...localCatsMap.keys(), ...cloudCatsMap.keys()]);
-                    state.categories = Array.from(allCatIds).map(id => {
-                        const local = localCatsMap.get(id);
-                        const cloud = cloudCatsMap.get(id);
-                        if (!local) return cloud;
-                        if (!cloud) return local;
-
-                        // Conflict: Same ID. Prefer Local for Order/Name, 
-                        // but if either is private, keep it private.
-                        return {
-                            ...local,
-                            passwordHash: local.passwordHash || cloud.passwordHash
-                        };
-                    });
-
-                    await saveLocal();
-                    refreshUI();
-                }
-            } catch (e) {
-                console.error('Decryption failed during sync pull', e);
-                showToast('⚠️ No se pudo descargar: Contraseña no coincide');
-            }
-        }
-
-        // 2. Upload (Push) - Include deleted notes (tombstones) to propagate deletion
-        const activeNotes = state.notes;
-        await drive.saveChunks(activeNotes, state.categories, vaultKey, folderId);
-
-        showToast('✅ Sincronización completa');
-    } catch (err) {
-        console.error('Sync error:', err);
-        // Handle 401 (Unauthorized)
-        if (err.status === 401 || (err.result && err.result.error && err.result.error.code === 401)) {
-            showToast('⚠️ Sesión de Drive expirada. Re-conectando...');
-            handleGoogleAuth();
-        } else {
-            showToast('❌ Error de sincronización');
-        }
-    } finally {
-        isSyncing = false;
-        const syncIcons = document.querySelectorAll('#sync-icon, [data-lucide="refresh-cw"]');
-        const syncButtons = document.querySelectorAll('#sync-btn, #mobile-sync-btn, #mobile-sync-btn-bottom');
-        syncIcons.forEach(i => i.classList.remove('animate-spin'));
-        syncButtons.forEach(b => b.classList.remove('text-primary'));
-    }
-}
-
-function triggerAutoSync() {
-    const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
-    const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
-    if (state.gapiLoaded && hasToken && vaultKey) {
-        handleSync();
+    } catch (e) {
+        console.error('Error al restaurar borrador (posiblemente contraseña diferente):', e);
+        // If decryption fails, the draft is likely from another session/password, keep it or clear it?
+        // User might have changed password. Better keep it for a while or clear if it's junk.
     }
 }
 
@@ -749,17 +526,12 @@ async function addCategory() {
     // Re-render both manager and sidebar
     renderCategoryManager(refreshUI, state.categories);
     refreshUI();
-
-    // Auto-sync if connected
-    const hasToken = localStorage.getItem(KEYS.DRIVE_TOKEN);
-    if (hasToken) handleSync();
 }
 
 
 async function handleLogout() {
     localStorage.removeItem(KEYS.VAULT_KEY);
     sessionStorage.removeItem(KEYS.VAULT_KEY);
-    await AuthService.clearTokens();
     // Legacy cleanup
     localStorage.removeItem('cn_pass_plain_v3');
     sessionStorage.removeItem('cn_pass_plain_v3');
@@ -777,12 +549,7 @@ function openSettings() {
     const modal = document.getElementById('settings-modal');
     if (modal) {
         modal.classList.remove('hidden');
-        document.getElementById('config-drive-path').value = state.settings.drivePath;
         document.getElementById('config-algo').value = state.settings.algo;
-        document.getElementById('config-client-secret').value = state.settings.clientSecret || '';
-        if (document.getElementById('config-sync-chunk-size')) {
-            document.getElementById('config-sync-chunk-size').value = state.settings.syncChunkSize || 500;
-        }
 
         // Reset to first tab
         const firstTab = modal.querySelector('.settings-tab[data-tab="appearance"]');
@@ -833,8 +600,6 @@ function migrateLegacyStorage() {
         'cn_categories_v3_enc': KEYS.CATEGORIES_ENC,
         'cn_vault_key_v3': KEYS.VAULT_KEY,
         'cn_settings_v3': KEYS.SETTINGS,
-        'gdrive_token_v3': KEYS.DRIVE_TOKEN,
-        'cn_bio_enabled_v3': KEYS.BIO_ENABLED,
         'cn_remember_me_v3': KEYS.REMEMBER_ME,
         'cn_last_version_v3': KEYS.LAST_VERSION,
         'cn_backups_v3': KEYS.BACKUPS

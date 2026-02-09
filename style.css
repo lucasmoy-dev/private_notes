@@ -436,13 +436,17 @@ textarea {
     }
 }
 
-#cat-dropdown-menu div {
+#cat-dropdown-menu .editor-menu-item {
     @apply relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none transition-all hover:bg-accent hover:text-accent-foreground gap-2 mb-0.5 last:mb-0;
     animation: dropdown-item-in 0.2s ease-out forwards;
 }
 
-#cat-dropdown-menu div:active {
+#cat-dropdown-menu .editor-menu-item:active {
     @apply scale-[0.98];
+}
+
+#cat-options-container {
+    @apply flex flex-col;
 }
 
 /* Grid Layout */

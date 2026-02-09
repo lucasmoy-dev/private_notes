@@ -99,6 +99,34 @@ export async function checkAuthStatus(onSuccess) {
     }
 }
 
+export function lockApp() {
+    const shield = document.getElementById('auth-shield');
+    if (!shield) return;
+
+    // Reset Bio button text
+    const isBioEnabled = localStorage.getItem(KEYS.BIO_ENABLED) === 'true';
+    const bioBtn = document.getElementById('auth-biometric');
+    if (bioBtn) {
+        bioBtn.classList.toggle('hidden', !window.PublicKeyCredential || !isBioEnabled);
+        if (isBioEnabled) document.getElementById('bio-text').innerText = t('auth.bio_unlock');
+    }
+
+    shield.style.display = 'flex';
+    // Use a small timeout to trigger CSS transition
+    setTimeout(() => {
+        shield.classList.remove('opacity-0', 'pointer-events-none');
+    }, 10);
+
+    document.getElementById('master-password').value = '';
+    showLoginPage();
+    safeCreateIcons();
+
+    // Auto trigger bio if enabled
+    if (isBioEnabled) {
+        setTimeout(() => handleBiometricAuth(() => { }), 500);
+    }
+}
+
 function clearAuth() {
     sessionStorage.removeItem(KEYS.VAULT_KEY);
     localStorage.removeItem(KEYS.VAULT_KEY);

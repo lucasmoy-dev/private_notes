@@ -1,4 +1,4 @@
-export const APP_VERSION = 'v3.6.118';
+export const APP_VERSION = 'v3.6.127';
 export const APP_NAME = 'private-notes';
 export const STORAGE_PREFIX = APP_NAME + '/';
 
@@ -16,9 +16,11 @@ export const KEYS = {
     REMEMBER_ME: STORAGE_PREFIX + 'remember_me_v3',
     LAST_VERSION: STORAGE_PREFIX + 'last_version',
     PWA_DISMISSED: STORAGE_PREFIX + 'pwa_dismissed',
-    DRIVE_TOKEN: STORAGE_PREFIX + 'drive_token',
     SYNCED_REV: STORAGE_PREFIX + 'synced_rev',
-    THEME: STORAGE_PREFIX + 'theme_v3'
+    THEME: STORAGE_PREFIX + 'theme_v3',
+    DRAFT: STORAGE_PREFIX + 'draft_v3',
+    APP_LOCK: STORAGE_PREFIX + 'app_lock',
+    DIRECTORY_HANDLE: STORAGE_PREFIX + 'directory_handle'
 };
 
 export const NOTE_THEMES = [

@@ -1,4 +1,4 @@
-import { safeCreateIcons } from '../ui-utils.js';
+import { safeCreateIcons, showToast, openPrompt } from '../ui-utils.js';
 import { t, currentLang, setLanguage } from '../i18n.js';
 import { KEYS } from '../constants.js';
 
@@ -6,7 +6,7 @@ export function getSettingsTemplate() {
     return `
     <div id="settings-modal" class="fixed inset-0 z-[80] hidden">
         <div class="dialog-overlay"></div>
-        <div class="dialog-content w-full h-full md:w-full md:max-w-5xl md:h-[650px] p-0 overflow-hidden flex flex-col md:flex-row rounded-none md:rounded-3xl shadow-2xl">
+        <div class="dialog-content w-full h-full md:w-full md:max-w-5xl md:h-[min(700px,90vh)] p-0 overflow-hidden flex flex-col md:flex-row rounded-none md:rounded-3xl shadow-2xl">
             <!-- Sidebar Settings -->
             <div id="settings-sidebar" class="w-full md:w-64 bg-muted/50 border-b md:border-b-0 md:border-r p-4 flex flex-col gap-2 overflow-y-auto">
                 <div class="flex items-center justify-between mb-2 md:hidden">
@@ -30,6 +30,11 @@ export function getSettingsTemplate() {
                 <button class="settings-tab text-destructive mt-auto py-3 md:py-2.5 px-4 text-base md:text-sm flex items-center gap-3 md:gap-2" data-tab="danger">
                     <i data-lucide="alert-triangle" class="w-5 h-5"></i> ${t('settings.danger')}
                 </button>
+                <div class="pt-2 border-t border-border/10">
+                    <button id="logout-btn" class="w-full h-11 flex items-center gap-3 px-4 text-sm text-destructive hover:bg-destructive/10 rounded-xl transition-all font-bold">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> ${t('settings.logout')}
+                    </button>
+                </div>
             </div>
 
             <!-- Content Area -->
@@ -102,18 +107,18 @@ export function getSettingsTemplate() {
 
                         <section class="space-y-4 pt-4 border-t">
                             <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">${t('settings.theme')}</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <button id="theme-light" class="flex flex-col items-center gap-2 p-4 rounded-xl border bg-card hover:bg-accent transition-all group">
-                                    <div class="w-full aspect-video bg-zinc-100 rounded-lg border flex items-center justify-center">
-                                         <div class="w-1/2 h-1.5 bg-zinc-300 rounded"></div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button id="theme-light" class="flex flex-col items-center gap-1.5 p-2 rounded-xl border bg-card hover:bg-accent transition-all group">
+                                    <div class="w-full aspect-[2/1] bg-zinc-100 rounded-lg border flex items-center justify-center">
+                                         <div class="w-1/3 h-1 bg-zinc-300 rounded"></div>
                                     </div>
-                                    <span class="text-xs font-medium">${t('settings.light')}</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-tight">${t('settings.light')}</span>
                                 </button>
-                                <button id="theme-dark" class="flex flex-col items-center gap-2 p-4 rounded-xl border bg-zinc-950 hover:bg-zinc-900 transition-all group ring-primary">
-                                    <div class="w-full aspect-video bg-zinc-800 rounded-lg border border-zinc-700 flex items-center justify-center">
-                                         <div class="w-1/2 h-1.5 bg-zinc-600 rounded"></div>
+                                <button id="theme-dark" class="flex flex-col items-center gap-1.5 p-2 rounded-xl border bg-zinc-950 hover:bg-zinc-900 transition-all group ring-primary">
+                                    <div class="w-full aspect-[2/1] bg-zinc-800 rounded-lg border border-zinc-700 flex items-center justify-center">
+                                         <div class="w-1/3 h-1 bg-zinc-600 rounded"></div>
                                     </div>
-                                    <span class="text-xs font-medium text-white">${t('settings.dark')}</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-tight text-white">${t('settings.dark')}</span>
                                 </button>
                             </div>
                         </section>
@@ -123,7 +128,7 @@ export function getSettingsTemplate() {
                             <div class="p-4 rounded-xl border bg-primary/5 space-y-3">
                                 <div class="flex items-center justify-between">
                                     <span class="text-xs font-medium">${t('settings.installed_version')}</span>
-                                    <span class="text-xs font-bold font-mono text-primary" id="settings-version-display">v3.6.0</span>
+                                    <span class="text-xs font-bold font-mono text-primary" id="settings-version-display">v4.0.0</span>
                                 </div>
                                 <button id="force-reload-btn-settings" class="btn-shad btn-shad-outline w-full h-10 flex items-center justify-center gap-2 group text-sm rounded-lg">
                                     <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
@@ -133,43 +138,33 @@ export function getSettingsTemplate() {
                         </section>
                     </div>
 
-                    <!-- Panel: Sincronización -->
+                    <!-- Panel: Sincronización (Local Folder) -->
                     <div id="panel-sync" class="settings-panel hidden space-y-6">
                         <section class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Google Drive</h3>
-                                <div id="drive-status" class="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-bold uppercase">${t('settings.sync_status.disconnected')}</div>
+                                <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">${t('settings.local_folder')}</h3>
+                                <div id="folder-status" class="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-bold uppercase">${t('settings.sync_status.disconnected')}</div>
                             </div>
                             
-                            <button id="connect-drive-btn" class="btn-shad btn-shad-outline w-full h-12 flex items-center justify-center gap-2 text-base rounded-xl">
-                                <i data-lucide="link" class="w-5 h-5"></i> ${t('settings.connect_drive')}
+                            <p class="text-xs text-muted-foreground">
+                                Selecciona una carpeta local para sincronizar tus notas. Ideal para usar con servicios de nube como Dropbox o OneDrive.
+                            </p>
+
+                            <button id="connect-folder-btn" class="btn-shad btn-shad-outline w-full h-12 flex items-center justify-center gap-2 text-base rounded-xl">
+                                <i data-lucide="folder-plus" class="w-5 h-5"></i> ${t('settings.connect_folder')}
                             </button>
 
-                            <div class="space-y-3 pt-4 border-t border-dashed">
-                                <label class="text-sm font-medium">${t('settings.drive_folder')}</label>
-                                <input type="text" id="config-drive-path" class="h-12 px-5 w-full rounded-xl" placeholder="p.ej. CloudNotesV3" autocomplete="off">
-                                <p class="text-xs text-muted-foreground">${t('settings.drive_folder_hint')}</p>
-                            </div>
-                            <div class="space-y-3">
-                                <label class="text-sm font-medium">Google Client Secret (Optional/PKCE)</label>
-                                <div class="relative">
-                                    <input type="password" id="config-client-secret" class="h-12 px-5 w-full rounded-xl" placeholder="••••••••••••••••••••" autocomplete="off">
-                                    <button class="absolute right-4 top-1/2 -translate-y-1/2 toggle-pass" data-target="config-client-secret">
-                                        <i data-lucide="eye" class="w-4 h-4 text-muted-foreground"></i>
-                                    </button>
-                                </div>
-                                <p class="text-[10px] text-muted-foreground leading-relaxed">
-                                    Google requiere el secreto para intercambiar tokens en aplicaciones web. Se guardará solo localmente en tu navegador.
+
+                            <div class="pt-6 border-t border-dashed space-y-4">
+                                <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Migración (v3 a v4)</h3>
+                                <p class="text-[10px] text-muted-foreground">
+                                    Si tienes un backup (.cnb) de la versión anterior, úsalo aquí para migrar tus notas a la nueva estructura de carpetas.
                                 </p>
+                                <label class="btn-shad btn-shad-primary w-full h-12 flex items-center justify-center gap-2 rounded-xl text-sm cursor-pointer shadow-lg shadow-primary/20">
+                                    <i data-lucide="import" class="w-4 h-4"></i> Importar Backup (.cnb)
+                                    <input type="file" id="migrate-cnb-input" class="hidden" accept=".cnb">
+                                </label>
                             </div>
-                            <div class="space-y-3">
-                                <label class="text-sm font-medium">${t('settings.notes_per_chunk')}</label>
-                                <div class="flex items-center gap-3">
-                                    <input type="number" id="config-notes-per-chunk" class="h-12 px-5 w-full rounded-xl" placeholder="50" min="10" max="500">
-                                    <span class="text-xs text-muted-foreground shrink-0 font-bold uppercase">Notas</span>
-                                </div>
-                            </div>
-                            <button id="save-sync-config" class="btn-shad btn-shad-primary w-full h-14 text-lg font-bold rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-95">${t('settings.save_changes')}</button>
                         </section>
                     </div>
 
@@ -197,14 +192,18 @@ export function getSettingsTemplate() {
                         </section>
                         
                         <section class="space-y-4 pt-4 border-t">
-                            <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">${t('settings.session_security')}</h3>
-                            <div class="p-6 rounded-2xl border bg-muted/20 space-y-4">
-                                <p class="text-sm text-muted-foreground">${t('settings.logout_hint')}</p>
-                                <button id="logout-btn" class="btn-shad bg-destructive/10 text-destructive hover:bg-destructive hover:text-white w-full h-14 md:h-12 flex items-center justify-center gap-3 transition-all rounded-2xl text-lg font-bold">
-                                    <i data-lucide="log-out" class="w-6 h-6 md:w-5 md:h-5"></i> ${t('settings.logout')}
-                                </button>
-                            </div>
+                            <label for="config-app-lock" class="flex items-center justify-between cursor-pointer group">
+                                <div>
+                                    <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">${t('settings.app_lock')}</h3>
+                                    <p class="text-[10px] text-muted-foreground">${t('settings.app_lock_hint')}</p>
+                                </div>
+                                <div class="relative inline-flex items-center pointer-events-none">
+                                    <input type="checkbox" id="config-app-lock" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </div>
+                            </label>
                         </section>
+
                         
                         <section class="space-y-4 pt-4 border-t">
                             <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">${t('settings.encryption')}</h3>
@@ -318,6 +317,138 @@ export function initSettings() {
         tabs.forEach(t => t.classList.remove('active'));
     } else {
         updateView('appearance');
+    }
+
+    // --- Sync Panel Logic ---
+    const updateFolderStatus = async () => {
+        const { FileStorage } = await import('../file-storage.js');
+        const handle = await FileStorage.getHandle(false);
+        const statusEl = document.getElementById('folder-status');
+        const connectBtn = document.getElementById('connect-folder-btn');
+
+        if (statusEl) {
+            if (handle) {
+                statusEl.innerText = t('settings.sync_status.connected').toUpperCase();
+                statusEl.classList.replace('bg-muted', 'bg-emerald-500/20');
+                statusEl.classList.replace('text-muted-foreground', 'text-emerald-500');
+                if (connectBtn) {
+                    connectBtn.innerHTML = `<i data-lucide="folder-check" class="w-5 h-5"></i> Cambiar Carpeta`;
+                    safeCreateIcons();
+                }
+            } else {
+                statusEl.innerText = t('settings.sync_status.disconnected').toUpperCase();
+                statusEl.classList.remove('bg-emerald-500/20', 'text-emerald-500');
+                statusEl.classList.add('bg-muted', 'text-muted-foreground');
+            }
+        }
+    };
+
+    updateFolderStatus();
+
+    const connectFolderBtn = document.getElementById('connect-folder-btn');
+    if (connectFolderBtn) {
+        connectFolderBtn.onclick = async () => {
+            const { FileStorage } = await import('../file-storage.js');
+            const { state, saveLocal } = await import('../state.js');
+            const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
+            try {
+                await FileStorage.connectFolder();
+                updateFolderStatus();
+                showToast('✅ Carpeta conectada');
+
+                // If app is empty, try to pull immediately
+                if (state.notes.length === 0) {
+                    showToast('📥 Recuperando notas de la carpeta...');
+                    const result = await FileStorage.pullData(vaultKey);
+                    if (result && result.notes.length > 0) {
+                        state.notes = result.notes;
+                        state.categories = result.categories || [];
+                        await saveLocal();
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                }
+            } catch (e) {
+                showToast('❌ No se pudo conectar');
+            }
+        };
+    }
+
+    // Theme Selection Logic
+    const themeLight = document.getElementById('theme-light');
+    const themeDark = document.getElementById('theme-dark');
+
+    const updateThemeUI = () => {
+        const currentTheme = state.settings.theme;
+        if (themeLight) themeLight.classList.toggle('ring-2', currentTheme === 'light');
+        if (themeDark) themeDark.classList.toggle('ring-2', currentTheme === 'dark');
+    };
+    updateThemeUI();
+
+    if (themeLight) themeLight.onclick = () => {
+        state.settings.theme = 'light';
+        document.documentElement.classList.remove('dark');
+        saveLocal();
+        updateThemeUI();
+    };
+    if (themeDark) themeDark.onclick = () => {
+        state.settings.theme = 'dark';
+        document.documentElement.classList.add('dark');
+        saveLocal();
+        updateThemeUI();
+    };
+
+    // Factory Reset Logic
+    const resetInput = document.getElementById('factory-reset-confirm');
+    const resetBtn = document.getElementById('factory-reset');
+    if (resetInput && resetBtn) {
+        resetBtn.disabled = true;
+        resetInput.oninput = () => {
+            resetBtn.disabled = resetInput.value !== t('settings.reset_keyword');
+        };
+        resetBtn.onclick = async () => {
+            if (confirm(t('settings.reset_warning'))) {
+                localStorage.clear();
+                sessionStorage.clear();
+                // Clear IndexedDB
+                const dbs = await window.indexedDB.databases();
+                dbs.forEach(db => window.indexedDB.deleteDatabase(db.name));
+                window.location.reload();
+            }
+        };
+    }
+
+    const migrateInput = document.getElementById('migrate-cnb-input');
+    if (migrateInput) {
+        migrateInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const { FileStorage } = await import('../file-storage.js');
+            const { state, saveLocal } = await import('../state.js');
+            const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
+
+            try {
+                showToast('⚡ Migrando datos...');
+                const data = await FileStorage.migrateFromCNB(file, vaultKey);
+                state.notes = data.notes;
+                state.categories = data.categories || [];
+                await saveLocal();
+                showToast('✅ Migración completa. Recargando...');
+                setTimeout(() => location.reload(), 1500);
+            } catch (err) {
+                showToast('❌ Error en la migración: ' + err.message);
+            }
+        };
+    }
+
+    // Logout
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.onclick = () => {
+            if (confirm(t('settings.logout_hint'))) {
+                window.handleLogout();
+            }
+        };
     }
 
     // Force Reload Logic
@@ -556,6 +687,18 @@ export function initSettings() {
 
     // Initial render of backups when panel might be visible
     document.querySelector('[data-tab="backups"]').addEventListener('click', renderLocalBackups);
+
+    // App Lock Toggle Logic
+    const appLockToggle = document.getElementById('config-app-lock');
+    if (appLockToggle) {
+        // Default to true if not set
+        const isLocked = localStorage.getItem(KEYS.APP_LOCK) !== 'false';
+        appLockToggle.checked = isLocked;
+
+        appLockToggle.onchange = () => {
+            localStorage.setItem(KEYS.APP_LOCK, appLockToggle.checked);
+        };
+    }
 }
 
 export async function handleForceReload() {

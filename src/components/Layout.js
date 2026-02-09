@@ -53,9 +53,8 @@ export function getLayoutTemplate() {
                         <span class="sidebar-label">${t('sidebar.settings')}</span>
                     </div>
                 </button>
-                <!-- Version -->
                 <div class="pt-3 border-t border-border/10 px-3">
-                    <div id="app-version" class="text-[8px] text-muted-foreground font-mono opacity-40">v3.6.0</div>
+                    <div id="app-version" class="text-[8px] text-muted-foreground font-mono opacity-40">v4.0.0</div>
                 </div>
             </div>
         </aside>
@@ -155,7 +154,7 @@ export function getLayoutTemplate() {
                     <div class="pt-3 border-t space-y-2">
                         <div class="flex items-center justify-between px-2">
                             <span class="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/40">${t('sidebar.system')}</span>
-                            <span id="mobile-app-version" class="text-[8px] font-bold font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">v3.6.0</span>
+                            <span id="mobile-app-version" class="text-[8px] font-bold font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">v4.0.0</span>
                         </div>
                     </div>
                 </div>

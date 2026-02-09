@@ -1,6 +1,8 @@
-
 import { state } from '../state.js';
-import { safeCreateIcons } from '../ui-utils.js';
+import { safeCreateIcons, openPrompt, showToast } from '../ui-utils.js';
+import { SecurityService as Security } from '../security.js';
+import { t } from '../i18n.js';
+import { KEYS } from '../constants.js';
 
 export class EditorUI {
     static updateCategoryUI() {
@@ -9,7 +11,7 @@ export class EditorUI {
         const labelEl = document.getElementById('selected-cat-label');
         const iconEl = document.getElementById('selected-cat-icon');
 
-        if (labelEl) labelEl.innerText = cat ? cat.name : 'Sin categoría';
+        if (labelEl) labelEl.innerText = cat ? cat.name : t('categories.no_category');
         if (iconEl) {
             iconEl.setAttribute('data-lucide', cat ? (cat.icon || 'tag') : 'tag');
             iconEl.setAttribute('class', cat ? 'w-3.5 h-3.5 text-primary' : 'w-3.5 h-3.5 text-muted-foreground/60');
@@ -34,17 +36,55 @@ export class EditorUI {
                 </div>
                 ${currentCatId === id ? '<i data-lucide="check" class="w-4 h-4 text-primary"></i>' : ''}
             `;
-            div.onclick = (e) => {
+            div.onclick = async (e) => {
                 e.stopPropagation();
-                document.getElementById('edit-category').value = id;
+
+                // 1. Clear UI state immediately
+                this.hidePopovers();
+
+                const cat = state.categories.find(c => c.id === id);
+                if (cat && cat.passwordHash && !state.unlockedCategories.has(id)) {
+                    const result = await openPrompt(t('common.restricted_access'), `${t('common.enter_cat_pass')} "${name}":`, true);
+                    if (!result) return;
+
+                    let isValid = false;
+                    if (typeof result === 'object' && result.biometric) {
+                        isValid = true;
+                    } else {
+                        const hash = await Security.hash(result);
+                        const targetHash = cat.passwordHash === 'MASTER' ? localStorage.getItem(KEYS.MASTER_HASH) : cat.passwordHash;
+                        if (hash === targetHash) {
+                            isValid = true;
+                        }
+                    }
+
+                    if (isValid) {
+                        state.unlockedCategories.add(id);
+                    } else {
+                        return showToast(t('auth.incorrect_pass'));
+                    }
+                }
+
+                const select = document.getElementById('edit-category');
+                if (select) {
+                    select.value = id;
+                    select.dispatchEvent(new Event('change'));
+                }
                 this.updateCategoryUI();
                 this.hidePopovers();
-                if (onSelect) onSelect(id);
+
+                // Delay triggers to ensure UI stability
+                setTimeout(() => {
+                    if (onSelect) onSelect(id);
+                    if (window.saveActiveNoteDraft) window.saveActiveNoteDraft();
+                    // Force hide again just in case
+                    this.hidePopovers();
+                }, 50);
             };
             container.appendChild(div);
         };
 
-        addOption('', 'Sin categoría', 'tag');
+        addOption('', t('categories.no_category'), 'tag');
         state.categories.forEach((c, index) => addOption(c.id, c.name, c.icon, index + 1));
         safeCreateIcons();
     }
