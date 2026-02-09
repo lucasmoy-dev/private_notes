@@ -87,17 +87,32 @@ export class FileStorage {
         if (!handle) return null;
 
         const options = { mode: 'readwrite' };
-        if ((await handle.queryPermission(options)) === 'granted') {
+        let permission = await handle.queryPermission(options);
+
+        if (permission === 'granted') {
             return handle;
         }
 
         if (requestPermission) {
-            if ((await handle.requestPermission(options)) === 'granted') {
+            permission = await handle.requestPermission(options);
+            if (permission === 'granted') {
                 return handle;
             }
         }
 
         return null;
+    }
+
+    static async getHandleStatus() {
+        const handle = await this._getHandle();
+        if (!handle) return { hasHandle: false, permission: 'none' };
+
+        try {
+            const permission = await handle.queryPermission({ mode: 'readwrite' });
+            return { hasHandle: true, permission };
+        } catch (e) {
+            return { hasHandle: true, permission: 'denied' };
+        }
     }
 
     /**

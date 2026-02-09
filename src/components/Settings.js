@@ -319,24 +319,41 @@ export function initSettings() {
     // --- Sync Panel Logic ---
     const updateFolderStatus = async () => {
         const { FileStorage } = await import('../file-storage.js');
-        const handle = await FileStorage.getHandle(false);
+        const status = await FileStorage.getHandleStatus();
         const statusEl = document.getElementById('folder-status');
         const connectBtn = document.getElementById('connect-folder-btn');
 
         if (statusEl) {
-            if (handle) {
+            if (status.permission === 'granted') {
                 statusEl.innerText = t('settings.sync_status.connected').toUpperCase();
                 statusEl.classList.replace('bg-muted', 'bg-emerald-500/20');
                 statusEl.classList.replace('text-muted-foreground', 'text-emerald-500');
                 if (connectBtn) {
                     connectBtn.innerHTML = `<i data-lucide="folder-check" class="w-5 h-5"></i> Cambiar Carpeta`;
-                    safeCreateIcons();
+                    connectBtn.classList.remove('btn-shad-primary');
+                    connectBtn.classList.add('btn-shad-outline');
+                }
+            } else if (status.hasHandle) {
+                // We have the handle but need permission (Mobile common case)
+                statusEl.innerText = "PERMISO REQUERIDO";
+                statusEl.classList.remove('bg-emerald-500/20', 'text-emerald-500');
+                statusEl.classList.add('bg-amber-500/20', 'text-amber-500');
+                if (connectBtn) {
+                    connectBtn.innerHTML = `<i data-lucide="unlock" class="w-5 h-5"></i> Reactivar Sincronización`;
+                    connectBtn.classList.remove('btn-shad-outline');
+                    connectBtn.classList.add('btn-shad-primary');
                 }
             } else {
                 statusEl.innerText = t('settings.sync_status.disconnected').toUpperCase();
-                statusEl.classList.remove('bg-emerald-500/20', 'text-emerald-500');
+                statusEl.classList.remove('bg-emerald-500/20', 'text-emerald-500', 'bg-amber-500/20', 'text-amber-500');
                 statusEl.classList.add('bg-muted', 'text-muted-foreground');
+                if (connectBtn) {
+                    connectBtn.innerHTML = `<i data-lucide="folder-plus" class="w-5 h-5"></i> ${t('settings.connect_folder')}`;
+                    connectBtn.classList.remove('btn-shad-primary');
+                    connectBtn.classList.add('btn-shad-outline');
+                }
             }
+            safeCreateIcons();
         }
     };
 
@@ -347,10 +364,22 @@ export function initSettings() {
         connectFolderBtn.onclick = async () => {
             const { FileStorage } = await import('../file-storage.js');
             const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
+            const status = await FileStorage.getHandleStatus();
+
             try {
-                await FileStorage.connectFolder();
+                if (status.hasHandle && status.permission !== 'granted') {
+                    // Just request permission for the existing handle
+                    const handle = await FileStorage.getHandle(true);
+                    if (handle) {
+                        showToast('✅ Sincronización reactivada');
+                    }
+                } else {
+                    // Connect new folder
+                    await FileStorage.connectFolder();
+                    showToast('✅ Carpeta conectada');
+                }
+
                 updateFolderStatus();
-                showToast('✅ Carpeta conectada');
 
                 // If app is empty, try to pull immediately
                 if (state.notes.length === 0) {
@@ -364,7 +393,8 @@ export function initSettings() {
                     }
                 }
             } catch (e) {
-                showToast('❌ No se pudo conectar');
+                console.error(e);
+                showToast('❌ Error al conectar');
             }
         };
     }

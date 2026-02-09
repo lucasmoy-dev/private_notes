@@ -26,6 +26,13 @@ async function initApp() {
     // Init I18n first
     initI18n();
 
+    // Request persistent storage if available
+    if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().then(persistent => {
+            if (persistent) console.log("[Storage] Persistence granted");
+        });
+    }
+
     // 0. Migration - Before anything else
     migrateLegacyStorage();
 

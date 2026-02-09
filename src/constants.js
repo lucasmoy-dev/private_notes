@@ -1,4 +1,4 @@
-export const APP_VERSION = 'v3.6.132';
+export const APP_VERSION = 'v3.6.133';
 export const APP_NAME = 'private-notes';
 export const STORAGE_PREFIX = APP_NAME + '/';
 
