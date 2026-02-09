@@ -71,9 +71,6 @@ export function getLayoutTemplate() {
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button id="sync-btn" class="p-1.5 hover:bg-accent rounded-md text-muted-foreground transition-colors" title="${t('header.sync')}">
-                        <i data-lucide="refresh-cw" class="w-4 h-4" id="sync-icon"></i>
-                    </button>
                     <button id="pwa-install-btn" class="p-1.5 hover:bg-accent rounded-md text-muted-foreground transition-colors hidden" title="${t('header.install')}">
                         <i data-lucide="download" class="w-4 h-4"></i>
                     </button>
@@ -108,11 +105,11 @@ export function getLayoutTemplate() {
                         <i data-lucide="plus" class="w-7 h-7"></i>
                     </div>
                 </button>
-                <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors" id="mobile-sync-btn-bottom">
-                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                </button>
                 <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors" id="mobile-search-trigger">
                     <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+                <button class="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground active:text-primary transition-colors" id="mobile-settings-btn-nav">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
                 </button>
             </nav>
         </main>

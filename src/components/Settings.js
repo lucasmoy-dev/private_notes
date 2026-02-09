@@ -106,20 +106,16 @@ export function getSettingsTemplate() {
                             </div>
                         </section>
 
-                        <section class="space-y-4 pt-4 border-t">
-                            <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">${t('settings.theme')}</h3>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button id="theme-light" class="flex flex-col items-center gap-1.5 p-2 rounded-xl border bg-card hover:bg-accent transition-all group">
-                                    <div class="w-full aspect-[2/1] bg-zinc-100 rounded-lg border flex items-center justify-center">
-                                         <div class="w-1/3 h-1 bg-zinc-300 rounded"></div>
-                                    </div>
-                                    <span class="text-[10px] font-bold uppercase tracking-tight">${t('settings.light')}</span>
+                        <section class="space-y-3 pt-4 border-t">
+                            <h3 class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">${t('settings.theme')}</h3>
+                            <div class="flex gap-2">
+                                <button id="theme-light" class="flex-1 h-9 rounded-lg border bg-card hover:bg-accent transition-all flex items-center justify-center gap-2 group ring-primary">
+                                    <div class="w-3 h-3 rounded-full bg-zinc-200 border border-zinc-300"></div>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider">${t('settings.light')}</span>
                                 </button>
-                                <button id="theme-dark" class="flex flex-col items-center gap-1.5 p-2 rounded-xl border bg-zinc-950 hover:bg-zinc-900 transition-all group ring-primary">
-                                    <div class="w-full aspect-[2/1] bg-zinc-800 rounded-lg border border-zinc-700 flex items-center justify-center">
-                                         <div class="w-1/3 h-1 bg-zinc-600 rounded"></div>
-                                    </div>
-                                    <span class="text-[10px] font-bold uppercase tracking-tight text-white">${t('settings.dark')}</span>
+                                <button id="theme-dark" class="flex-1 h-9 rounded-lg border bg-zinc-950 hover:bg-zinc-900 transition-all flex items-center justify-center gap-2 group ring-primary">
+                                    <div class="w-3 h-3 rounded-full bg-zinc-700 border border-zinc-600"></div>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-white">${t('settings.dark')}</span>
                                 </button>
                             </div>
                         </section>

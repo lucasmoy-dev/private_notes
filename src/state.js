@@ -16,7 +16,7 @@ export const state = {
     unlockedCategories: new Set()
 };
 
-export async function saveLocal() {
+export async function saveLocal(updatedNoteIds = null) {
     const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
     if (vaultKey) {
         // Clean up deleted notes older than 30 days
@@ -46,7 +46,7 @@ export async function saveLocal() {
 
         // Push to local folder if enabled
         if (state.settings.syncEnabled) {
-            FileStorage.pushData(state.notes, state.categories, vaultKey).catch(err => {
+            FileStorage.pushData(state.notes, state.categories, vaultKey, updatedNoteIds).catch(err => {
                 console.error('[Sync] Auto-push failed', err);
             });
         }

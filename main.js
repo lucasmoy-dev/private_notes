@@ -181,6 +181,7 @@ function setupGlobalEvents() {
         closeMobileSidebar();
         openSettings();
     });
+    bindClick('mobile-settings-btn-nav', openSettings);
     bindClick('sidebar-collapse-btn', () => {
         const sidebar = document.querySelector('aside');
         sidebar.classList.toggle('collapsed');

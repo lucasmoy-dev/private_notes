@@ -194,7 +194,7 @@ export function initEditor(onSave) {
             if (index >= 0) {
                 state.notes[index].deleted = true;
                 state.notes[index].updatedAt = Date.now();
-                await saveLocal();
+                await saveLocal([state.editingNoteId]);
                 closeEditor();
                 onSave();
                 window.triggerAutoSync?.();
@@ -275,7 +275,7 @@ export function initEditor(onSave) {
             const note = state.notes.splice(index, 1)[0];
             state.notes.unshift(note);
             note.updatedAt = Date.now();
-            await saveLocal();
+            await saveLocal([state.editingNoteId]);
             onSave();
             window.triggerAutoSync?.();
             showToast('✓ Nota movida al principio');
@@ -297,7 +297,7 @@ export function initEditor(onSave) {
             note.pinned = !note.pinned;
             note.updatedAt = Date.now();
             EditorUI.updatePinUI(note.pinned);
-            await saveLocal();
+            await saveLocal([state.editingNoteId]);
             onSave(); // Refresh background grid
             window.triggerAutoSync?.();
         }
@@ -313,7 +313,7 @@ export function initEditor(onSave) {
                 note.passwordHash = null;
                 note.updatedAt = Date.now();
                 EditorUI.updateLockUI(false);
-                await saveLocal();
+                await saveLocal([state.editingNoteId]);
                 onSave(); // Refresh background grid
                 window.triggerAutoSync?.();
                 showToast('🔓 Restricción eliminada');
@@ -324,7 +324,7 @@ export function initEditor(onSave) {
                 note.passwordHash = await Security.hash(pass);
                 note.updatedAt = Date.now();
                 EditorUI.updateLockUI(true);
-                await saveLocal();
+                await saveLocal([state.editingNoteId]);
                 onSave(); // Refresh background grid
                 window.triggerAutoSync?.();
                 showToast('🔒 Nota restringida');
@@ -405,7 +405,7 @@ export async function openEditor(note = null) {
         if (liveNote) {
             liveNote.categoryId = catId;
             liveNote.updatedAt = Date.now();
-            await saveLocal();
+            await saveLocal([state.editingNoteId]);
             EditorUI.updateCategoryUI();
             onSave(); // Refresh background grid
             window.triggerAutoSync?.();
@@ -485,7 +485,7 @@ export async function saveActiveNote(close = true) {
         state.notes.unshift(note);
     }
 
-    await saveLocal();
+    await saveLocal([state.editingNoteId]);
     localStorage.removeItem(KEYS.DRAFT); // Clear draft on successful manual save
     if (close) closeEditor();
 }

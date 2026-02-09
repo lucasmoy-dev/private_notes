@@ -101,15 +101,16 @@ export class FileStorage {
     }
 
     /**
-     * Save all data to the connected folder
+     * Save data to the connected folder. 
+     * If noteIds is provided, only those specific notes are written to disk.
      */
-    static async pushData(notes, categories, vaultKey) {
+    static async pushData(notes, categories, vaultKey, noteIds = null) {
         const handle = await this.getHandle(false);
         if (!handle) return;
 
-        console.log('[Storage] Pushing data to local folder...');
+        console.log(`[Storage] Pushing data to local folder (Partial: ${!!noteIds})...`);
 
-        // 1. Save Meta/Index
+        // 1. Save Meta/Index (Always update metadata to keep index/categories consistent)
         const indexData = notes.map((n, i) => ({
             id: n.id,
             folder: Math.floor(i / 500).toString().padStart(3, '0')
@@ -127,13 +128,20 @@ export class FileStorage {
         // 2. Save Notes
         const notesDir = await handle.getDirectoryHandle('notes', { create: true });
 
-        for (let i = 0; i < notes.length; i++) {
-            const note = notes[i];
-            const folderName = Math.floor(i / 500).toString().padStart(3, '0');
+        // Filter notes to write if specific IDs provided
+        const notesToPush = noteIds
+            ? notes.filter(n => noteIds.includes(n.id))
+            : notes;
+
+        for (const note of notesToPush) {
+            // We need to find the correct folder based on the GLOBAL index
+            const globalIndex = notes.findIndex(n => n.id === note.id);
+            if (globalIndex === -1) continue;
+
+            const folderName = Math.floor(globalIndex / 500).toString().padStart(3, '0');
             const subDir = await notesDir.getDirectoryHandle(folderName, { create: true });
 
-            // Encrypt both filename and content
-            const filename = await Security.hash(note.id); // Using hash for filename instead of reversible encryption to avoid issues with special chars
+            const filename = await Security.hash(note.id);
             const encryptedNote = await Security.encrypt(note, vaultKey);
 
             await this._writeFile(subDir, `${filename}.bin`, JSON.stringify(encryptedNote));
