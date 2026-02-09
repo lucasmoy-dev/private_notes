@@ -313,6 +313,31 @@ function setupGlobalEvents() {
         });
     });
 
+    // Auth Maintenance Actions
+    bindClick('auth-options-toggle', () => {
+        const menu = document.getElementById('auth-maintenance-menu');
+        if (menu) menu.classList.toggle('hidden');
+    });
+
+    bindClick('auth-reload-btn', handleForceReload);
+
+    bindClick('auth-reset-btn', async () => {
+        if (confirm(t('settings.reset_warning'))) {
+            const keyword = t('settings.reset_keyword');
+            const userConfirm = prompt(t('settings.reset_confirm_label'));
+            if (userConfirm === keyword) {
+                localStorage.clear();
+                sessionStorage.clear();
+                // Clear IndexedDB
+                if (window.indexedDB.databases) {
+                    const dbs = await window.indexedDB.databases();
+                    dbs.forEach(db => window.indexedDB.deleteDatabase(db.name));
+                }
+                location.reload();
+            }
+        }
+    });
+
     const resetConfirmInput = document.getElementById('factory-reset-confirm');
     const resetBtn = document.getElementById('factory-reset');
 

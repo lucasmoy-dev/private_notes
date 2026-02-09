@@ -42,10 +42,20 @@ export function getAuthShieldTemplate() {
                      <i data-lucide="fingerprint" class="w-4 h-4"></i> <span id="bio-text" class="text-xs uppercase tracking-wide">${t('auth.use_bio')}</span>
                 </button>
 
-                <div id="auth-extra-actions" class="hidden pt-4 border-t border-border/50">
-                    <button id="auth-force-reload" class="flex items-center justify-center gap-2 w-full p-3 text-xs text-destructive bg-destructive/5 hover:bg-destructive/10 rounded-lg border border-destructive/10 transition-all font-medium">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ${t('auth.problems')}
+                <!-- Maintenance Options (Hidden by default) -->
+                <div class="pt-2">
+                    <button id="auth-options-toggle" class="w-full flex items-center justify-center gap-2 py-2 text-[10px] uppercase font-bold tracking-widest text-muted-foreground/50 hover:text-primary transition-all">
+                        <i data-lucide="wrench" class="w-3 h-3"></i> ${t('settings.maintenance')}
                     </button>
+                    
+                    <div id="auth-maintenance-menu" class="hidden space-y-2 mt-2 pt-3 border-t border-border/10">
+                        <button id="auth-reset-btn" class="w-full h-9 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-tight text-destructive hover:bg-destructive/10 rounded-lg transition-all">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ${t('settings.reset_app')}
+                        </button>
+                        <button id="auth-reload-btn" class="w-full h-9 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-tight text-muted-foreground hover:bg-muted rounded-lg transition-all">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ${t('sidebar.force_reload')}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
