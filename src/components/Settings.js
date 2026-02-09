@@ -1,3 +1,4 @@
+import { state, saveLocal } from '../state.js';
 import { safeCreateIcons, showToast, openPrompt } from '../ui-utils.js';
 import { t, currentLang, setLanguage } from '../i18n.js';
 import { KEYS } from '../constants.js';
@@ -349,7 +350,6 @@ export function initSettings() {
     if (connectFolderBtn) {
         connectFolderBtn.onclick = async () => {
             const { FileStorage } = await import('../file-storage.js');
-            const { state, saveLocal } = await import('../state.js');
             const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
             try {
                 await FileStorage.connectFolder();
@@ -424,7 +424,6 @@ export function initSettings() {
             if (!file) return;
 
             const { FileStorage } = await import('../file-storage.js');
-            const { state, saveLocal } = await import('../state.js');
             const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
 
             try {
