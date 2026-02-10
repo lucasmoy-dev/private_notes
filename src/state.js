@@ -8,7 +8,8 @@ export const state = {
     settings: {
         theme: 'dark',
         algo: 'aes-256-gcm',
-        syncEnabled: true
+        syncEnabled: true,
+        lastFolderUpdate: 0
     },
     currentView: 'all',
     editingNoteId: null,
@@ -46,7 +47,10 @@ export async function saveLocal(updatedNoteIds = null) {
 
         // Push to local folder if enabled
         if (state.settings.syncEnabled) {
-            FileStorage.pushData(state.notes, state.categories, vaultKey, updatedNoteIds).catch(err => {
+            FileStorage.pushData(state.notes, state.categories, vaultKey, updatedNoteIds).then(() => {
+                state.settings.lastFolderUpdate = Date.now();
+                localStorage.setItem(KEYS.SETTINGS, JSON.stringify(state.settings));
+            }).catch(err => {
                 console.error('[Sync] Auto-push failed', err);
             });
         }

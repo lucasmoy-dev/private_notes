@@ -209,6 +209,22 @@ export class FileStorage {
     }
 
     /**
+     * Get only the metadata from the folder
+     */
+    static async getMetadata(vaultKey) {
+        const handle = await this.getHandle(false);
+        if (!handle) return null;
+
+        try {
+            const metaFile = await handle.getFileHandle('metadata.bin');
+            const metaContent = await (await metaFile.getFile()).text();
+            return await Security.decrypt(JSON.parse(metaContent), vaultKey);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
      * Emergency scan of all subfolders to recover notes if index is lost
      */
     static async rebuildIndex(vaultKey) {

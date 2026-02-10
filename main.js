@@ -65,25 +65,10 @@ async function initApp() {
         const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
         if (vaultKey) {
             await restoreDraft(vaultKey);
+            await syncFolder(vaultKey);
 
-            // Auto-Sync from Folder if connected
-            try {
-                const { FileStorage } = await import('./src/file-storage.js');
-                const handle = await FileStorage.getHandle(false); // Check without prompt first
-                if (handle && state.notes.length === 0) {
-                    console.log('[Sync] Folder connected and app empty. Pulling data...');
-                    const result = await FileStorage.pullData(vaultKey);
-                    if (result && result.notes.length > 0) {
-                        state.notes = result.notes;
-                        state.categories = result.categories || [];
-                        await saveLocal();
-                        refreshUI();
-                        showToast('✅ Datos sincronizados desde la carpeta');
-                    }
-                }
-            } catch (e) {
-                console.warn('[Sync] Auto-pull failed', e);
-            }
+            // Periodic sync check every 5 minutes
+            setInterval(() => syncFolder(vaultKey), 5 * 60 * 1000);
         }
     });
     BackupService.runAutoBackup();
@@ -373,6 +358,9 @@ function setupGlobalEvents() {
                 if (lockEnabled) {
                     console.log("[Lock] App re-focused, locking...");
                     lockApp();
+                } else {
+                    // If not locking, at least check for folder updates
+                    syncFolder(vaultKey);
                 }
             }
         }
@@ -561,6 +549,40 @@ async function addCategory() {
     refreshUI();
 }
 
+
+async function syncFolder(vaultKey) {
+    if (!vaultKey) return;
+
+    try {
+        const { FileStorage } = await import('./src/file-storage.js');
+        const handle = await FileStorage.getHandle(false);
+        if (!handle) return;
+
+        // 1. Get Metadata from folder
+        const meta = await FileStorage.getMetadata(vaultKey);
+        if (!meta) return;
+
+        // 2. Decide if we need to pull
+        // If meta.updatedAt is newer than our last sync (with a small buffer for safety)
+        const folderTime = meta.updatedAt || 0;
+        const localTime = state.settings.lastFolderUpdate || 0;
+
+        if (folderTime > localTime + 1000 || state.notes.length === 0) {
+            console.log(`[Sync] Folder is newer (${folderTime} > ${localTime}). Pulling...`);
+            const result = await FileStorage.pullData(vaultKey);
+            if (result) {
+                state.notes = result.notes;
+                state.categories = result.categories || [];
+                state.settings.lastFolderUpdate = folderTime;
+                await saveLocal();
+                refreshUI();
+                showToast('✅ Notas actualizadas desde la carpeta');
+            }
+        }
+    } catch (e) {
+        console.warn('[Sync] Auto-check failed', e);
+    }
+}
 
 async function handleLogout() {
     localStorage.removeItem(KEYS.VAULT_KEY);
