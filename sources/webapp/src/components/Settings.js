@@ -326,8 +326,8 @@ export function initSettings() {
         const connectBtn = document.getElementById('connect-folder-btn');
 
         if (statusEl) {
-            if (status.permission === 'granted') {
-                statusEl.innerText = t('settings.sync_status.connected').toUpperCase();
+            if (status.permission === 'granted' && status.hasHandle) {
+                statusEl.innerText = (isCapacitor() ? status.folder : t('settings.sync_status.connected')).toUpperCase();
                 statusEl.classList.replace('bg-muted', 'bg-emerald-500/20');
                 statusEl.classList.replace('text-muted-foreground', 'text-emerald-500');
                 if (connectBtn) {
@@ -336,7 +336,7 @@ export function initSettings() {
                     connectBtn.classList.add('btn-shad-outline');
                 }
             } else if (status.hasHandle) {
-                // We have the handle but need permission (Mobile common case)
+                // We have the handle but need permission
                 statusEl.innerText = "PERMISO REQUERIDO";
                 statusEl.classList.remove('bg-emerald-500/20', 'text-emerald-500');
                 statusEl.classList.add('bg-amber-500/20', 'text-amber-500');
@@ -350,7 +350,7 @@ export function initSettings() {
                 statusEl.classList.remove('bg-emerald-500/20', 'text-emerald-500', 'bg-amber-500/20', 'text-amber-500');
                 statusEl.classList.add('bg-muted', 'text-muted-foreground');
                 if (connectBtn) {
-                    connectBtn.innerHTML = `<i data-lucide="folder-plus" class="w-5 h-5"></i> ${t('settings.connect_folder')}`;
+                    connectBtn.innerHTML = `<i data-lucide="${isCapacitor() ? 'smartphone' : 'folder-plus'}" class="w-5 h-5"></i> ${isCapacitor() ? 'Activar modo local' : t('settings.connect_folder')}`;
                     connectBtn.classList.remove('btn-shad-primary');
                     connectBtn.classList.add('btn-shad-outline');
                 }
@@ -365,11 +365,30 @@ export function initSettings() {
     if (connectFolderBtn) {
         connectFolderBtn.onclick = async () => {
             const { FileStorage } = await import('../file-storage.js');
+            const { showToast, openPrompt } = await import('../ui-utils.js');
             const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
             const status = await FileStorage.getHandleStatus();
 
             try {
-                if (status.hasHandle && status.permission !== 'granted') {
+                if (isCapacitor()) {
+                    // On mobile, if already "connected", maybe they want to change the folder name?
+                    if (status.hasHandle) {
+                        const newName = await openPrompt('Cambiar nombre de carpeta', 'Las notas se guardarán en Documents/[Nombre]', false);
+                        if (newName && newName.trim()) {
+                            await FileStorage.connectFolder(newName.trim());
+                            showToast(`✅ Carpeta cambiada a: ${newName.trim()}`);
+                            updateFolderStatus();
+                            return;
+                        } else {
+                            // If user cancels or enters empty name, just update status and return
+                            updateFolderStatus();
+                            return;
+                        }
+                    } else {
+                        await FileStorage.connectFolder();
+                        showToast('✅ Carpeta "PrivateNotes" vinculada');
+                    }
+                } else if (status.hasHandle && status.permission !== 'granted') {
                     // Just request permission for the existing handle
                     const handle = await FileStorage.getHandle(true);
                     if (handle) {
@@ -378,7 +397,7 @@ export function initSettings() {
                 } else {
                     // Connect new folder
                     await FileStorage.connectFolder();
-                    showToast(isCapacitor() ? '✅ Carpeta "PrivateNotes" vinculada' : '✅ Carpeta conectada');
+                    showToast('✅ Carpeta conectada');
                 }
 
                 updateFolderStatus();

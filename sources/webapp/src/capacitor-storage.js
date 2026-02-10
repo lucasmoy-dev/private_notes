@@ -1,10 +1,19 @@
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { SecurityService as Security } from './security.js';
 
-const BASE_DIR = 'PrivateNotes';
+const DEFAULT_BASE_DIR = 'PrivateNotes';
 
 export class CapacitorFileStorage {
-    static async connectFolder() {
+    static getBaseDir() {
+        return localStorage.getItem(KEYS.LOCAL_SYNC_FOLDER) || DEFAULT_BASE_DIR;
+    }
+
+    static async connectFolder(folderName = null) {
+        if (folderName) {
+            localStorage.setItem(KEYS.LOCAL_SYNC_FOLDER, folderName);
+        }
+        const BASE_DIR = this.getBaseDir();
+
         try {
             // Check and request permissions
             const status = await Filesystem.requestPermissions();
@@ -28,11 +37,11 @@ export class CapacitorFileStorage {
                     });
                 } catch (statError) {
                     console.error('[Capacitor] mkdir failed and stat failed', e, statError);
-                    throw new Error('No se pudo crear ni acceder a la carpeta PrivateNotes.');
+                    throw new Error(`No se pudo acceder a la carpeta "${BASE_DIR}".`);
                 }
             }
 
-            return { capacitor: true };
+            return { capacitor: true, folder: BASE_DIR };
         } catch (e) {
             console.error('[Capacitor] Connection failed', e);
             throw e;
@@ -40,19 +49,26 @@ export class CapacitorFileStorage {
     }
 
     static async getHandleStatus() {
+        const BASE_DIR = this.getBaseDir();
+        // If the user hasn't explicitly clicked "Connect" ever, we don't want to show "Connected" 
+        // even if the folder exists by chance. 
+        const isEnabled = localStorage.getItem(KEYS.LOCAL_SYNC_FOLDER) !== null;
+        if (!isEnabled) return { hasHandle: false, permission: 'none' };
+
         try {
             await Filesystem.stat({
                 path: BASE_DIR,
                 directory: Directory.Documents
             });
-            return { hasHandle: true, permission: 'granted' };
+            return { hasHandle: true, permission: 'granted', folder: BASE_DIR };
         } catch (e) {
-            return { hasHandle: false, permission: 'none' };
+            return { hasHandle: false, permission: 'none', folder: BASE_DIR };
         }
     }
 
     static async pushData(notes, categories, vaultKey, noteIds = null) {
-        console.log(`[Capacitor] Pushing data (Partial: ${!!noteIds})...`);
+        const BASE_DIR = this.getBaseDir();
+        console.log(`[Capacitor] Pushing data to ${BASE_DIR} (Partial: ${!!noteIds})...`);
 
         // 1. Save Meta/Index
         const indexData = notes.map((n, i) => ({
@@ -104,10 +120,11 @@ export class CapacitorFileStorage {
     }
 
     static async pullData(vaultKey) {
+        const BASE_DIR = this.getBaseDir();
         try {
             // Check if directory exists and metadata exists
             try {
-                const stat = await Filesystem.stat({
+                await Filesystem.stat({
                     path: `${BASE_DIR}/metadata.bin`,
                     directory: Directory.Documents
                 });
@@ -154,6 +171,7 @@ export class CapacitorFileStorage {
     }
 
     static async getMetadata(vaultKey) {
+        const BASE_DIR = this.getBaseDir();
         try {
             const metaContent = await Filesystem.readFile({
                 path: `${BASE_DIR}/metadata.bin`,
@@ -167,11 +185,16 @@ export class CapacitorFileStorage {
     }
 
     static async _writeFile(name, content) {
+        const BASE_DIR = this.getBaseDir();
         await Filesystem.writeFile({
             path: `${BASE_DIR}/${name}`,
             data: content,
             directory: Directory.Documents,
             encoding: Encoding.UTF8
         });
+    }
+
+    static async setFolder(name) {
+        localStorage.setItem(KEYS.LOCAL_SYNC_FOLDER, name);
     }
 }

@@ -1,7 +1,7 @@
 # Script to build Android APK using Docker
 Param($Version = "latest")
 
-Write-Host "=== Compilador Android PRO (Docker Mode) ===" -ForegroundColor Cyan
+Write-Host "=== Android Release Builder (Docker Mode) ===" -ForegroundColor Cyan
 
 $rootPath = Get-Location
 $webappPath = Join-Path $rootPath "sources/webapp"
@@ -9,20 +9,20 @@ $mobilePath = Join-Path $rootPath "sources/mobile"
 $releasesPath = Join-Path $rootPath "releases"
 $apkPathInAndroid = Join-Path $mobilePath "android/app/build/outputs/apk/debug/app-debug.apk"
 
-# 1. Limpieza de APK antigua
+# 1. Clean old APK
 if (Test-Path $apkPathInAndroid) { Remove-Item -Force $apkPathInAndroid }
 
-# 2. Compilar App Web
-Write-Host "`n[1/4] Compilando Aplicación Web..." -ForegroundColor Yellow
+# 2. Build WebApp
+Write-Host "`n[1/4] Building Web Application..." -ForegroundColor Yellow
 Set-Location $webappPath
 npm run build
-if ($LASTEXITCODE -ne 0) { Write-Host "❌ Error en build web"; Set-Location $rootPath; exit 1 }
+if ($LASTEXITCODE -ne 0) { Write-Host "❌ Error in web build"; Set-Location $rootPath; exit 1 }
 
-# 3. Sincronizar con Capacitor e Iconos
-Write-Host "`n[2/4] Sincronizando con Capacitor..." -ForegroundColor Yellow
+# 3. Sync with Capacitor and Assets
+Write-Host "`n[2/4] Syncing with Capacitor..." -ForegroundColor Yellow
 Set-Location $mobilePath
 
-# Asegurar que los assets de origen existen para iconos
+# Ensure source assets exist for icons
 if (!(Test-Path "assets/icon.png")) {
     if (!(Test-Path "assets")) { New-Item -ItemType Directory -Path "assets" }
     Copy-Item "$webappPath/public/favicon.png" "assets/icon.png"
@@ -30,20 +30,20 @@ if (!(Test-Path "assets/icon.png")) {
     Copy-Item "$webappPath/public/favicon.png" "assets/splash-dark.png"
 }
 
-# Verificar si existe la plataforma Android
+# Verify if Android platform exists
 if (!(Test-Path "android")) {
-    Write-Host "Inicializando plataforma Android..." -ForegroundColor Cyan
+    Write-Host "Initializing Android platform..." -ForegroundColor Cyan
     npx cap add android
 }
 
 npx capacitor-assets generate --android
 npx cap sync android
-if ($LASTEXITCODE -ne 0) { Write-Host "❌ Error en sync"; Set-Location $rootPath; exit 1 }
+if ($LASTEXITCODE -ne 0) { Write-Host "❌ Error in sync"; Set-Location $rootPath; exit 1 }
 
-# 4. Compilar APK con Docker
-Write-Host "`n[3/4] Compilando APK en Docker..." -ForegroundColor Yellow
+# 4. Compile APK with Docker
+Write-Host "`n[3/4] Compiling APK in Docker..." -ForegroundColor Yellow
 
-# Renombrar local.properties para evitar que Docker lo use (contiene rutas de Windows)
+# Rename local.properties to avoid Docker using it (contains Windows paths)
 $localProp = Join-Path $mobilePath "android/local.properties"
 $localPropBak = Join-Path $mobilePath "android/local.properties.bak"
 if (Test-Path $localProp) {
@@ -56,20 +56,20 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Docker build failed" }
 }
 catch {
-    Write-Host "❌ Error crítico: La compilación en Docker falló." -ForegroundColor Red
+    Write-Host "❌ Critical Error: Docker compilation failed." -ForegroundColor Red
     if (Test-Path $localPropBak) { Rename-Item -Path $localPropBak -NewName "local.properties" -Force }
     Set-Location $rootPath
     exit 1
 }
 finally {
-    # Restaurar local.properties
+    # Restore local.properties
     if (Test-Path $localPropBak) {
         Rename-Item -Path $localPropBak -NewName "local.properties" -Force
     }
 }
 
-# 5. Finalizar y Copiar
-Write-Host "`n[4/4] Verificando resultado..." -ForegroundColor Yellow
+# 5. Finalize and Copy
+Write-Host "`n[4/4] Verifying result..." -ForegroundColor Yellow
 if (Test-Path $apkPathInAndroid) {
     if (!(Test-Path $releasesPath)) { New-Item -ItemType Directory -Path $releasesPath }
     
@@ -77,11 +77,11 @@ if (Test-Path $apkPathInAndroid) {
     Copy-Item $apkPathInAndroid (Join-Path $releasesPath $finalName)
     Copy-Item $apkPathInAndroid (Join-Path $releasesPath "private-notes-latest.apk")
     
-    Write-Host "`n✅ ¡APK Generada con éxito!" -ForegroundColor Green
-    Write-Host "Archivo: $finalName" -ForegroundColor White
+    Write-Host "`n✅ APK Generated successfully!" -ForegroundColor Green
+    Write-Host "File: $finalName" -ForegroundColor White
 }
 else {
-    Write-Host "❌ Error: No se encontró la APK generada." -ForegroundColor Red
+    Write-Host "❌ Error: Generated APK not found." -ForegroundColor Red
     Set-Location $rootPath
     exit 1
 }

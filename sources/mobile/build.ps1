@@ -1,46 +1,46 @@
-# Script para compilar APK - Requiere Android Studio
+# APK Build Script - Requires Android Studio
 
-Write-Host "=== Compilador de APK para Private Notes ===" -ForegroundColor Cyan
+Write-Host "=== Private Notes APK Builder ===" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. Compilar webapp
-Write-Host "[1/3] Compilando aplicación web..." -ForegroundColor Yellow
+# 1. Build WebApp
+Write-Host "[1/3] Building web application..." -ForegroundColor Yellow
 Set-Location ..
 npm run build
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Error al compilar la webapp" -ForegroundColor Red
+    Write-Host "❌ Error building webapp" -ForegroundColor Red
     exit 1
 }
 
-# 2. Sincronizar con Capacitor
-Write-Host "[2/3] Sincronizando con Capacitor..." -ForegroundColor Yellow
+# 2. Sync with Capacitor
+Write-Host "[2/3] Syncing with Capacitor..." -ForegroundColor Yellow
 Set-Location mobile
 npx cap copy
 npx cap sync android
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Error al sincronizar con Capacitor" -ForegroundColor Red
+    Write-Host "❌ Error syncing with Capacitor" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "✅ Sincronización completada" -ForegroundColor Green
+Write-Host "✅ Sync completed" -ForegroundColor Green
 Write-Host ""
-Write-Host "=== SIGUIENTE PASO ===" -ForegroundColor Cyan
+Write-Host "=== NEXT STEP ===" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Para generar la APK, abre Android Studio y:" -ForegroundColor White
-Write-Host "  1. File > Open > Selecciona: $PWD\android" -ForegroundColor Gray
-Write-Host "  2. Espera a que Gradle sincronice" -ForegroundColor Gray
+Write-Host "To generate the APK, open Android Studio and:" -ForegroundColor White
+Write-Host "  1. File > Open > Select: $PWD\android" -ForegroundColor Gray
+Write-Host "  2. Wait for Gradle sync" -ForegroundColor Gray
 Write-Host "  3. Build > Build Bundle(s) / APK(s) > Build APK(s)" -ForegroundColor Gray
 Write-Host ""
-Write-Host "La APK se generará en:" -ForegroundColor White
+Write-Host "The APK will be generated at:" -ForegroundColor White
 Write-Host "  $PWD\android\app\build\outputs\apk\debug\app-debug.apk" -ForegroundColor Gray
 Write-Host ""
 
-# Intentar abrir Android Studio si está instalado
+# Try to open Android Studio if installed
 $studioPath = "C:\Program Files\Android\Android Studio\bin\studio64.exe"
 if (Test-Path $studioPath) {
-    Write-Host "¿Abrir Android Studio ahora? (S/N): " -NoNewline -ForegroundColor Yellow
+    Write-Host "Open Android Studio now? (Y/N): " -NoNewline -ForegroundColor Yellow
     $response = Read-Host
-    if ($response -eq "S" -or $response -eq "s") {
+    if ($response -eq "Y" -or $response -eq "y") {
         Start-Process $studioPath -ArgumentList "$PWD\android"
     }
 }

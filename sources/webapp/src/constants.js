@@ -1,4 +1,4 @@
-export const APP_VERSION = 'v3.6.140';
+export const APP_VERSION = 'v3.6.141';
 export const APP_NAME = 'private-notes';
 export const STORAGE_PREFIX = APP_NAME + '/';
 
@@ -20,7 +20,8 @@ export const KEYS = {
     THEME: STORAGE_PREFIX + 'theme_v3',
     DRAFT: STORAGE_PREFIX + 'draft_v3',
     APP_LOCK: STORAGE_PREFIX + 'app_lock',
-    DIRECTORY_HANDLE: STORAGE_PREFIX + 'directory_handle'
+    DIRECTORY_HANDLE: STORAGE_PREFIX + 'directory_handle',
+    LOCAL_SYNC_FOLDER: STORAGE_PREFIX + 'local_sync_folder'
 };
 
 export const NOTE_THEMES = [
@@ -52,6 +53,7 @@ export const PALETTE = [
 
 export const EMOJIS = ["😊", "😂", "🥰", "😎", "🤔", "😴", "🔥", "✨", "🚀", "🎉", "❤️", "👍", "💡", "📅", "✅", "❌", "🔒", "🔑", "📌", "🎨", "📁", "🏠", "🌟", "🌍", "💻", "📱", "🍎", "🍕", "🍺", "🌈", "☀️", "🌙", "⚡", "💎", "🎁", "🎈", "🎵", "📷", "🔍", "🛸", "👾", "🤖", "👻", "🦄", "🐾", "🏀", "⚽", "🚗", "✈️", "🕹️", "🎮", "🎲", "🧩", "🎭", "🎬", "🎤", "🎧", "🎹", "🎸", "🎻", "🎺", "🎷", "🥁", "🏹", "🎣", "🚵", "🧗", "🧘", "🛁", "🛌", "🗝️", "🛡️", "⚔️", "🗺️", "🕯️", "⌛", "⚖️", "⚙️", "⚒️", "🛠️", "⛏️", "⛓️", "🔭", "🔬", "💊", "💉", "🧬", "🩸", "🧪", "🌡️", "🧴", "🧹", "🧺", "🧼", "🧽", "🪣", "🪒", "🧻", "🛀", "🚿", "🚽"];
 export const CAT_ICONS = ["tag", "briefcase", "home", "user", "heart", "star", "shopping-cart", "book", "code", "coffee", "graduation-cap", "music", "camera", "plane", "bike", "gift", "bell", "calendar", "map-pin", "search", "folder", "database", "globe", "terminal", "cpu", "layers", "layout", "activity", "archive", "award", "bar-chart", "bookmark", "box", "briefcase", "check-circle", "clock", "cloud", "compass", "edit", "external-link", "eye", "file-text", "flag", "folder-open", "image", "info", "key", "life-buoy", "link", "list", "mail", "message-circle", "mic", "monitor", "moon", "mouse-pointer", "package", "paperclip", "phone", "pie-chart", "play", "plus", "printer", "save", "send", "settings", "share-2", "shield", "shopping-bag", "slack", "smartphone", "speaker", "sun", "tablet", "target", "tool", "truck", "tv", "umbrella", "video", "watch", "wifi", "zap"];
+
 
 
 

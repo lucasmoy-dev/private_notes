@@ -1,36 +1,33 @@
 # 🔐 Private Notes
 
-A secure, privacy-focused note-taking Progressive Web App (PWA) with end-to-end encryption, biometric authentication, and cloud synchronization.
+A secure, privacy-focused note-taking application with end-to-end encryption, biometric authentication, and local folder synchronization (compatible with Syncthing).
 
 ## 🏗️ Project Structure
 
-The project is organized as follows:
+The project is organized into modular components:
 
-- **`sources/webapp`**: Core web application logic and assets.
-- **`sources/mobile`**: Capacitor wrapper and Android native project.
-- **`releases/`**: Compiled versions of the app.
-  - `webapp/`: Production-ready web files.
+- **`sources/webapp`**: Core logic and UI of the Private Notes PWA.
+- **`sources/mobile`**: Capacitor wrapper and native Android project.
+- **`sources/scripts`**: Utility scripts for versioning, building, and Git automation.
+- **`releases/`**: Production-ready binaries and web builds.
+  - `webapp/`: Optimized production build for web hosting.
   - `private-notes-vX.X.X.apk`: Android application packages.
-- **`scripts/`**: Automation scripts for development and deployment.
-  - `src/`: Core PowerShell logic scripts.
-  - `android-release.sh`: Full release process for Android.
-  - `web-release.sh`: Full release process for Web.
+  - `private-notes-latest.apk`: The most recently compiled APK.
 
 ## 🚀 Release Process
 
-To perform a new release, use the scripts in the `scripts/` folder. These scripts will automatically increment the version, build the project, update documentation, and push changes to Git.
+We use a consolidated, interactive release manager. From the root directory, run:
 
-### Web Release
-```bash
-./scripts/web-release.sh
+### Windows (PowerShell)
+```powershell
+.\release.ps1
 ```
 
-### Android Release
-```bash
-./scripts/android-release.sh
-```
+This menu allows you to choose between:
+1. **WebApp Release**: Increments version, builds the web app, copies it to `releases/webapp/`, and pushes to Git.
+2. **Android Release**: Increments version, syncs Capacitor assets, compiles the APK via Docker, and pushes to Git.
 
-## 🛠️ Development
+## 🛠️ Development & Requirements
 
 ### WebApp
 Navigate to `sources/webapp`:
@@ -40,13 +37,16 @@ npm run dev
 ```
 
 ### Mobile (Android)
-Compilation is handled via Docker to ensure environment consistency.
-Requirement: **Docker Desktop** must be running.
+Compilation is fully automated via **Docker** to ensure a consistent build environment across different machines.
+- **Requirement**: Docker Desktop must be installed and running.
+- The build process automatically handles Android SDK, Gradle, and Java configurations within the container.
 
-## 🔒 Security First
-- **End-to-End Encryption**: AES-256-GCM.
-- **Zero-Knowledge**: Master password is never stored or transmitted.
-- **Biometric Authentication**: WebAuthn support for quick unlocking.
+## 🔒 Security & Sync Features
+- **End-to-End Encryption**: AES-256-GCM + GZIP compression for minimum storage footprint.
+- **Zero-Knowledge**: Your master password is never stored or transmitted.
+- **Biometric Authentication**: Native fingerprint support (WebAuthn/Biometrics) for instant access.
+- **Local Sync Mode**: Save notes to a specific folder in your device storage (Documents).
+- **External Sync Support**: Designed to work perfectly with **Syncthing** or **FolderSync** for multi-device synchronization without a central server.
 
 ---
 **Made with ❤️ for privacy-conscious note-takers**
