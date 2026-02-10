@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  android-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.build
+    volumes:
+      - ..:/app
+      # Usamos un volumen anónimo para evitar conflictos de I/O en Windows con .gradle
+      - /app/mobile/android/.gradle
+    working_dir: /app/mobile/android
+    environment:
+      - JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    command: /bin/sh -c "chmod +x gradlew && ./gradlew assembleDebug --no-daemon"

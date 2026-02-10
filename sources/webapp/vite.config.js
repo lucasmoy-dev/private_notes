@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
     // Si vas a publicar en github.io/repo-name/, cambia el base a '/repo-name/'
-    base: '/private-notes/',
+    base: './',
     build: {
         outDir: 'dist',
     },

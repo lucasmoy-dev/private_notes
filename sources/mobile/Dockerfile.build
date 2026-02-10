@@ -1,0 +1,5 @@
+# Usar la imagen oficial de react-native-android que ya tiene el SDK y Java
+FROM reactnativecommunity/react-native-android:latest
+
+# Directorio de trabajo inicial (se usará como base para el volumen)
+WORKDIR /app

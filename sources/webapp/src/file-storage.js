@@ -1,9 +1,13 @@
 import { SecurityService as Security } from './security.js';
 import { KEYS } from './constants.js';
+import { CapacitorFileStorage } from './capacitor-storage.js';
+
+const isCapacitor = () => !!window.Capacitor;
 
 /**
  * FileStorage Service
  * Uses File System Access API to store notes in a local folder.
+ * Delegated to CapacitorFileStorage if running on native mobile.
  */
 export class FileStorage {
     static dbName = 'FileHandleDB';
@@ -67,6 +71,16 @@ export class FileStorage {
      * Request folder permission from user
      */
     static async connectFolder() {
+        if (isCapacitor()) {
+            try {
+                const handle = await CapacitorFileStorage.connectFolder();
+                await this._setHandle(handle);
+                return handle;
+            } catch (e) {
+                console.error('[Storage] Capacitor connection failed', e);
+                throw e;
+            }
+        }
         try {
             const handle = await window.showDirectoryPicker({
                 mode: 'readwrite'
@@ -86,6 +100,8 @@ export class FileStorage {
         const handle = await this._getHandle();
         if (!handle) return null;
 
+        if (isCapacitor()) return handle;
+
         const options = { mode: 'readwrite' };
         let permission = await handle.queryPermission(options);
 
@@ -104,6 +120,7 @@ export class FileStorage {
     }
 
     static async getHandleStatus() {
+        if (isCapacitor()) return CapacitorFileStorage.getHandleStatus();
         const handle = await this._getHandle();
         if (!handle) return { hasHandle: false, permission: 'none' };
 
@@ -120,6 +137,7 @@ export class FileStorage {
      * If noteIds is provided, only those specific notes are written to disk.
      */
     static async pushData(notes, categories, vaultKey, noteIds = null) {
+        if (isCapacitor()) return CapacitorFileStorage.pushData(notes, categories, vaultKey, noteIds);
         const handle = await this.getHandle(false);
         if (!handle) return;
 
@@ -169,6 +187,7 @@ export class FileStorage {
      * Load data from connected folder
      */
     static async pullData(vaultKey) {
+        if (isCapacitor()) return CapacitorFileStorage.pullData(vaultKey);
         const handle = await this.getHandle();
         if (!handle) return null;
 
@@ -212,6 +231,7 @@ export class FileStorage {
      * Get only the metadata from the folder
      */
     static async getMetadata(vaultKey) {
+        if (isCapacitor()) return CapacitorFileStorage.getMetadata(vaultKey);
         const handle = await this.getHandle(false);
         if (!handle) return null;
 

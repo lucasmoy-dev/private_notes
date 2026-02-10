@@ -1,5 +1,22 @@
-node_modules
-dist
+# General
+node_modules/
 .DS_Store
 *.local
-StabilityMatrix/
+.vscode/
+
+# WebApp
+sources/webapp/dist/
+sources/webapp/node_modules/
+
+# Mobile / Android
+sources/mobile/node_modules/
+sources/mobile/android/.gradle/
+sources/mobile/android/build/
+sources/mobile/android/app/build/
+sources/mobile/android/local.properties/
+sources/mobile/android/Captures/
+sources/mobile/android/.idea/
+
+# Releases
+# User wants to commit releases, so we DON'T ignore it
+# !releases/

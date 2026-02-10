@@ -2,6 +2,8 @@ let biometricAbortController = null;
 
 import { KEYS } from './constants.js';
 
+export const isCapacitor = () => !!window.Capacitor;
+
 export function showToast(msg, duration = 3000) {
     const toast = document.getElementById('toast');
     if (!toast) return;

@@ -1,0 +1,8 @@
+{
+  "appId": "com.lucasmoy.privatenotes",
+  "appName": "PrivateNotes",
+  "webDir": "../webapp/dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

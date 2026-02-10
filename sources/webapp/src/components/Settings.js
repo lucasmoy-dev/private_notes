@@ -1,5 +1,5 @@
 import { state, saveLocal } from '../state.js';
-import { safeCreateIcons, showToast, openPrompt } from '../ui-utils.js';
+import { safeCreateIcons, showToast, openPrompt, isCapacitor } from '../ui-utils.js';
 import { t, currentLang, setLanguage } from '../i18n.js';
 import { KEYS } from '../constants.js';
 
@@ -139,16 +139,18 @@ export function getSettingsTemplate() {
                     <div id="panel-sync" class="settings-panel hidden space-y-6">
                         <section class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">${t('settings.local_folder')}</h3>
+                            <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">${isCapacitor() ? 'Memoria del Teléfono' : t('settings.local_folder')}</h3>
                                 <div id="folder-status" class="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-bold uppercase">${t('settings.sync_status.disconnected')}</div>
                             </div>
                             
                             <p class="text-xs text-muted-foreground">
-                                Selecciona una carpeta local para sincronizar tus notas. Ideal para usar con servicios de nube como Dropbox o OneDrive.
+                                ${isCapacitor()
+            ? 'Las notas se guardarán en la carpeta "PrivateNotes" de tus documentos. Puedes sincronizar esta carpeta con otros dispositivos usando apps como Syncthing o FolderSync.'
+            : 'Selecciona una carpeta local para sincronizar tus notas. Ideal para usar con servicios de nube como Dropbox o OneDrive.'}
                             </p>
 
                             <button id="connect-folder-btn" class="btn-shad btn-shad-outline w-full h-12 flex items-center justify-center gap-2 text-base rounded-xl">
-                                <i data-lucide="folder-plus" class="w-5 h-5"></i> ${t('settings.connect_folder')}
+                                <i data-lucide="${isCapacitor() ? 'smartphone' : 'folder-plus'}" class="w-5 h-5"></i> ${isCapacitor() ? 'Activar modo local' : t('settings.connect_folder')}
                             </button>
 
 
