@@ -63,6 +63,8 @@ async function initApp() {
     await checkAuthStatus(async () => {
         refreshUI();
         const vaultKey = sessionStorage.getItem(KEYS.VAULT_KEY) || localStorage.getItem(KEYS.VAULT_KEY);
+        window.triggerAutoSync = () => syncFolder(vaultKey);
+
         if (vaultKey) {
             await restoreDraft(vaultKey);
             await syncFolder(vaultKey);
@@ -174,6 +176,19 @@ function setupGlobalEvents() {
         openSettings();
     });
     bindClick('mobile-settings-btn-nav', openSettings);
+
+    const handleManualSync = () => {
+        if (window.triggerAutoSync) {
+            window.triggerAutoSync();
+            showToast('🔄 Buscando cambios...');
+        }
+    };
+    bindClick('sidebar-sync-btn', handleManualSync);
+    bindClick('mobile-sync-btn', () => {
+        closeMobileSidebar();
+        handleManualSync();
+    });
+
     bindClick('sidebar-collapse-btn', () => {
         const sidebar = document.querySelector('aside');
         sidebar.classList.toggle('collapsed');

@@ -32,6 +32,15 @@ export function getLayoutTemplate() {
                 <div class="space-y-3">
                     <div id="sidebar-categories" class="space-y-0.5"></div>
                 </div>
+
+                <div class="space-y-0.5 pt-4 border-t border-border/10">
+                    <button id="sidebar-sync-btn" class="nav-link w-full text-[11px] opacity-70 hover:opacity-100 group">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 group-active:animate-spin"></i>
+                            <span class="sidebar-label font-bold">${t('header.sync')}</span>
+                        </div>
+                    </button>
+                </div>
             </div>
 
             <div class="p-4 space-y-1.5 mt-auto">
@@ -139,6 +148,9 @@ export function getLayoutTemplate() {
                     </div>
                 </div>
                 <div class="p-4 border-t space-y-1.5">
+                    <button id="mobile-sync-btn" class="flex items-center gap-3 w-full p-2.5 rounded-md hover:bg-accent text-xs font-bold text-primary bg-primary/5">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> ${t('header.sync')}
+                    </button>
                     <button id="mobile-manage-cats" class="flex items-center gap-3 w-full p-2.5 rounded-md hover:bg-accent text-xs">
                         <i data-lucide="tag" class="w-3.5 h-3.5"></i> ${t('sidebar.manage_tags')}
                     </button>
