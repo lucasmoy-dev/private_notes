@@ -1,7 +1,7 @@
 {
     "name":  "cloud-notes-pwa",
     "private":  true,
-    "version":  "3.6.144",
+    "version":  "3.6.145",
     "type":  "module",
     "scripts":  {
                     "dev":  "vite",
@@ -11,6 +11,7 @@
                     "deploy":  "gh-pages -d dist"
                 },
     "devDependencies":  {
+                            "@capawesome/capacitor-file-picker":  "^6.2.0",
                             "autoprefixer":  "^10.4.23",
                             "gh-pages":  "^6.3.0",
                             "postcss":  "^8.5.6",

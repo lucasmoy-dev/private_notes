@@ -12,8 +12,9 @@ export function showToast(msg, duration = 3000) {
     setTimeout(() => toast.classList.remove('show'), duration);
 }
 
-export function openPrompt(message, description = '', isPassword = false) {
+export function openPrompt(message, description = '', isPassword = false, defaultValue = '') {
     if (typeof description === 'boolean') {
+        defaultValue = isPassword;
         isPassword = description;
         description = '';
     }
@@ -38,7 +39,7 @@ export function openPrompt(message, description = '', isPassword = false) {
             descEl.textContent = description;
             descEl.classList.toggle('hidden', !description);
         }
-        input.value = '';
+        input.value = defaultValue || '';
         input.type = isPassword ? 'password' : 'text';
 
         // Show/hide visibility toggle based on password mode

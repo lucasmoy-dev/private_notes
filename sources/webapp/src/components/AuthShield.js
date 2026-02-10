@@ -96,13 +96,17 @@ export async function checkAuthStatus(onSuccess) {
 
             try {
                 if (isCapacitor()) {
-                    const newName = await openPrompt(t('auth.setup_folder_title'), 'Documents/[Nombre]', false);
+                    let newName = await FileStorage.pickFolder();
+
+                    // If native picker fails or is cancelled, fallback to prompt but with better description
+                    if (!newName) {
+                        newName = await openPrompt(t('auth.setup_folder_title'), 'Documents/[Nombre]', false, 'PrivateNotes');
+                    }
+
                     if (newName && newName.trim()) {
                         await FileStorage.connectFolder(newName.trim());
-                    } else if (newName === null) {
-                        return; // Cancelled
                     } else {
-                        await FileStorage.connectFolder(); // Default
+                        return; // User cancelled both
                     }
                 } else {
                     await FileStorage.connectFolder();

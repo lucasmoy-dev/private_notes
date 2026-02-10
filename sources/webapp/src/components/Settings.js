@@ -145,7 +145,7 @@ export function getSettingsTemplate() {
                             
                             <p class="text-xs text-muted-foreground">
                                 ${isCapacitor()
-            ? 'Las notas se guardarán en <b>Documents/PrivateNotes</b>. Debido a restricciones de Android, no se puede elegir una carpeta externa, pero puedes sincronizar esta con Syncthing.'
+            ? 'Elige una carpeta en tu teléfono para sincronizar las notas. Puedes usar una carpeta existente o crear una nueva.'
             : 'Selecciona una carpeta local para sincronizar tus notas. Ideal para usar con servicios de nube como Dropbox o OneDrive.'}
                             </p>
 
@@ -371,22 +371,16 @@ export function initSettings() {
 
             try {
                 if (isCapacitor()) {
-                    // On mobile, if already "connected", maybe they want to change the folder name?
-                    if (status.hasHandle) {
-                        const newName = await openPrompt('Cambiar nombre de carpeta', 'Las notas se guardarán en Documents/[Nombre]', false);
-                        if (newName && newName.trim()) {
-                            await FileStorage.connectFolder(newName.trim());
-                            showToast(`✅ Carpeta cambiada a: ${newName.trim()}`);
-                            updateFolderStatus();
-                            return;
-                        } else {
-                            // If user cancels or enters empty name, just update status and return
-                            updateFolderStatus();
-                            return;
-                        }
+                    let newName = await FileStorage.pickFolder();
+                    if (newName && newName.trim()) {
+                        await FileStorage.connectFolder(newName.trim());
+                        showToast(`✅ Carpeta vinculada: ${newName.trim()}`);
                     } else {
-                        await FileStorage.connectFolder();
-                        showToast('✅ Carpeta "PrivateNotes" vinculada');
+                        // Fallback to default if they didn't pick anything but we had nothing
+                        if (!status.hasHandle) {
+                            await FileStorage.connectFolder();
+                            showToast('✅ Carpeta "PrivateNotes" vinculada por defecto');
+                        }
                     }
                 } else if (status.hasHandle && status.permission !== 'granted') {
                     // Just request permission for the existing handle

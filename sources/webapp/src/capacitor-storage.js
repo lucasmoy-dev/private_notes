@@ -9,6 +9,34 @@ export class CapacitorFileStorage {
         return localStorage.getItem(KEYS.LOCAL_SYNC_FOLDER) || DEFAULT_BASE_DIR;
     }
 
+    static async pickFolder() {
+        try {
+            const { FilePicker } = await import('@capawesome/capacitor-file-picker');
+            const result = await FilePicker.pickDirectories();
+            if (result.directories && result.directories.length > 0) {
+                const dir = result.directories[0];
+                let path = dir.path || '';
+
+                // Try to make it relative to Documents if we find the common Android path
+                if (path.includes('/Documents/')) {
+                    return path.split('/Documents/')[1];
+                }
+
+                // If it's a relative path already (sometimes plugins do this)
+                if (path && !path.startsWith('/') && !path.startsWith('content:')) {
+                    return path;
+                }
+
+                // Default to just the folder name if path is complex/URI
+                return dir.name || 'PrivateNotes';
+            }
+            return null;
+        } catch (e) {
+            console.error('[Capacitor] Pick folder failed', e);
+            throw e;
+        }
+    }
+
     static async connectFolder(folderName = null) {
         if (folderName) {
             localStorage.setItem(KEYS.LOCAL_SYNC_FOLDER, folderName);
