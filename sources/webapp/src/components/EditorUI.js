@@ -102,7 +102,7 @@ export class EditorUI {
         const label = document.getElementById('opt-pin-label');
         const icon = document.getElementById('opt-pin-icon');
 
-        if (label) label.innerText = active ? 'Desfijar nota' : 'Fijar nota';
+        if (label) label.innerText = active ? t('editor.unpin') : t('editor.pin');
         if (icon) icon.setAttribute('class', active ? 'w-4 h-4 text-violet-600' : 'w-4 h-4 text-muted-foreground');
 
         btn.classList.toggle('menu-active-violet', active);
@@ -116,7 +116,7 @@ export class EditorUI {
         const label = document.getElementById('opt-lock-label');
         const icon = document.getElementById('opt-lock-icon');
 
-        if (label) label.innerText = active ? 'Quitar restricción' : 'Restringir';
+        if (label) label.innerText = active ? t('editor.unlock') : t('editor.lock');
         if (icon) {
             icon.setAttribute('data-lucide', active ? 'lock' : 'lock-open');
             icon.setAttribute('class', active ? 'w-4 h-4 text-violet-600' : 'w-4 h-4 text-muted-foreground');

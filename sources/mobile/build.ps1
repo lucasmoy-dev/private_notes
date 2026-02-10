@@ -5,8 +5,11 @@ Write-Host ""
 
 # 1. Build WebApp
 Write-Host "[1/3] Building web application..." -ForegroundColor Yellow
-Set-Location ..
+$rootPath = Resolve-Path "..\.."
+$webappPath = Join-Path $rootPath "sources\webapp"
+Push-Location $webappPath
 npm run build
+Pop-Location
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Error building webapp" -ForegroundColor Red
     exit 1
@@ -14,7 +17,6 @@ if ($LASTEXITCODE -ne 0) {
 
 # 2. Sync with Capacitor
 Write-Host "[2/3] Syncing with Capacitor..." -ForegroundColor Yellow
-Set-Location mobile
 npx cap copy
 npx cap sync android
 if ($LASTEXITCODE -ne 0) {
@@ -44,5 +46,3 @@ if (Test-Path $studioPath) {
         Start-Process $studioPath -ArgumentList "$PWD\android"
     }
 }
-
-Set-Location ..

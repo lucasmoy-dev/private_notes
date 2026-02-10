@@ -127,7 +127,7 @@ export function getSettingsTemplate() {
                                     <span class="text-xs font-medium">${t('settings.installed_version')}</span>
                                     <span class="text-xs font-bold font-mono text-primary" id="settings-version-display">v4.0.0</span>
                                 </div>
-                                <button id="force-reload-btn-settings" class="btn-shad btn-shad-outline w-full h-10 flex items-center justify-center gap-2 group text-sm rounded-lg">
+                                <button id="force-reload-btn" class="btn-shad btn-shad-outline w-full h-10 flex items-center justify-center gap-2 group text-sm rounded-lg">
                                     <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500"></i>
                                     ${t('sidebar.force_reload')}
                                 </button>
@@ -504,10 +504,8 @@ export function initSettings() {
     }
 
     // Force Reload Logic
-    const reloadBtn = document.getElementById('force-reload-btn'); // Global one
-    const reloadBtnSettings = document.getElementById('force-reload-btn-settings');
+    const reloadBtn = document.getElementById('force-reload-btn');
     if (reloadBtn) reloadBtn.onclick = handleForceReload;
-    if (reloadBtnSettings) reloadBtnSettings.onclick = handleForceReload;
 
     // Language Switcher (Custom Selectpicker)
     const langPickerBtn = document.getElementById('lang-picker-btn');

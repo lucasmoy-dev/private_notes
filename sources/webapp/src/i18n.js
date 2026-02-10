@@ -30,6 +30,11 @@ const translations = {
             unlock: "Unlock",
             setup_title: "Setup your Vault",
             setup_desc: "Create a master password. Enter it twice to confirm.",
+            setup_folder_title: "Where to store your notes?",
+            setup_folder_desc: "Select a folder to keep your notes synced and encrypted.",
+            setup_folder_btn: "Set Folder",
+            setup_folder_change: "Change Folder",
+            setup_next: "Next",
             create_vault: "Create my Vault",
             confirm_pass: "Repeat password",
             pass_placeholder: "Your password",
@@ -59,7 +64,11 @@ const translations = {
             tools: {
                 bg_color: "Background Color",
                 text_format: "Text Format"
-            }
+            },
+            pin: "Pin note",
+            unpin: "Unpin note",
+            lock: "Restrict note",
+            unlock: "Remove restriction"
         },
         settings: {
             title: "Settings",
@@ -181,7 +190,12 @@ const translations = {
             desc: "Ingresa tu contraseña maestra para continuar",
             unlock: "Desbloquear",
             setup_title: "Configura tu Bóveda",
-            setup_desc: "Crea una contraseña maestra. Introduce la contraseña dos veces para asegurar que es correcta.",
+            setup_desc: "Crea una contraseña maestra para proteger tus notas.",
+            setup_folder_title: "¿Dónde almacenar tus notas?",
+            setup_folder_desc: "Elige la carpeta donde se guardarán tus notas encriptadas.",
+            setup_folder_btn: "Elegir Carpeta",
+            setup_folder_change: "Cambiar Carpeta",
+            setup_next: "Siguiente",
             create_vault: "Crear mi Bóveda",
             confirm_pass: "Repite la contraseña",
             pass_placeholder: "Tu contraseña",
@@ -211,7 +225,11 @@ const translations = {
             tools: {
                 bg_color: "Color de Fondo",
                 text_format: "Formato de Texto"
-            }
+            },
+            pin: "Fijar nota",
+            unpin: "Desfijar nota",
+            lock: "Restringir nota",
+            unlock: "Quitar restricción"
         },
         settings: {
             title: "Configuración",
@@ -362,7 +380,11 @@ const translations = {
             tools: {
                 bg_color: "Couleur de fond",
                 text_format: "Format du texte"
-            }
+            },
+            pin: "Épingler la note",
+            unpin: "Désépingler la note",
+            lock: "Restreindre la note",
+            unlock: "Enlever la restriction"
         },
         settings: {
             title: "Paramètres",
@@ -497,7 +519,11 @@ const translations = {
             tools: {
                 bg_color: "Hintergrundfarbe",
                 text_format: "Textformat"
-            }
+            },
+            pin: "Notiz anheften",
+            unpin: "Notiz lösen",
+            lock: "Notiz einschränken",
+            unlock: "Einschränkung aufheben"
         },
         settings: {
             title: "Einstellungen",
@@ -632,7 +658,11 @@ const translations = {
             tools: {
                 bg_color: "Colore sfondo",
                 text_format: "Formato testo"
-            }
+            },
+            pin: "Fissa nota",
+            unpin: "Rimuovi fissaggio",
+            lock: "Restringi nota",
+            unlock: "Rimuovi restrizione"
         },
         settings: {
             title: "Impostazioni",
@@ -769,7 +799,11 @@ const translations = {
             tools: {
                 bg_color: "Cor de fundo",
                 text_format: "Formato de texto"
-            }
+            },
+            pin: "Fixar nota",
+            unpin: "Desafixar nota",
+            lock: "Restringir nota",
+            unlock: "Remover restrição"
         },
         settings: {
             title: "Configurações",

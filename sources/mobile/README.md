@@ -1,93 +1,94 @@
-# 📱 Compilación de APK para Android
+# 📱 Android APK Compilation
 
-## ✅ Estado del Proyecto
-- ✅ Proyecto Capacitor configurado
-- ✅ Assets web sincronizados
-- ✅ Permisos de almacenamiento añadidos
-- ✅ Código adaptado para detectar Capacitor
-- ⚠️ Requiere Android Studio para compilar la APK
+## ✅ Project Status
+- ✅ Capacitor project configured
+- ✅ Web assets synced
+- ✅ Storage permissions added
+- ✅ Code adapted for Capacitor detection
+- ⚠️ Requires Android Studio to compile the APK
 
-## 🛠️ Compilar la APK
+## 🛠️ Compiling the APK
 
-### Opción 1: Usando Android Studio (Recomendado)
+### Option 1: Using Android Studio (Recommended)
 
-1. Abre **Android Studio**
-2. Selecciona **"Open an Existing Project"**
-3. Navega a: `d:\work\lab\private-notes\mobile\android`
-4. Espera a que Gradle sincronice (puede tardar unos minutos la primera vez)
-5. Ve a **Build > Build Bundle(s) / APK(s) > Build APK(s)**
-6. Una vez termine, haz clic en **"Locate"** para abrir la carpeta con la APK
+1. Open **Android Studio**
+2. Select **"Open an Existing Project"**
+3. Navigate to: `d:\work\lab\private-notes\sources\mobile\android`
+4. Wait for Gradle to sync (may take a few minutes the first time)
+5. Go to **Build > Build Bundle(s) / APK(s) > Build APK(s)**
+6. Once finished, click on **"Locate"** to open the folder with the APK
 
-**Ubicación de la APK:**
+**APK Location:**
 ```
-d:\work\lab\private-notes\mobile\android\app\build\outputs\apk\debug\app-debug.apk
+d:\work\lab\private-notes\sources\mobile\android\app\build\outputs\apk\debug\app-debug.apk
 ```
 
-### Opción 2: Usando Línea de Comandos
+### Option 2: Using Command Line
 
-Si tienes Android Studio instalado y configurado:
+If you have Android Studio installed and configured:
 
 ```powershell
-cd d:\work\lab\private-notes\mobile\android
+cd d:\work\lab\private-notes\sources\mobile\android
 .\gradlew.bat assembleDebug
 ```
 
-La APK se generará en la misma ubicación mencionada arriba.
+The APK will be generated in the same location mentioned above.
 
-## 🔄 Actualizar la APK después de cambios en el código
+## 🔄 Updating the APK after code changes
 
-Cada vez que hagas cambios en el código web:
+Every time you make changes to the web code:
 
 ```powershell
-# Desde la raíz del proyecto
-.\mobile\build.ps1
+# From the project root
+.\sources\mobile\build.ps1
 ```
 
-Este script:
-1. Compila la webapp (`npm run build`)
-2. Copia los assets a Capacitor (`npx cap copy`)
-3. Sincroniza con Android (`npx cap sync android`)
+This script:
+1. Builds the webapp (`npm run build`)
+2. Copies assets to Capacitor (`npx cap copy`)
+3. Syncs with Android (`npx cap sync android`)
 
-Luego vuelve a compilar la APK con Android Studio o Gradle.
+Then recompile the APK with Android Studio or Gradle.
 
-## 📂 Estructura del Proyecto Móvil
+## 📂 Mobile Project Structure
 
 ```
 mobile/
-├── android/              # Proyecto Android nativo
+├── android/              # Native Android project
 │   ├── app/
 │   │   └── build/
 │   │       └── outputs/
 │   │           └── apk/
 │   │               └── debug/
-│   │                   └── app-debug.apk  ← APK AQUÍ
-│   └── local.properties  # Configuración del SDK
-├── capacitor.config.json # Configuración de Capacitor
-├── build.ps1            # Script de compilación
-└── package.json         # Dependencias de Capacitor
+│   │                   └── app-debug.apk  ← APK HERE
+│   └── local.properties  # SDK Configuration
+├── capacitor.config.json # Capacitor Configuration
+├── build.ps1            # Build script
+└── package.json         # Capacitor dependencies
+```
 
-## 🔍 Verificar que todo funciona
+## 🔍 Verify everything works
 
-Una vez instalada la APK en tu móvil:
+Once the APK is installed on your mobile:
 
-1. Abre la app "PrivateNotes"
-2. Ve a **Configuración > Sincronización**
-3. Deberías ver **"Memoria del Teléfono"** en lugar de "Carpeta Local"
-4. Al activar la sincronización, las notas se guardarán en:
+1. Open the "PrivateNotes" app
+2. Go to **Settings > Sync**
+3. You should see **"Phone Storage"** instead of "Local Folder"
+4. Upon activating sync, notes will be saved in:
    ```
    /storage/emulated/0/Documents/PrivateNotes/
    ```
 
-## 🔐 Características del Modo Móvil
+## 🔐 Mobile Mode Features
 
-- ✅ Almacenamiento nativo en la carpeta de documentos
-- ✅ Compatible con apps de sincronización (Syncthing, FolderSync, etc.)
-- ✅ Misma encriptación AES-256-GCM que la versión web
-- ✅ Detección automática del entorno (web vs móvil)
-- ✅ Sincronización automática al abrir/cerrar la app
+- ✅ Native storage in the documents folder
+- ✅ Compatible with sync apps (Syncthing, FolderSync, etc.)
+- ✅ Same AES-256-GCM encryption as the web version
+- ✅ Automatic environment detection (web vs mobile)
+- ✅ Automatic synchronization on app open/close
 
-## ⚠️ Notas Importantes
+## ⚠️ Important Notes
 
-- La APK generada con `assembleDebug` es solo para pruebas
-- Para publicar en Play Store, necesitas `assembleRelease` y firmar la APK
-- El primer build puede tardar varios minutos mientras descarga dependencias
+- The APK generated with `assembleDebug` is for testing only
+- To publish on Play Store, you need `assembleRelease` and to sign the APK
+- The first build may take several minutes while downloading dependencies

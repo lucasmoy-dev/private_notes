@@ -1,5 +1,6 @@
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { SecurityService as Security } from './security.js';
+import { KEYS } from './constants.js';
 
 const DEFAULT_BASE_DIR = 'PrivateNotes';
 

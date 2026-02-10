@@ -76,7 +76,7 @@ async function initApp() {
     BackupService.runAutoBackup();
 
     // 7. Final UI Polish
-    initSearch();
+    if (typeof initSearch === 'function') initSearch();
     initMobileNav();
     initPWA();
     registerSW();
@@ -600,11 +600,12 @@ async function syncFolder(vaultKey) {
 }
 
 async function handleLogout() {
-    localStorage.removeItem(KEYS.VAULT_KEY);
-    sessionStorage.removeItem(KEYS.VAULT_KEY);
-    // Legacy cleanup
-    localStorage.removeItem('cn_pass_plain_v3');
-    sessionStorage.removeItem('cn_pass_plain_v3');
+    const preservedFolder = localStorage.getItem(KEYS.LOCAL_SYNC_FOLDER);
+    localStorage.clear();
+    sessionStorage.clear();
+    if (preservedFolder) {
+        localStorage.setItem(KEYS.LOCAL_SYNC_FOLDER, preservedFolder);
+    }
     location.reload();
 }
 

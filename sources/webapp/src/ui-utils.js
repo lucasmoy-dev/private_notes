@@ -44,25 +44,25 @@ export function openPrompt(message, description = '', isPassword = false) {
         // Show/hide visibility toggle based on password mode
         if (isPassword) {
             toggleBtn.classList.remove('hidden');
-            input.placeholder = 'Enter password';
-            input.classList.add('text-center', 'tracking-widest');
+            input.placeholder = '••••••••';
+            input.classList.add('text-center', 'tracking-[0.5em]', 'font-mono');
+            toggleBtn.innerHTML = '<i data-lucide="eye"></i>';
         } else {
             toggleBtn.classList.add('hidden');
             input.placeholder = 'Type here...';
-            input.classList.remove('text-center', 'tracking-widest');
+            input.classList.remove('text-center', 'tracking-[0.5em]', 'font-mono');
         }
 
         // Show biometric button if supported and enabled
         const isBioEnabled = localStorage.getItem(KEYS.BIO_ENABLED) === 'true';
         if (window.PublicKeyCredential && isBioEnabled && isPassword) {
             bioBtn.classList.remove('hidden');
-
             // Auto-trigger biometric after a short delay
             setTimeout(() => {
                 if (!modal.classList.contains('hidden')) {
                     bioBtn.click();
                 }
-            }, 10);
+            }, 100);
         } else {
             bioBtn.classList.add('hidden');
         }
@@ -90,11 +90,10 @@ export function openPrompt(message, description = '', isPassword = false) {
                 cleanup();
                 resolve({ biometric: true });
             } catch (e) {
-                // If get fails or no discoverable credentials, try 'create' as a verification fallback
-                // This is often needed on older Android/iOS versions for non-resident credentials.
                 try {
-                    console.log('[Bio] Get failed, trying create fallback...', e.name);
                     if (e.name === 'AbortError') return;
+                    const challenge = new Uint8Array(32);
+                    window.crypto.getRandomValues(challenge);
 
                     await navigator.credentials.create({
                         publicKey: {
@@ -130,10 +129,12 @@ export function openPrompt(message, description = '', isPassword = false) {
         toggleBtn.onclick = () => {
             if (input.type === 'password') {
                 input.type = 'text';
-                toggleBtn.innerHTML = '<i data-lucide="eye"></i>';
+                input.classList.remove('tracking-[0.5em]');
+                toggleBtn.innerHTML = '<i data-lucide="eye-off"></i>';
             } else {
                 input.type = 'password';
-                toggleBtn.innerHTML = '<i data-lucide="eye-off"></i>';
+                input.classList.add('tracking-[0.5em]');
+                toggleBtn.innerHTML = '<i data-lucide="eye"></i>';
             }
             safeCreateIcons();
         };

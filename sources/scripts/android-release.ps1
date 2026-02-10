@@ -73,9 +73,11 @@ Write-Host "`n[4/4] Verifying result..." -ForegroundColor Yellow
 if (Test-Path $apkPathInAndroid) {
     if (!(Test-Path $releasesPath)) { New-Item -ItemType Directory -Path $releasesPath }
     
-    $finalName = "private-notes-v$Version.apk"
-    Copy-Item $apkPathInAndroid (Join-Path $releasesPath $finalName)
-    Copy-Item $apkPathInAndroid (Join-Path $releasesPath "private-notes-latest.apk")
+    # Remove old versioned APKs to keep only latest
+    Remove-Item (Join-Path $releasesPath "private-notes-v*.apk") -ErrorAction SilentlyContinue
+    
+    $finalName = "private-notes-latest.apk"
+    Copy-Item $apkPathInAndroid (Join-Path $releasesPath $finalName) -Force
     
     Write-Host "`n✅ APK Generated successfully!" -ForegroundColor Green
     Write-Host "File: $finalName" -ForegroundColor White
