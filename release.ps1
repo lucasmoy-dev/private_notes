@@ -65,9 +65,16 @@ function Push-To-Git {
     & $pushScriptPath -Message $message
 }
 
+function Deploy-WebApp {
+    Write-Host "Deploying to GitHub Pages..." -ForegroundColor Yellow
+    Push-Location $webappPath
+    npm run deploy
+    Pop-Location
+}
+
 switch ($Choice) {
     "1" {
-        Write-Host "Starting Full Release (Todo)..." -ForegroundColor Cyan
+        Write-Host "Starting Full Release..." -ForegroundColor Cyan
         $newVersion = Update-Version
         if ($null -eq $newVersion) { exit 1 }
         
@@ -77,6 +84,7 @@ switch ($Choice) {
         Copy-WebApp-To-Releases
         
         Push-To-Git -message "Full Release v$newVersion"
+        Deploy-WebApp
         Write-Host "✅ Full Release Completed!" -ForegroundColor Green
     }
     "2" {
@@ -88,6 +96,7 @@ switch ($Choice) {
         Copy-WebApp-To-Releases
         
         Push-To-Git -message "Web Release v$newVersion"
+        Deploy-WebApp
         Write-Host "✅ WebApp Release Completed!" -ForegroundColor Green
     }
     "3" {
